@@ -1,0 +1,13 @@
+{
+  "name": "@10-pet/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Frontend React + Vite para 10_Pet",
+  "scripts": {
+    "dev": "echo 'TODO: configurar dev script en Semana 4'",
+    "build": "echo 'TODO: configurar build en Semana 4'",
+    "test": "echo 'TODO: configurar tests en Semana 4'",
+    "lint": "echo 'TODO: configurar lint en Semana 4'",
+    "typecheck": "echo 'TODO: configurar typecheck en Semana 4'"
+  }
+}

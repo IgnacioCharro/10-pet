@@ -1,0 +1,14 @@
+{
+  "name": "@10-pet/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Backend Express API para 10_Pet",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "echo 'TODO: configurar dev script en Semana 1'",
+    "build": "echo 'TODO: configurar build en Semana 1'",
+    "test": "echo 'TODO: configurar tests en Semana 1'",
+    "lint": "echo 'TODO: configurar lint en Semana 1'",
+    "typecheck": "echo 'TODO: configurar typecheck en Semana 1'"
+  }
+}

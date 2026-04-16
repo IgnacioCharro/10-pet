@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+# keep .env.example tracked
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+logs/
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# IDE / editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp
+tmp/
+temp/
+*.tmp
+
+# Uploads (local dev only)
+uploads/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Sentry
+.sentryclirc
+
+# Misc
+.cache/
+.parcel-cache/
+
+# Claude Code (local user settings — no commitear)
+.claude/settings.local.json

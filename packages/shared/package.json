@@ -1,0 +1,12 @@
+{
+  "name": "@10-pet/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tipos y schemas Zod compartidos entre api y web",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "lint": "echo 'TODO: configurar lint en Semana 1'",
+    "typecheck": "echo 'TODO: configurar typecheck en Semana 1'"
+  }
+}
