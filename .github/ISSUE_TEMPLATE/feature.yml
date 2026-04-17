@@ -1,0 +1,57 @@
+name: Feature request
+description: Proponer una nueva feature o mejora
+title: "[feat]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de abrir este issue, confirmá que la feature esté dentro del alcance del MVP
+        (ver `Home/PLAN_ULTRA.md §7`). Features de v1.5+ se registran pero no se implementan aún.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema o necesidad
+      description: ¿Qué dolor del usuario resuelve esta feature?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solución propuesta
+      description: Descripción funcional del cambio. Mockups si tenés.
+    validations:
+      required: true
+
+  - type: input
+    id: plan_ref
+    attributes:
+      label: Sección del plan
+      description: Si corresponde a una sección del PLAN_ULTRA (ej. §15.2), indicala acá.
+      placeholder: "§"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Fase objetivo
+      options:
+        - MVP (semanas 1-11)
+        - v1.1
+        - v1.2
+        - v1.5 (Comunidad)
+        - v2
+        - No definido
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+    validations:
+      required: false

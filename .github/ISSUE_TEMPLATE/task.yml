@@ -1,0 +1,41 @@
+name: Task (roadmap)
+description: Tarea técnica del roadmap semanal
+title: "[task]: "
+labels: ["task"]
+body:
+  - type: input
+    id: week
+    attributes:
+      label: Semana del roadmap
+      description: Ver `Home/PLAN_ULTRA.md §19`.
+      placeholder: "Semana 1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Deliverable
+      description: Qué queda funcionando al cerrar este task.
+    validations:
+      required: true
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Subtareas concretas.
+      value: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: done_criteria
+    attributes:
+      label: Criterio de done
+      description: Cómo verificamos que está listo.
+    validations:
+      required: true

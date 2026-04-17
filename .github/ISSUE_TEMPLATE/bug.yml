@@ -1,0 +1,53 @@
+name: Bug report
+description: Reportar un bug o comportamiento inesperado
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportar. Completá la info para que pueda reproducirlo rápido.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Qué pasó
+      description: Describí el problema en una o dos frases.
+      placeholder: Al hacer X, ocurre Y en lugar de Z.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1. Ir a...
+        2. Click en...
+        3. Ver error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Qué esperabas que pase
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: Entorno
+      description: Navegador / OS / versión de la app / rama de git si aplica.
+      placeholder: Chrome 120 / Windows 11 / main @ abc1234
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, screenshots, o stack trace
+      render: shell
+    validations:
+      required: false
