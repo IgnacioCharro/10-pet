@@ -1,0 +1,54 @@
+# Labels del repo 10-pet.
+# Fuente de verdad — se sincroniza con GitHub vía .github/workflows/sync-labels.yml.
+# Para agregar/modificar un label, edita este archivo y pushea a main.
+
+# --- Tipo (qué es el issue/PR) ---
+- name: bug
+  color: d73a4a
+  description: Algo no funciona como debería
+
+- name: enhancement
+  color: a2eeef
+  description: Feature nueva o mejora funcional
+
+- name: task
+  color: 7057ff
+  description: Tarea del roadmap (ver PLAN_ULTRA §19)
+
+- name: chore
+  color: fef2c0
+  description: Mantenimiento, tooling, dependencias, infra
+
+- name: docs
+  color: 0075ca
+  description: Cambios en documentación
+
+- name: refactor
+  color: c5def5
+  description: Refactor sin cambio de comportamiento
+
+- name: test
+  color: fbca04
+  description: Tests agregados o actualizados
+
+- name: security
+  color: b60205
+  description: Issue o fix relacionado con seguridad
+
+# --- Prioridad (usar con cuentagotas) ---
+- name: blocker
+  color: ee0701
+  description: Bloquea otras tareas — priorizar
+
+# --- Fase / scope temporal ---
+- name: mvp
+  color: 0e8a16
+  description: Parte del alcance del MVP (semanas 1-11)
+
+- name: post-mvp
+  color: c2e0c6
+  description: Diferido a v1.1 o posterior
+
+- name: v1.5
+  color: d4c5f9
+  description: Concepto B (Comunidad) — NO implementar hasta v1.5
