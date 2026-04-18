@@ -7,6 +7,7 @@ import {
   UpdateCaseInput,
   AddUpdateInput,
 } from './cases.validators';
+import { notifyNewCaseQueue } from '../../../jobs/queue';
 
 export interface CaseRow {
   id: string;
@@ -110,7 +111,25 @@ export async function createCase(
     },
   );
 
-  return result[0];
+  const newCase = result[0];
+
+  if (notifyNewCaseQueue) {
+    await notifyNewCaseQueue.add(
+      {
+        caseId: newCase.id,
+        animalType: newCase.animalType,
+        description: newCase.description,
+        urgencyLevel: newCase.urgencyLevel,
+        locationText: newCase.locationText,
+        lat: newCase.lat,
+        lng: newCase.lng,
+        creatorId: userId,
+      },
+      { attempts: 3, backoff: { type: 'exponential', delay: 10000 } },
+    );
+  }
+
+  return newCase;
 }
 
 export async function insertCaseImages(

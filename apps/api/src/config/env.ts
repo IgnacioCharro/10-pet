@@ -14,6 +14,8 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 chars'),
   JWT_ACCESS_EXPIRES: z.string().default('15m'),
   JWT_REFRESH_EXPIRES: z.string().default('7d'),
+  REDIS_URL: z.string().optional(),
+  ADMIN_EMAILS: z.string().default(''),
   SENDGRID_API_KEY: z.string().optional(),
   SENDGRID_FROM_EMAIL: z.string().email().default('noreply@10pet.ar'),
   SENDGRID_FROM_NAME: z.string().default('10_Pet'),

@@ -5,6 +5,27 @@ if (env.SENDGRID_API_KEY) {
   sgMail.setApiKey(env.SENDGRID_API_KEY);
 }
 
+export interface EmailPayload {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}
+
+export const sendEmail = async (payload: EmailPayload): Promise<void> => {
+  if (!env.SENDGRID_API_KEY) {
+    console.log(`[email] → ${payload.to}: ${payload.subject}`);
+    return;
+  }
+  await sgMail.send({
+    to: payload.to,
+    from: { email: env.SENDGRID_FROM_EMAIL, name: env.SENDGRID_FROM_NAME },
+    subject: payload.subject,
+    text: payload.text,
+    html: payload.html,
+  });
+};
+
 export const sendVerificationEmail = async (
   toEmail: string,
   token: string,
