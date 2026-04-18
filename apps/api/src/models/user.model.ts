@@ -5,13 +5,23 @@ interface UserAttributes {
   email: string;
   passwordHash: string | null;
   emailVerified: boolean;
+  emailVerificationToken: string | null;
+  emailVerificationTokenExpiresAt: Date | null;
+  googleId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
 type UserCreationAttributes = Optional<
   UserAttributes,
-  'id' | 'passwordHash' | 'emailVerified' | 'createdAt' | 'updatedAt'
+  | 'id'
+  | 'passwordHash'
+  | 'emailVerified'
+  | 'emailVerificationToken'
+  | 'emailVerificationTokenExpiresAt'
+  | 'googleId'
+  | 'createdAt'
+  | 'updatedAt'
 >;
 
 export class User
@@ -22,6 +32,9 @@ export class User
   declare email: string;
   declare passwordHash: string | null;
   declare emailVerified: boolean;
+  declare emailVerificationToken: string | null;
+  declare emailVerificationTokenExpiresAt: Date | null;
+  declare googleId: string | null;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
@@ -47,6 +60,19 @@ export class User
           type: DataTypes.BOOLEAN,
           allowNull: false,
           defaultValue: false,
+        },
+        emailVerificationToken: {
+          type: DataTypes.STRING(64),
+          allowNull: true,
+        },
+        emailVerificationTokenExpiresAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        googleId: {
+          type: DataTypes.STRING(255),
+          allowNull: true,
+          unique: true,
         },
         createdAt: {
           type: DataTypes.DATE,
