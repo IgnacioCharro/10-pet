@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware'
 export interface AuthUser {
   id: string
   email: string
+  name: string | null
   emailVerified: boolean
   createdAt?: string
 }

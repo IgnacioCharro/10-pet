@@ -43,17 +43,30 @@ export default function NavBar() {
           <NavLink to="/" end className={navLinkClass}>
             Inicio
           </NavLink>
+          <NavLink to="/cases" className={navLinkClass}>
+            Mapa
+          </NavLink>
           {isAuthenticated && (
-            <NavLink to="/dashboard" className={navLinkClass}>
-              Dashboard
-            </NavLink>
+            <>
+              <NavLink to="/dashboard" className={navLinkClass}>
+                Dashboard
+              </NavLink>
+              <NavLink to="/profile" className={navLinkClass}>
+                Mi perfil
+              </NavLink>
+            </>
           )}
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
           {isAuthenticated ? (
             <>
-              {user && <span className="text-sm text-gray-500 max-w-[180px] truncate">{user.email}</span>}
+              <Link to="/cases/new">
+                <Button variant="primary" size="sm">
+                  + Reportar
+                </Button>
+              </Link>
+              {user && <span className="text-sm text-gray-500 max-w-[140px] truncate">{user.name ?? user.email}</span>}
               <Button variant="secondary" size="sm" onClick={handleLogout}>
                 Salir
               </Button>
@@ -107,10 +120,21 @@ export default function NavBar() {
             <NavLink to="/" end className={navLinkClass} onClick={() => setOpen(false)}>
               Inicio
             </NavLink>
+            <NavLink to="/cases" className={navLinkClass} onClick={() => setOpen(false)}>
+              Mapa
+            </NavLink>
             {isAuthenticated && (
-              <NavLink to="/dashboard" className={navLinkClass} onClick={() => setOpen(false)}>
-                Dashboard
-              </NavLink>
+              <>
+                <NavLink to="/dashboard" className={navLinkClass} onClick={() => setOpen(false)}>
+                  Dashboard
+                </NavLink>
+                <NavLink to="/profile" className={navLinkClass} onClick={() => setOpen(false)}>
+                  Mi perfil
+                </NavLink>
+                <NavLink to="/cases/new" className={navLinkClass} onClick={() => setOpen(false)}>
+                  + Reportar
+                </NavLink>
+              </>
             )}
             <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
               {isAuthenticated ? (

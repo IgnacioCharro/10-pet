@@ -13,7 +13,7 @@ export const createCaseSchema = z.object({
   condition: z.string().trim().max(100).optional(),
   urgencyLevel: z.number().int().min(1).max(5).default(1),
   phoneContact: z.string().trim().max(20).optional(),
-  imageIds: z.array(z.string().uuid()).max(10).optional(),
+  imageIds: z.array(z.string().max(500)).max(10).optional(),
 });
 
 export const listCasesSchema = z.object({

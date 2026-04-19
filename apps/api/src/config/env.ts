@@ -24,6 +24,9 @@ const envSchema = z.object({
   GOOGLE_CALLBACK_URL: z
     .string()
     .default('http://localhost:3000/api/v1/auth/google/callback'),
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

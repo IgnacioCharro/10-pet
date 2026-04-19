@@ -6,6 +6,9 @@ import RegisterPage from '../pages/RegisterPage'
 import VerifyEmailPage from '../pages/VerifyEmailPage'
 import AuthCallbackPage from '../pages/AuthCallbackPage'
 import DashboardPage from '../pages/DashboardPage'
+import CasesPage from '../pages/CasesPage'
+import PublishCasePage from '../pages/PublishCasePage'
+import ProfilePage from '../pages/ProfilePage'
 import NotFoundPage from '../pages/NotFoundPage'
 import ProtectedRoute from './ProtectedRoute'
 
@@ -15,6 +18,7 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <HomePage /> },
+      { path: 'cases', element: <CasesPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
       { path: 'verify-email', element: <VerifyEmailPage /> },
@@ -24,6 +28,8 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: 'dashboard', element: <DashboardPage /> },
+          { path: 'cases/new', element: <PublishCasePage /> },
+          { path: 'profile', element: <ProfilePage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

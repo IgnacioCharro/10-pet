@@ -3,6 +3,7 @@ import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
 interface UserAttributes {
   id: string;
   email: string;
+  name: string | null;
   passwordHash: string | null;
   emailVerified: boolean;
   emailVerificationToken: string | null;
@@ -15,6 +16,7 @@ interface UserAttributes {
 type UserCreationAttributes = Optional<
   UserAttributes,
   | 'id'
+  | 'name'
   | 'passwordHash'
   | 'emailVerified'
   | 'emailVerificationToken'
@@ -30,6 +32,7 @@ export class User
 {
   declare id: string;
   declare email: string;
+  declare name: string | null;
   declare passwordHash: string | null;
   declare emailVerified: boolean;
   declare emailVerificationToken: string | null;
@@ -51,6 +54,10 @@ export class User
           type: DataTypes.STRING(255),
           allowNull: false,
           unique: true,
+        },
+        name: {
+          type: DataTypes.STRING(100),
+          allowNull: true,
         },
         passwordHash: {
           type: DataTypes.STRING(255),

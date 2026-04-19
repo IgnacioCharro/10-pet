@@ -53,14 +53,12 @@ export async function postCase(req: Request, res: Response, next: NextFunction):
 
     const newCase = await createCase(userId, input);
 
-    // Persist images if provided (Cloudinary IDs come from the client after direct upload)
     if (input.imageIds && input.imageIds.length > 0) {
-      // imageIds are Cloudinary public IDs; client sends them after upload
-      // We store them with a placeholder URL — the signed URL flow is in /images/sign
+      const cloudName = process.env['CLOUDINARY_CLOUD_NAME'] ?? 'placeholder';
       await insertCaseImages(
         newCase.id,
         input.imageIds.map((publicId, idx) => ({
-          cloudinaryUrl: `https://res.cloudinary.com/placeholder/${publicId}`,
+          cloudinaryUrl: `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/${publicId}`,
           cloudinaryPublicId: publicId,
           position: idx,
         })),
