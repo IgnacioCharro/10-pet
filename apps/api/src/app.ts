@@ -10,6 +10,7 @@ import { usersRouter } from './modules/users/users.routes';
 import { casesRouter } from './modules/rescue/cases/cases.routes';
 import { contactsRouter } from './modules/rescue/contacts/contacts.routes';
 import { caseReportRouter, adminReportsRouter } from './modules/moderation/reports/reports.routes';
+import { imagesRouter } from './modules/images/images.routes';
 
 const app: Application = express();
 
@@ -30,5 +31,6 @@ app.use('/api/v1/cases', casesRouter);
 app.use('/api/v1/cases/:caseId/report', mutationLimiter, caseReportRouter);
 app.use('/api/v1/contacts', contactsRouter);
 app.use('/api/v1/admin/reports', adminReportsRouter);
+app.use('/api/v1/images', mutationLimiter, imagesRouter);
 
 export default app;
