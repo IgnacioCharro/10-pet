@@ -1,0 +1,73 @@
+import { Request, Response } from 'express';
+import {
+  createContactSchema,
+  listContactsSchema,
+  updateContactSchema,
+} from './contacts.validators';
+import {
+  createContact,
+  listContacts,
+  getContactById,
+  updateContact,
+} from './contacts.service';
+
+export async function postContact(req: Request, res: Response): Promise<void> {
+  const parsed = createContactSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos', fields: parsed.error.flatten().fieldErrors },
+    });
+    return;
+  }
+
+  const result = await createContact(req.user!.id, parsed.data);
+  if ('error' in result) {
+    res.status(result.error.status).json({ error: { code: result.error.code, message: result.error.message } });
+    return;
+  }
+
+  res.status(201).json(result);
+}
+
+export async function getContacts(req: Request, res: Response): Promise<void> {
+  const parsed = listContactsSchema.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Parámetros inválidos', fields: parsed.error.flatten().fieldErrors },
+    });
+    return;
+  }
+
+  const result = await listContacts(req.user!.id, parsed.data);
+  res.json(result);
+}
+
+export async function getContact(req: Request, res: Response): Promise<void> {
+  const result = await getContactById(req.params.id, req.user!.id);
+  if (!result) {
+    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Contacto no encontrado' } });
+    return;
+  }
+  if ('error' in result) {
+    res.status(result.error.status).json({ error: { code: result.error.code, message: result.error.message } });
+    return;
+  }
+  res.json(result);
+}
+
+export async function patchContact(req: Request, res: Response): Promise<void> {
+  const parsed = updateContactSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos', fields: parsed.error.flatten().fieldErrors },
+    });
+    return;
+  }
+
+  const result = await updateContact(req.params.id, req.user!.id, parsed.data);
+  if ('error' in result) {
+    res.status(result.error.status).json({ error: { code: result.error.code, message: result.error.message } });
+    return;
+  }
+  res.json(result);
+}

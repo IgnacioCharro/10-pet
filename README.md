@@ -2,7 +2,7 @@
 
 Plataforma de rescate animal colaborativa para Argentina. Un mapa en vivo donde cualquier persona reporta animales en situación de calle, los voluntarios cercanos reciben aviso al instante, y cada caso tiene historial hasta resolverse.
 
-> Estado: **pre-desarrollo** — Semana 0 (setup). Ver [PLAN_ULTRA.md](Home/PLAN_ULTRA.md) para el plan completo (estrategia, producto, arquitectura, roadmap 11 semanas).
+> Estado: **Semana 1 completa** — Auth backend funcionando (register, login, refresh, logout, email verification, OAuth Google). Ver [PLAN_ULTRA.md](Home/PLAN_ULTRA.md) para el plan completo.
 
 ---
 
@@ -74,6 +74,46 @@ pnpm dev
 - **Archivos TS**: `kebab-case.ts` para módulos, `PascalCase.tsx` para componentes React
 - **DB**: `snake_case` (Sequelize mapea a `camelCase` en TS)
 - **Idioma**: código en inglés, comentarios/docs en español
+
+## API — Endpoints disponibles
+
+La API corre en `http://localhost:3000`. Importar [Home/postman_collection.json](Home/postman_collection.json) en Postman para probar todo el flujo.
+
+### Auth (`/api/v1/auth`)
+
+| Método | Endpoint | Auth | Descripción |
+|--------|----------|------|-------------|
+| POST | `/auth/register` | — | Registrar usuario. Envía email de verificación. |
+| POST | `/auth/login` | — | Login con email + password. |
+| POST | `/auth/refresh` | — | Rotar refresh token. |
+| POST | `/auth/logout` | — | Revocar refresh token. |
+| GET | `/auth/verify-email?token=` | — | Verificar email desde link del correo. |
+| GET | `/auth/google` | — | Iniciar OAuth Google (abrir en navegador). |
+| GET | `/auth/google/callback` | — | Callback de Google (manejado automáticamente). |
+
+### Users (`/api/v1/users`)
+
+| Método | Endpoint | Auth | Descripción |
+|--------|----------|------|-------------|
+| GET | `/users/me` | Bearer token | Perfil del usuario autenticado. |
+
+### Sistema
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/v1/health` | Estado de la API y la base de datos. |
+
+### Formato de error estándar
+
+```json
+{
+  "error": {
+    "code": "INVALID_CREDENTIALS",
+    "message": "Credenciales invalidas",
+    "fields": {}
+  }
+}
+```
 
 ## Roadmap
 
