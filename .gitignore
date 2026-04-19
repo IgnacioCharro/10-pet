@@ -67,3 +67,9 @@ pids/
 
 # Claude Code (local user settings — no commitear)
 .claude/settings.local.json
+
+# Playwright MCP (snapshots y screenshots de pruebas locales)
+.playwright-mcp/
+/*.png
+/Home/memoria_ultima_sesion.txt
+/Home/roadmap_plan.txt
