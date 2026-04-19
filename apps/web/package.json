@@ -3,11 +3,31 @@
   "version": "0.0.0",
   "private": true,
   "description": "Frontend React + Vite para 10_Pet",
+  "type": "module",
   "scripts": {
-    "dev": "echo 'TODO: configurar dev script en Semana 4'",
-    "build": "echo 'TODO: configurar build en Semana 4'",
-    "test": "echo 'TODO: configurar tests en Semana 4'",
-    "lint": "echo 'TODO: configurar lint en Semana 4'",
-    "typecheck": "echo 'TODO: configurar typecheck en Semana 4'"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@10-pet/shared": "workspace:*",
+    "axios": "^1.7.9",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.15.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.5"
   }
 }
