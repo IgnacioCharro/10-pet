@@ -2,6 +2,16 @@ import { Request, Response, NextFunction } from 'express';
 import { ZodError, z } from 'zod';
 import { User, Case } from '../../db';
 
+function isAdminEmail(email: string): boolean {
+  const adminEmails = new Set(
+    (process.env['ADMIN_EMAILS'] ?? '')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean),
+  );
+  return adminEmails.has(email.toLowerCase());
+}
+
 const pushTokenSchema = z.object({
   token: z.string().min(1),
 });
@@ -28,6 +38,7 @@ export const getMe = async (
       email: user.email,
       name: user.name,
       emailVerified: user.emailVerified,
+      isAdmin: isAdminEmail(user.email),
       createdAt: user.createdAt,
     });
   } catch (err) {
@@ -54,6 +65,7 @@ export const patchMe = async (
       email: user.email,
       name: user.name,
       emailVerified: user.emailVerified,
+      isAdmin: isAdminEmail(user.email),
       createdAt: user.createdAt,
     });
   } catch (err) {

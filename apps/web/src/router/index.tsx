@@ -10,7 +10,9 @@ import CasesPage from '../pages/CasesPage'
 import PublishCasePage from '../pages/PublishCasePage'
 import ProfilePage from '../pages/ProfilePage'
 import NotFoundPage from '../pages/NotFoundPage'
+import AdminPage from '../pages/AdminPage'
 import ProtectedRoute from './ProtectedRoute'
+import AdminRoute from './AdminRoute'
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +32,12 @@ export const router = createBrowserRouter([
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'cases/new', element: <PublishCasePage /> },
           { path: 'profile', element: <ProfilePage /> },
+        ],
+      },
+      {
+        element: <AdminRoute />,
+        children: [
+          { path: 'admin', element: <AdminPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

@@ -6,6 +6,7 @@ export interface AuthUser {
   email: string
   name: string | null
   emailVerified: boolean
+  isAdmin?: boolean
   createdAt?: string
 }
 
