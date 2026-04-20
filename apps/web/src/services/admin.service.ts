@@ -1,4 +1,4 @@
-import { api } from './api'
+import { api } from '../lib/api'
 
 export interface AdminStats {
   totalUsers: number
@@ -60,7 +60,7 @@ export async function listAdminReports(params?: {
 
 export async function updateAdminReport(
   reportId: string,
-  status: 'dismissed' | 'resolved',
+  status: 'dismissed' | 'actioned',
 ): Promise<void> {
   await api.patch(`/admin/reports/${reportId}`, { status })
 }

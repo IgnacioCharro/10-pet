@@ -12,15 +12,16 @@ import {
   type AdminUser,
   type AdminReport,
 } from '../services/admin.service'
+import { toast } from '../stores/toastStore'
 
 type Tab = 'stats' | 'reports' | 'users'
 
 const REASON_LABELS: Record<string, string> = {
   spam: 'Spam',
-  fake: 'Caso falso',
-  offensive: 'Contenido ofensivo',
-  duplicate: 'Duplicado',
-  other: 'Otro',
+  falso: 'Caso falso',
+  contenido_inapropiado: 'Contenido inapropiado',
+  acoso: 'Acoso',
+  otro: 'Otro',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -99,25 +100,40 @@ export default function AdminPage() {
   }, [loadUsers])
 
   const handleDismissReport = async (report: AdminReport) => {
-    await updateAdminReport(report.id, 'dismissed')
-    setReports((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: 'dismissed' } : r)))
+    try {
+      await updateAdminReport(report.id, 'dismissed')
+      setReports((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: 'dismissed' } : r)))
+      toast.success('Reporte descartado.')
+    } catch {
+      toast.error('No se pudo descartar el reporte.')
+    }
   }
 
   const handleDeleteCase = async (report: AdminReport) => {
     if (!report.targetCaseId) return
-    await patchAdminCase(report.targetCaseId, 'delete')
-    await updateAdminReport(report.id, 'resolved')
-    setReports((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: 'resolved' } : r)))
+    try {
+      await patchAdminCase(report.targetCaseId, 'delete')
+      await updateAdminReport(report.id, 'actioned')
+      setReports((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: 'actioned' } : r)))
+      toast.success('Caso eliminado.')
+    } catch {
+      toast.error('No se pudo eliminar el caso.')
+    }
   }
 
   const handleToggleBan = async (user: AdminUser) => {
     const action = user.bannedAt ? 'unban' : 'ban'
-    await banAdminUser(user.id, action)
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === user.id ? { ...u, bannedAt: action === 'ban' ? new Date().toISOString() : null } : u,
-      ),
-    )
+    try {
+      await banAdminUser(user.id, action)
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === user.id ? { ...u, bannedAt: action === 'ban' ? new Date().toISOString() : null } : u,
+        ),
+      )
+      toast.success(action === 'ban' ? 'Usuario baneado.' : 'Usuario desbaneado.')
+    } catch {
+      toast.error('No se pudo actualizar el usuario.')
+    }
   }
 
   const tabClass = (t: Tab) =>
@@ -233,12 +249,12 @@ export default function AdminPage() {
                           'text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap',
                           r.status === 'pending'
                             ? 'bg-yellow-100 text-yellow-700'
-                            : r.status === 'resolved'
+                            : r.status === 'actioned'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-gray-100 text-gray-600',
                         ].join(' ')}
                       >
-                        {r.status === 'pending' ? 'Pendiente' : r.status === 'resolved' ? 'Resuelto' : 'Descartado'}
+                        {r.status === 'pending' ? 'Pendiente' : r.status === 'actioned' ? 'Accionado' : 'Descartado'}
                       </span>
                     </div>
                     {r.status === 'pending' && (
