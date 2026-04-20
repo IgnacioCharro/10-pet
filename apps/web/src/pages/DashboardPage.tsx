@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { getMyCases } from '../services/users.service'
 import { listContacts, updateContactStatus, type ContactItem } from '../services/contacts.service'
+import { toast } from '../stores/toastStore'
 import { Card } from '../components/ui'
 import Button from '../components/ui/Button'
 import type { CaseItem } from '../types/case'
@@ -70,8 +71,10 @@ export default function DashboardPage() {
     try {
       const updated = await updateContactStatus(contactId, status)
       setReceived((prev) => prev.map((c) => (c.id === contactId ? { ...c, ...updated } : c)))
+      if (status === 'active') toast.success('Solicitud aceptada.')
+      if (status === 'rejected') toast.info('Solicitud rechazada.')
     } catch {
-      // silently fail — user sees stale state
+      toast.error('No se pudo actualizar. Intentá de nuevo.')
     }
   }
 

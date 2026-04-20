@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getCaseById } from '../../services/cases.service'
 import { useAuthStore } from '../../stores/authStore'
+import { toast } from '../../stores/toastStore'
 import type { CaseDetail, AnimalType, CaseStatus } from '../../types/case'
 import { ContactModal } from './ContactModal'
+import { ReportModal } from './ReportModal'
 
 const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', otro: 'Otro' }
 const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', otro: '🐾' }
@@ -59,9 +61,12 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
   const [detail, setDetail] = useState<CaseDetail | null>(null)
   const [loading, setLoading] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
   const [whatsappLink, setWhatsappLink] = useState<string | null>(null)
   const [contacted, setContacted] = useState(false)
+  const [reported, setReported] = useState(false)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const currentUserId = useAuthStore((s) => s.user?.id)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -69,6 +74,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
       setDetail(null)
       setWhatsappLink(null)
       setContacted(false)
+      setReported(false)
       return
     }
     setLoading(true)
@@ -92,6 +98,13 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
     setShowContactModal(false)
     setContacted(true)
     setWhatsappLink(link)
+    toast.success('Solicitud enviada correctamente.')
+  }
+
+  const handleReportSuccess = () => {
+    setShowReportModal(false)
+    setReported(true)
+    toast.success('Reporte enviado. Lo revisaremos pronto.')
   }
 
   return (
@@ -192,7 +205,21 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 </div>
               )}
 
-              <p className="text-xs text-gray-400">{timeAgo(detail.createdAt)}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-400">{timeAgo(detail.createdAt)}</p>
+                {isAuthenticated && detail.userId !== currentUserId && !reported && (
+                  <button
+                    type="button"
+                    onClick={() => setShowReportModal(true)}
+                    className="text-xs text-gray-400 hover:text-red-500 transition-colors underline"
+                  >
+                    Reportar
+                  </button>
+                )}
+                {reported && (
+                  <span className="text-xs text-gray-400">Reporte enviado</span>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -240,6 +267,14 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
           caseId={caseId}
           onClose={() => setShowContactModal(false)}
           onSuccess={handleContactSuccess}
+        />
+      )}
+
+      {showReportModal && caseId && (
+        <ReportModal
+          caseId={caseId}
+          onClose={() => setShowReportModal(false)}
+          onSuccess={handleReportSuccess}
         />
       )}
     </>

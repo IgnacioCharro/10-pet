@@ -10,6 +10,7 @@ interface UserAttributes {
   emailVerificationTokenExpiresAt: Date | null;
   googleId: string | null;
   pushToken: string | null;
+  bannedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +25,7 @@ type UserCreationAttributes = Optional<
   | 'emailVerificationTokenExpiresAt'
   | 'googleId'
   | 'pushToken'
+  | 'bannedAt'
   | 'createdAt'
   | 'updatedAt'
 >;
@@ -41,6 +43,7 @@ export class User
   declare emailVerificationTokenExpiresAt: Date | null;
   declare googleId: string | null;
   declare pushToken: string | null;
+  declare bannedAt: Date | null;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
@@ -86,6 +89,10 @@ export class User
         },
         pushToken: {
           type: DataTypes.TEXT,
+          allowNull: true,
+        },
+        bannedAt: {
+          type: DataTypes.DATE,
           allowNull: true,
         },
         createdAt: {

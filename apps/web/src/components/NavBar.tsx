@@ -54,6 +54,11 @@ export default function NavBar() {
               <NavLink to="/profile" className={navLinkClass}>
                 Mi perfil
               </NavLink>
+              {user?.isAdmin && (
+                <NavLink to="/admin" className={navLinkClass}>
+                  Admin
+                </NavLink>
+              )}
             </>
           )}
         </nav>
@@ -134,6 +139,11 @@ export default function NavBar() {
                 <NavLink to="/cases/new" className={navLinkClass} onClick={() => setOpen(false)}>
                   + Reportar
                 </NavLink>
+                {user?.isAdmin && (
+                  <NavLink to="/admin" className={navLinkClass} onClick={() => setOpen(false)}>
+                    Admin
+                  </NavLink>
+                )}
               </>
             )}
             <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">

@@ -30,3 +30,13 @@ export const createCase = async (input: CreateCaseInput): Promise<CaseItem> => {
   const res = await api.post<{ case: CaseItem }>('/cases', input)
   return res.data.case
 }
+
+export type ReportReason = 'spam' | 'contenido_inapropiado' | 'falso' | 'acoso' | 'otro'
+
+export const createCaseReport = async (
+  caseId: string,
+  reason: ReportReason,
+  description?: string,
+): Promise<void> => {
+  await api.post(`/cases/${caseId}/report`, { reason, description })
+}

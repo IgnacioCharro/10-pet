@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
 import { getMe, patchMe, getMyCases } from '../services/users.service'
+import { toast } from '../stores/toastStore'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import { Card } from '../components/ui'
@@ -58,6 +59,7 @@ export default function ProfilePage() {
       const updated = await patchMe({ name: nameInput.trim() })
       setUser(updated)
       setEditing(false)
+      toast.success('Perfil actualizado.')
     } catch {
       setSaveError('No se pudo guardar. Intentá de nuevo.')
     } finally {
