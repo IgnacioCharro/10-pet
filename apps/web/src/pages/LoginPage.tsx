@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { loginRequest } from '../services/auth.service'
+import { getMe } from '../services/users.service'
 import { useAuthStore } from '../stores/authStore'
 import { Button, Card, Input } from '../components/ui'
 
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const setAuth = useAuthStore((s) => s.setAuth)
+  const setUser = useAuthStore((s) => s.setUser)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   const [email, setEmail] = useState('')
@@ -30,6 +32,7 @@ export default function LoginPage() {
     try {
       const res = await loginRequest({ email, password })
       setAuth(res)
+      getMe().then(setUser).catch(() => {})
       navigate(from, { replace: true })
     } catch (err) {
       const msg =
