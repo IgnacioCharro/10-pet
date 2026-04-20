@@ -9,6 +9,7 @@ interface UserAttributes {
   emailVerificationToken: string | null;
   emailVerificationTokenExpiresAt: Date | null;
   googleId: string | null;
+  pushToken: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +23,7 @@ type UserCreationAttributes = Optional<
   | 'emailVerificationToken'
   | 'emailVerificationTokenExpiresAt'
   | 'googleId'
+  | 'pushToken'
   | 'createdAt'
   | 'updatedAt'
 >;
@@ -38,6 +40,7 @@ export class User
   declare emailVerificationToken: string | null;
   declare emailVerificationTokenExpiresAt: Date | null;
   declare googleId: string | null;
+  declare pushToken: string | null;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
@@ -80,6 +83,10 @@ export class User
           type: DataTypes.STRING(255),
           allowNull: true,
           unique: true,
+        },
+        pushToken: {
+          type: DataTypes.TEXT,
+          allowNull: true,
         },
         createdAt: {
           type: DataTypes.DATE,

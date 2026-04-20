@@ -48,9 +48,11 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config as RetriableRequestConfig | undefined
     const status = error.response?.status
-    const isRefreshCall = original?.url?.includes('/auth/refresh')
+    const url = original?.url ?? ''
+    const isAuthCall = url.includes('/auth/refresh') || url.includes('/auth/login') || url.includes('/auth/register')
+    const hasToken = Boolean(useAuthStore.getState().accessToken)
 
-    if (status === 401 && original && !original._retry && !isRefreshCall) {
+    if (status === 401 && original && !original._retry && !isAuthCall && hasToken) {
       original._retry = true
       try {
         refreshPromise ??= refreshAccessToken()

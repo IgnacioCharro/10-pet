@@ -1,23 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { getMyCases } from '../services/users.service'
-import { api } from '../lib/api'
+import { listContacts, updateContactStatus, type ContactItem } from '../services/contacts.service'
 import { Card } from '../components/ui'
 import Button from '../components/ui/Button'
 import type { CaseItem } from '../types/case'
 
-type Tab = 'casos' | 'contactos'
-
-interface ContactItem {
-  id: string
-  caseId: string
-  initiatorId: string
-  responderId: string
-  status: string
-  message: string | null
-  createdAt: string
-}
+type Tab = 'casos' | 'enviados' | 'recibidos'
 
 const STATUS_LABELS: Record<string, string> = {
   abierto: 'Abierto',
@@ -44,7 +34,8 @@ export default function DashboardPage() {
   const user = useAuthStore((s) => s.user)
   const [tab, setTab] = useState<Tab>('casos')
   const [cases, setCases] = useState<CaseItem[]>([])
-  const [contacts, setContacts] = useState<ContactItem[]>([])
+  const [sent, setSent] = useState<ContactItem[]>([])
+  const [received, setReceived] = useState<ContactItem[]>([])
   const [loadingCases, setLoadingCases] = useState(true)
   const [loadingContacts, setLoadingContacts] = useState(false)
 
@@ -55,15 +46,34 @@ export default function DashboardPage() {
       .finally(() => setLoadingCases(false))
   }, [])
 
-  useEffect(() => {
-    if (tab !== 'contactos') return
+  const loadContacts = useCallback(() => {
+    if (tab === 'casos') return
     setLoadingContacts(true)
-    api
-      .get<{ contacts: ContactItem[] }>('/contacts', { params: { role: 'initiator' } })
-      .then((r) => setContacts(r.data.contacts ?? []))
+    const role = tab === 'enviados' ? 'initiator' : 'responder'
+    listContacts(role)
+      .then((items) => {
+        if (tab === 'enviados') setSent(items)
+        else setReceived(items)
+      })
       .catch(() => {})
       .finally(() => setLoadingContacts(false))
   }, [tab])
+
+  useEffect(() => {
+    loadContacts()
+  }, [loadContacts])
+
+  const handleUpdateStatus = async (
+    contactId: string,
+    status: 'active' | 'rejected' | 'completed',
+  ) => {
+    try {
+      const updated = await updateContactStatus(contactId, status)
+      setReceived((prev) => prev.map((c) => (c.id === contactId ? { ...c, ...updated } : c)))
+    } catch {
+      // silently fail — user sees stale state
+    }
+  }
 
   return (
     <main className="flex-1 px-4 py-8">
@@ -83,18 +93,18 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex border-b border-gray-200">
-          {(['casos', 'contactos'] as Tab[]).map((t) => (
+          {(['casos', 'enviados', 'recibidos'] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={[
-                'px-4 py-2 text-sm font-medium capitalize border-b-2 -mb-px transition-colors',
+                'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
                 tab === t
                   ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700',
               ].join(' ')}
             >
-              {t === 'casos' ? 'Mis casos' : 'Mis contactos'}
+              {t === 'casos' ? 'Mis casos' : t === 'enviados' ? 'Enviados' : 'Recibidos'}
             </button>
           ))}
         </div>
@@ -105,7 +115,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400">Cargando casos...</p>
             ) : cases.length === 0 ? (
               <Card>
-                <p className="text-sm text-gray-500 mb-3">Todavía no publicaste ningún caso.</p>
+                <p className="text-sm text-gray-500 mb-3">Todavia no publicaste ningun caso.</p>
                 <Link to="/cases/new">
                   <Button size="sm">Publicar mi primer caso</Button>
                 </Link>
@@ -120,20 +130,43 @@ export default function DashboardPage() {
           </>
         )}
 
-        {tab === 'contactos' && (
+        {tab === 'enviados' && (
           <>
             {loadingContacts ? (
-              <p className="text-sm text-gray-400">Cargando contactos...</p>
-            ) : contacts.length === 0 ? (
+              <p className="text-sm text-gray-400">Cargando...</p>
+            ) : sent.length === 0 ? (
               <Card>
                 <p className="text-sm text-gray-500">
-                  No te ofreciste a ayudar en ningún caso todavía.
+                  Todavia no te ofreciste a ayudar en ningun caso.
                 </p>
               </Card>
             ) : (
               <div className="flex flex-col gap-2">
-                {contacts.map((c) => (
-                  <ContactCard key={c.id} item={c} userId={user?.id ?? ''} />
+                {sent.map((c) => (
+                  <SentContactCard key={c.id} item={c} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'recibidos' && (
+          <>
+            {loadingContacts ? (
+              <p className="text-sm text-gray-400">Cargando...</p>
+            ) : received.length === 0 ? (
+              <Card>
+                <p className="text-sm text-gray-500">Nadie se ofrecio a ayudar en tus casos aun.</p>
+              </Card>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {received.map((c) => (
+                  <ReceivedContactCard
+                    key={c.id}
+                    item={c}
+                    onAccept={() => handleUpdateStatus(c.id, 'active')}
+                    onReject={() => handleUpdateStatus(c.id, 'rejected')}
+                  />
                 ))}
               </div>
             )}
@@ -176,16 +209,13 @@ function CaseCard({ item }: { item: CaseItem }) {
   )
 }
 
-function ContactCard({ item, userId }: { item: ContactItem; userId: string }) {
-  const isInitiator = item.initiatorId === userId
+function SentContactCard({ item }: { item: ContactItem }) {
   const statusClass = CONTACT_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium">
-            {isInitiator ? 'Ofreciste ayuda' : 'Alguien quiere ayudar'}
-          </p>
+          <p className="text-sm font-medium">Solicitud enviada</p>
           <p className="text-xs text-gray-500 mt-0.5 truncate">Caso: {item.caseId}</p>
           {item.message && (
             <p className="text-xs text-gray-400 mt-0.5 italic truncate">"{item.message}"</p>
@@ -194,14 +224,59 @@ function ContactCard({ item, userId }: { item: ContactItem; userId: string }) {
             {new Date(item.createdAt).toLocaleDateString('es-AR')}
           </p>
         </div>
-        <span
-          className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(
-            ' ',
-          )}
-        >
+        <span className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(' ')}>
           {CONTACT_STATUS_LABELS[item.status] ?? item.status}
         </span>
       </div>
+    </Card>
+  )
+}
+
+function ReceivedContactCard({
+  item,
+  onAccept,
+  onReject,
+}: {
+  item: ContactItem
+  onAccept: () => void
+  onReject: () => void
+}) {
+  const statusClass = CONTACT_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'
+  const isPending = item.status === 'pending'
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium">Alguien quiere ayudar</p>
+          <p className="text-xs text-gray-500 mt-0.5 truncate">Caso: {item.caseId}</p>
+          {item.message && (
+            <p className="text-xs text-gray-600 mt-1 italic">"{item.message}"</p>
+          )}
+          <p className="text-xs text-gray-400 mt-0.5">
+            {new Date(item.createdAt).toLocaleDateString('es-AR')}
+          </p>
+        </div>
+        <span className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(' ')}>
+          {CONTACT_STATUS_LABELS[item.status] ?? item.status}
+        </span>
+      </div>
+      {isPending && (
+        <div className="flex gap-2">
+          <button
+            onClick={onReject}
+            className="flex-1 border border-gray-200 text-gray-600 text-xs font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Rechazar
+          </button>
+          <button
+            onClick={onAccept}
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-2 rounded-lg transition-colors"
+          >
+            Aceptar
+          </button>
+        </div>
+      )}
     </Card>
   )
 }

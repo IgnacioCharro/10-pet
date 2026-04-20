@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import { ZodError, z } from 'zod';
 import { User, Case } from '../../db';
 
+const pushTokenSchema = z.object({
+  token: z.string().min(1),
+});
+
 const patchMeSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
 });
@@ -61,6 +65,24 @@ export const patchMe = async (
           fields: err.flatten().fieldErrors,
         },
       });
+      return;
+    }
+    next(err);
+  }
+};
+
+export const savePushToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { token } = pushTokenSchema.parse(req.body);
+    await User.update({ pushToken: token }, { where: { id: req.user!.id } });
+    res.status(204).end();
+  } catch (err) {
+    if (err instanceof ZodError) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Token invalido' } });
       return;
     }
     next(err);
