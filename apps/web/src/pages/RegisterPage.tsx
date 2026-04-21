@@ -93,7 +93,7 @@ export default function RegisterPage() {
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
-        <a href="/api/v1/auth/google" className="block">
+        <a href={`${import.meta.env.VITE_API_BASE_URL}/auth/google`} className="block">
           <Button variant="secondary" fullWidth type="button">
             Continuar con Google
           </Button>
