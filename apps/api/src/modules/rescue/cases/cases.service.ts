@@ -114,7 +114,7 @@ export async function createCase(
   const newCase = result[0];
 
   if (notifyNewCaseQueue) {
-    await notifyNewCaseQueue.add(
+    notifyNewCaseQueue.add(
       {
         caseId: newCase.id,
         animalType: newCase.animalType,
@@ -126,7 +126,7 @@ export async function createCase(
         creatorId: userId,
       },
       { attempts: 3, backoff: { type: 'exponential', delay: 10000 } },
-    );
+    ).catch((err) => console.error('[queue] notify-new-case add failed:', err));
   }
 
   return newCase;
