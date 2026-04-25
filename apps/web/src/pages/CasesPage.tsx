@@ -108,7 +108,7 @@ export default function CasesPage() {
         onLocationFound={handleLocationFound}
       />
 
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden z-0">
         {loading && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 bg-white rounded-full px-3 py-1.5 shadow-md flex items-center gap-2 text-sm text-gray-600">
             <div className="w-3 h-3 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
