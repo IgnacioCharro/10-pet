@@ -1,9 +1,18 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import FilterBar, { type FilterState } from '../components/cases/FilterBar'
 import CaseCard from '../components/cases/CaseCard'
 import CaseDetailSheet from '../components/cases/CaseDetailSheet'
 import { listCases, getNearbyCases } from '../services/cases.service'
 import type { CaseItem } from '../types/case'
+
+interface PublishedState {
+  published?: string
+  lat?: number
+  lng?: number
+}
+
+const PUBLISHED_ZOOM = 16
 
 const LeafletMap = lazy(() => import('../components/map/LeafletMap'))
 
@@ -17,18 +26,44 @@ const DEFAULT_FILTERS: FilterState = {
 }
 
 export default function CasesPage() {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const [initialPublished] = useState<PublishedState | null>(() => {
+    const s = location.state as PublishedState | null
+    if (s && typeof s.lat === 'number' && typeof s.lng === 'number') return s
+    return null
+  })
+
   const [view, setView] = useState<'map' | 'list'>('map')
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
-  const [center, setCenter] = useState<[number, number]>(DEFAULT_CENTER)
+  const [center, setCenter] = useState<[number, number]>(() =>
+    initialPublished ? [initialPublished.lat!, initialPublished.lng!] : DEFAULT_CENTER,
+  )
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [cases, setCases] = useState<CaseItem[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null)
-  const [flyTo, setFlyTo] = useState<{ center: [number, number]; zoom: number } | null>(null)
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(
+    initialPublished?.published ?? null,
+  )
+  const [flyTo, setFlyTo] = useState<{ center: [number, number]; zoom: number } | null>(() =>
+    initialPublished
+      ? { center: [initialPublished.lat!, initialPublished.lng!], zoom: PUBLISHED_ZOOM }
+      : null,
+  )
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => {
+    if (initialPublished) {
+      navigate(location.pathname, { replace: true, state: null })
+      const t = setTimeout(() => setFlyTo(null), 1500)
+      return () => clearTimeout(t)
+    }
+  }, [initialPublished, navigate, location.pathname])
+
+  useEffect(() => {
+    if (initialPublished) return
     navigator.geolocation?.getCurrentPosition(
       (pos) => {
         const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude]
@@ -38,7 +73,7 @@ export default function CasesPage() {
       () => {},
       { timeout: 5000 },
     )
-  }, [])
+  }, [initialPublished])
 
   const fetchCases = useCallback(async () => {
     setLoading(true)
