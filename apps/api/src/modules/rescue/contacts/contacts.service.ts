@@ -94,10 +94,10 @@ export async function createContact(
 
   // Notify case owner via queue (fire-and-forget)
   if (contactRequestQueue) {
-    await contactRequestQueue.add(
+    contactRequestQueue.add(
       { contactId: contact.id, responderId: caseRow.userId, caseId: input.caseId },
       { attempts: 3, backoff: { type: 'exponential', delay: 5000 } },
-    );
+    ).catch((err) => console.error('[queue] contact-request add failed:', err));
   }
 
   const whatsappLink = caseRow.phoneContact
