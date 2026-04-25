@@ -36,11 +36,11 @@ export function ContactModal({ caseId, onClose, onSuccess }: Props) {
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/50 z-60"
+        className="fixed inset-0 bg-black/50 z-[60]"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-70 w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 mx-4">
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 mx-4">
         <h3 className="text-base font-semibold text-gray-900 mb-1">Ofrecer ayuda</h3>
         <p className="text-xs text-gray-500 mb-4">
           El reportador recibira tu solicitud y podra compartirte su numero de WhatsApp.
