@@ -14,6 +14,8 @@ export interface ContactRow {
   lastMessageAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  caseAnimalType: string | null;
+  caseLocationText: string | null;
 }
 
 function buildWhatsAppLink(phone: string, caseId: string): string {
@@ -148,8 +150,11 @@ export async function listContacts(
        c.message,
        c.last_message_at AS "lastMessageAt",
        c.created_at AS "createdAt",
-       c.updated_at AS "updatedAt"
+       c.updated_at AS "updatedAt",
+       cs.animal_type AS "caseAnimalType",
+       cs.location_text AS "caseLocationText"
      FROM contacts c
+     LEFT JOIN cases cs ON cs.id = c.case_id
      WHERE ${where}
      ORDER BY c.created_at DESC
      LIMIT :limit OFFSET :offset`,
@@ -248,4 +253,12 @@ export async function updateContact(
   );
 
   return updated;
+}
+
+export async function getPendingCount(userId: string): Promise<number> {
+  const [{ count }] = await sequelize.query<{ count: string }>(
+    `SELECT COUNT(*) AS count FROM contacts WHERE responder_id = :userId AND status = 'pending'`,
+    { replacements: { userId }, type: QueryTypes.SELECT },
+  );
+  return parseInt(count, 10);
 }

@@ -1,6 +1,8 @@
-import { useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { useNotificationsStore } from '../stores/notificationsStore'
+import { getPendingContactsCount } from '../services/contacts.service'
 import { logoutRequest } from '../services/auth.service'
 import Button from './ui/Button'
 
@@ -12,11 +14,21 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function NavBar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const user = useAuthStore((s) => s.user)
   const refreshToken = useAuthStore((s) => s.refreshToken)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const [open, setOpen] = useState(false)
+  const pendingCount = useNotificationsStore((s) => s.pendingContactsCount)
+  const setPendingContactsCount = useNotificationsStore((s) => s.setPendingContactsCount)
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+    getPendingContactsCount()
+      .then(setPendingContactsCount)
+      .catch(() => {})
+  }, [isAuthenticated, location.pathname, setPendingContactsCount])
 
   const handleLogout = async () => {
     if (refreshToken) {
@@ -49,7 +61,14 @@ export default function NavBar() {
           {isAuthenticated && (
             <>
               <NavLink to="/dashboard" className={navLinkClass}>
-                Dashboard
+                <span className="relative inline-flex items-center">
+                  Dashboard
+                  {pendingCount > 0 && (
+                    <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                      {pendingCount > 9 ? '9+' : pendingCount}
+                    </span>
+                  )}
+                </span>
               </NavLink>
               <NavLink to="/profile" className={navLinkClass}>
                 Mi perfil
@@ -131,7 +150,14 @@ export default function NavBar() {
             {isAuthenticated && (
               <>
                 <NavLink to="/dashboard" className={navLinkClass} onClick={() => setOpen(false)}>
-                  Dashboard
+                  <span className="relative inline-flex items-center">
+                    Dashboard
+                    {pendingCount > 0 && (
+                      <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                        {pendingCount > 9 ? '9+' : pendingCount}
+                      </span>
+                    )}
+                  </span>
                 </NavLink>
                 <NavLink to="/profile" className={navLinkClass} onClick={() => setOpen(false)}>
                   Mi perfil
