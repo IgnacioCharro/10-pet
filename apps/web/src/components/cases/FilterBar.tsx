@@ -42,6 +42,8 @@ interface Props {
   onFiltersChange: (f: FilterState) => void
   onViewChange: (v: 'map' | 'list') => void
   onLocationFound: (lat: number, lng: number, zoom: number) => void
+  zoneLabel?: string | null
+  onChangeZone?: () => void
 }
 
 function chip(active: boolean) {
@@ -53,7 +55,7 @@ function chip(active: boolean) {
   ].join(' ')
 }
 
-export default function FilterBar({ filters, view, onFiltersChange, onViewChange, onLocationFound }: Props) {
+export default function FilterBar({ filters, view, onFiltersChange, onViewChange, onLocationFound, zoneLabel, onChangeZone }: Props) {
   const [search, setSearch] = useState('')
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([])
   const [searching, setSearching] = useState(false)
@@ -93,6 +95,23 @@ export default function FilterBar({ filters, view, onFiltersChange, onViewChange
 
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-3 space-y-3 z-10 relative">
+      {zoneLabel && onChangeZone && (
+        <div className="flex items-center gap-2">
+          <svg className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span className="text-xs text-gray-600 truncate flex-1">{zoneLabel}</span>
+          <button
+            type="button"
+            onClick={onChangeZone}
+            className="text-xs text-primary-600 hover:text-primary-700 font-medium flex-shrink-0"
+          >
+            Cambiar zona
+          </button>
+        </div>
+      )}
+
       <div className="flex gap-2">
         <div className="relative flex-1">
           <input
