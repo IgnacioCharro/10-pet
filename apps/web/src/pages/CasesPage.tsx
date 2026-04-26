@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import FilterBar, { type FilterState } from '../components/cases/FilterBar'
 import CaseCard from '../components/cases/CaseCard'
 import CaseDetailSheet from '../components/cases/CaseDetailSheet'
+import LocalidadPicker, { loadPickedLocation, savePickedLocation, type PickedLocation } from '../components/cases/LocalidadPicker'
 import { listCases, getNearbyCases } from '../services/cases.service'
 import type { CaseItem } from '../types/case'
 
@@ -16,7 +17,7 @@ const PUBLISHED_ZOOM = 16
 
 const LeafletMap = lazy(() => import('../components/map/LeafletMap'))
 
-const DEFAULT_CENTER: [number, number] = [-34.6037, -58.3816] // Buenos Aires
+const FALLBACK_CENTER: [number, number] = [-34.6037, -58.3816]
 
 const DEFAULT_FILTERS: FilterState = {
   animalType: '',
@@ -35,11 +36,20 @@ export default function CasesPage() {
     return null
   })
 
+  const [storedLoc] = useState<PickedLocation | null>(() => loadPickedLocation())
+
+  const [showPicker, setShowPicker] = useState<boolean>(
+    () => !initialPublished && !loadPickedLocation(),
+  )
+
   const [view, setView] = useState<'map' | 'list'>('map')
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
-  const [center, setCenter] = useState<[number, number]>(() =>
-    initialPublished ? [initialPublished.lat!, initialPublished.lng!] : DEFAULT_CENTER,
-  )
+  const [center, setCenter] = useState<[number, number]>(() => {
+    if (initialPublished) return [initialPublished.lat!, initialPublished.lng!]
+    if (storedLoc) return storedLoc.center
+    return FALLBACK_CENTER
+  })
+  const [zoneLabel, setZoneLabel] = useState<string | null>(() => storedLoc?.label ?? null)
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [cases, setCases] = useState<CaseItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -64,6 +74,8 @@ export default function CasesPage() {
 
   useEffect(() => {
     if (initialPublished) return
+    if (showPicker) return
+    if (storedLoc) return
     navigator.geolocation?.getCurrentPosition(
       (pos) => {
         const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude]
@@ -73,7 +85,22 @@ export default function CasesPage() {
       () => {},
       { timeout: 5000 },
     )
-  }, [initialPublished])
+  }, [initialPublished, showPicker, storedLoc])
+
+  const handlePickerPick = useCallback((loc: PickedLocation) => {
+    setCenter(loc.center)
+    setZoneLabel(loc.label)
+    if (loc.label !== 'Mi ubicación') {
+      setUserLocation(null)
+    } else {
+      setUserLocation(loc.center)
+    }
+    setShowPicker(false)
+  }, [])
+
+  const handleChangeZone = useCallback(() => {
+    setShowPicker(true)
+  }, [])
 
   const fetchCases = useCallback(async () => {
     setLoading(true)
@@ -127,6 +154,9 @@ export default function CasesPage() {
     setCenter(newCenter)
     setFlyTo({ center: newCenter, zoom })
     setTimeout(() => setFlyTo(null), 1500)
+    const loc: PickedLocation = { center: newCenter, label: 'Zona buscada' }
+    savePickedLocation(loc)
+    setZoneLabel(loc.label)
   }, [])
 
   const handleCaseClick = useCallback((c: CaseItem) => {
@@ -135,12 +165,16 @@ export default function CasesPage() {
 
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 56px)' }}>
+      {showPicker && <LocalidadPicker onPick={handlePickerPick} />}
+
       <FilterBar
         filters={filters}
         view={view}
         onFiltersChange={setFilters}
         onViewChange={setView}
         onLocationFound={handleLocationFound}
+        zoneLabel={zoneLabel}
+        onChangeZone={handleChangeZone}
       />
 
       <div className="flex-1 relative overflow-hidden z-0">
