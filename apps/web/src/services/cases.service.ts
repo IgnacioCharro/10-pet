@@ -2,6 +2,8 @@ import { api } from '../lib/api'
 import type {
   CaseItem,
   CaseDetail,
+  CaseUpdateItem,
+  CaseUpdateType,
   ListCasesQuery,
   PaginatedCasesResponse,
   CreateCaseInput,
@@ -39,4 +41,16 @@ export const createCaseReport = async (
   description?: string,
 ): Promise<void> => {
   await api.post(`/cases/${caseId}/report`, { reason, description })
+}
+
+export const addCaseUpdate = async (
+  caseId: string,
+  updateType: CaseUpdateType,
+  content?: string,
+): Promise<CaseUpdateItem> => {
+  const res = await api.post<{ update: CaseUpdateItem }>(`/cases/${caseId}/updates`, {
+    updateType,
+    content: content || undefined,
+  })
+  return res.data.update
 }

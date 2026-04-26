@@ -50,7 +50,10 @@ export const updateCaseSchema = z
   });
 
 export const addUpdateSchema = z.object({
-  updateType: z.enum(['status_change', 'comment', 'photo_added', 'reactivated']),
+  updateType: z.enum([
+    'status_change', 'comment', 'photo_added', 'reactivated',
+    'avistamiento', 'medicacion', 'veterinario', 'comentario',
+  ]),
   content: z.string().trim().max(1000).optional(),
 });
 

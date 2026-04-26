@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getCaseById } from '../../services/cases.service'
+import { getCaseById, addCaseUpdate } from '../../services/cases.service'
 import { useAuthStore } from '../../stores/authStore'
 import { toast } from '../../stores/toastStore'
-import type { CaseDetail, AnimalType, CaseStatus } from '../../types/case'
+import type { CaseDetail, AnimalType, CaseStatus, CaseUpdateType, CaseUpdateItem } from '../../types/case'
 import { ContactModal } from './ContactModal'
 import { ReportModal } from './ReportModal'
 
@@ -65,6 +65,10 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
   const [whatsappLink, setWhatsappLink] = useState<string | null>(null)
   const [contacted, setContacted] = useState(false)
   const [reported, setReported] = useState(false)
+  const [showAddUpdate, setShowAddUpdate] = useState(false)
+  const [addUpdateType, setAddUpdateType] = useState<CaseUpdateType>('comentario')
+  const [addUpdateContent, setAddUpdateContent] = useState('')
+  const [addUpdateLoading, setAddUpdateLoading] = useState(false)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const currentUserId = useAuthStore((s) => s.user?.id)
   const navigate = useNavigate()
@@ -75,6 +79,8 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
       setWhatsappLink(null)
       setContacted(false)
       setReported(false)
+      setShowAddUpdate(false)
+      setAddUpdateContent('')
       return
     }
     setLoading(true)
@@ -105,6 +111,24 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
     setShowReportModal(false)
     setReported(true)
     toast.success('Reporte enviado. Lo revisaremos pronto.')
+  }
+
+  const handleAddUpdate = async () => {
+    if (!caseId || !addUpdateContent.trim()) return
+    setAddUpdateLoading(true)
+    try {
+      const newUpdate = await addCaseUpdate(caseId, addUpdateType, addUpdateContent.trim())
+      setDetail((prev) =>
+        prev ? { ...prev, updates: [newUpdate, ...prev.updates] } : prev,
+      )
+      setAddUpdateContent('')
+      setShowAddUpdate(false)
+      toast.success('Novedad agregada.')
+    } catch {
+      toast.error('No se pudo agregar la novedad.')
+    } finally {
+      setAddUpdateLoading(false)
+    }
   }
 
   return (
@@ -193,17 +217,18 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 </div>
               )}
 
-              {detail.updates.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Novedades</p>
-                  {detail.updates.slice(0, 3).map((u) => (
-                    <div key={u.id} className="bg-blue-50 rounded-lg px-3 py-2">
-                      <p className="text-xs text-blue-600 font-medium mb-0.5">{u.updateType.replace('_', ' ')}</p>
-                      {u.content && <p className="text-sm text-gray-700">{u.content}</p>}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <CaseTimeline
+                updates={detail.updates}
+                isOwner={isAuthenticated && detail.userId === currentUserId}
+                showAddUpdate={showAddUpdate}
+                addUpdateType={addUpdateType}
+                addUpdateContent={addUpdateContent}
+                addUpdateLoading={addUpdateLoading}
+                onToggleForm={() => setShowAddUpdate((v) => !v)}
+                onTypeChange={setAddUpdateType}
+                onContentChange={setAddUpdateContent}
+                onSubmit={handleAddUpdate}
+              />
 
               <div className="flex items-center justify-between">
                 <p className="text-xs text-gray-400">{timeAgo(detail.createdAt)}</p>
@@ -278,5 +303,131 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
         />
       )}
     </>
+  )
+}
+
+const UPDATE_META: Record<CaseUpdateType, { label: string; color: string; icon: string }> = {
+  avistamiento:  { label: 'Avistamiento',         color: 'bg-blue-50 border-blue-200 text-blue-700',   icon: '👁' },
+  medicacion:    { label: 'Medicacion aplicada',   color: 'bg-purple-50 border-purple-200 text-purple-700', icon: '💊' },
+  veterinario:   { label: 'Atencion veterinaria',  color: 'bg-teal-50 border-teal-200 text-teal-700',   icon: '🩺' },
+  comentario:    { label: 'Novedad',               color: 'bg-gray-50 border-gray-200 text-gray-700',   icon: '📝' },
+  status_change: { label: 'Cambio de estado',      color: 'bg-amber-50 border-amber-200 text-amber-700',icon: '🔄' },
+  comment:       { label: 'Comentario',            color: 'bg-gray-50 border-gray-200 text-gray-700',   icon: '💬' },
+  photo_added:   { label: 'Foto agregada',         color: 'bg-green-50 border-green-200 text-green-700',icon: '📷' },
+  reactivated:   { label: 'Reactivado',            color: 'bg-orange-50 border-orange-200 text-orange-700', icon: '🔔' },
+}
+
+const OWNER_UPDATE_TYPES: CaseUpdateType[] = ['avistamiento', 'medicacion', 'veterinario', 'comentario']
+
+const OWNER_TYPE_LABELS: Record<string, string> = {
+  avistamiento: 'Lo vi en otro lugar',
+  medicacion:   'Medicacion aplicada',
+  veterinario:  'Atencion veterinaria',
+  comentario:   'Otra novedad',
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('es-AR', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+  })
+}
+
+interface CaseTimelineProps {
+  updates: CaseUpdateItem[]
+  isOwner: boolean
+  showAddUpdate: boolean
+  addUpdateType: CaseUpdateType
+  addUpdateContent: string
+  addUpdateLoading: boolean
+  onToggleForm: () => void
+  onTypeChange: (t: CaseUpdateType) => void
+  onContentChange: (v: string) => void
+  onSubmit: () => void
+}
+
+function CaseTimeline({
+  updates, isOwner, showAddUpdate, addUpdateType, addUpdateContent, addUpdateLoading,
+  onToggleForm, onTypeChange, onContentChange, onSubmit,
+}: CaseTimelineProps) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Historial del caso
+        </p>
+        {isOwner && (
+          <button
+            type="button"
+            onClick={onToggleForm}
+            className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+          >
+            {showAddUpdate ? 'Cancelar' : '+ Agregar novedad'}
+          </button>
+        )}
+      </div>
+
+      {showAddUpdate && isOwner && (
+        <div className="border border-gray-200 rounded-xl p-3 flex flex-col gap-3 bg-gray-50">
+          <div className="flex flex-wrap gap-1.5">
+            {OWNER_UPDATE_TYPES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => onTypeChange(t)}
+                className={[
+                  'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                  addUpdateType === t
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400',
+                ].join(' ')}
+              >
+                {UPDATE_META[t].icon} {OWNER_TYPE_LABELS[t]}
+              </button>
+            ))}
+          </div>
+          <textarea
+            rows={3}
+            placeholder={
+              addUpdateType === 'avistamiento' ? 'Dónde fue visto, cuándo, en qué condición...' :
+              addUpdateType === 'medicacion'   ? 'Qué medicación, dosis, quién la aplicó...' :
+              addUpdateType === 'veterinario'  ? 'Nombre del vet, diagnóstico, tratamiento...' :
+              'Contá la novedad...'
+            }
+            value={addUpdateContent}
+            onChange={(e) => onContentChange(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={addUpdateLoading || !addUpdateContent.trim()}
+            className="self-end px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {addUpdateLoading ? 'Guardando...' : 'Publicar novedad'}
+          </button>
+        </div>
+      )}
+
+      {updates.length === 0 && !showAddUpdate && (
+        <p className="text-xs text-gray-400 text-center py-2">
+          Sin novedades todavia.{isOwner ? ' Usá "+ Agregar novedad" para registrar actualizaciones.' : ''}
+        </p>
+      )}
+
+      {updates.map((u) => {
+        const meta = UPDATE_META[u.updateType] ?? UPDATE_META.comentario
+        return (
+          <div key={u.id} className={`border rounded-xl px-3 py-2.5 ${meta.color}`}>
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <span className="text-xs font-semibold flex items-center gap-1">
+                <span>{meta.icon}</span> {meta.label}
+              </span>
+              <span className="text-xs opacity-60 flex-shrink-0">{formatDate(u.createdAt)}</span>
+            </div>
+            {u.content && <p className="text-sm leading-snug">{u.content}</p>}
+          </div>
+        )
+      })}
+    </div>
   )
 }

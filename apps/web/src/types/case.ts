@@ -27,10 +27,14 @@ export interface CaseImageItem {
   position: number
 }
 
+export type CaseUpdateType =
+  | 'status_change' | 'comment' | 'photo_added' | 'reactivated'
+  | 'avistamiento' | 'medicacion' | 'veterinario' | 'comentario'
+
 export interface CaseUpdateItem {
   id: string
   userId: string
-  updateType: string
+  updateType: CaseUpdateType
   content: string | null
   createdAt: string
 }

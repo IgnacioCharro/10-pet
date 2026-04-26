@@ -1,6 +1,8 @@
 import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
 
-export type UpdateType = 'status_change' | 'comment' | 'photo_added' | 'reactivated';
+export type UpdateType =
+  | 'status_change' | 'comment' | 'photo_added' | 'reactivated'
+  | 'avistamiento' | 'medicacion' | 'veterinario' | 'comentario';
 
 interface CaseUpdateAttributes {
   id: string;
