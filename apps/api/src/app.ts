@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import express, { Application } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -34,5 +35,7 @@ app.use('/api/v1/contacts', contactsRouter);
 app.use('/api/v1/admin/reports', adminReportsRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/images', mutationLimiter, imagesRouter);
+
+Sentry.setupExpressErrorHandler(app);
 
 export default app;
