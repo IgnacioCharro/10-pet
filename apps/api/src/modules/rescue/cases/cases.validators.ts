@@ -57,8 +57,15 @@ export const addUpdateSchema = z.object({
   content: z.string().trim().max(1000).optional(),
 });
 
+export const feedCasesSchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  radius: z.coerce.number().min(0.1).max(100).default(10),
+});
+
 export type CreateCaseInput = z.infer<typeof createCaseSchema>;
 export type ListCasesQuery = z.infer<typeof listCasesSchema>;
 export type NearbyCasesQuery = z.infer<typeof nearbyCasesSchema>;
+export type FeedCasesQuery = z.infer<typeof feedCasesSchema>;
 export type UpdateCaseInput = z.infer<typeof updateCaseSchema>;
 export type AddUpdateInput = z.infer<typeof addUpdateSchema>;

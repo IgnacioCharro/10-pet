@@ -16,19 +16,19 @@ interface Props {
   onPick: (loc: PickedLocation) => void
 }
 
-const SESSION_KEY = '10pet:mapa:centro'
+const STORAGE_KEY = '10pet:mapa:centro'
 
 export function savePickedLocation(loc: PickedLocation) {
   try {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(loc))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(loc))
   } catch {
-    // ignorar si sessionStorage no está disponible
+    // ignorar si localStorage no está disponible
   }
 }
 
 export function loadPickedLocation(): PickedLocation | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
+    const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     return JSON.parse(raw) as PickedLocation
   } catch {
