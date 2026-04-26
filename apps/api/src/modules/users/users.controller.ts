@@ -18,6 +18,8 @@ const pushTokenSchema = z.object({
 
 const patchMeSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
+  isVet: z.boolean().optional(),
+  vetLicense: z.string().trim().max(50).nullable().optional(),
 });
 
 export const getMe = async (
@@ -39,6 +41,8 @@ export const getMe = async (
       name: user.name,
       emailVerified: user.emailVerified,
       isAdmin: isAdminEmail(user.email),
+      isVet: user.isVet,
+      vetLicense: user.vetLicense,
       createdAt: user.createdAt,
     });
   } catch (err) {
@@ -59,6 +63,8 @@ export const patchMe = async (
       return;
     }
     if (input.name !== undefined) user.name = input.name;
+    if (input.isVet !== undefined) user.isVet = input.isVet;
+    if (input.vetLicense !== undefined) user.vetLicense = input.vetLicense;
     await user.save();
     res.json({
       id: user.id,
@@ -66,6 +72,8 @@ export const patchMe = async (
       name: user.name,
       emailVerified: user.emailVerified,
       isAdmin: isAdminEmail(user.email),
+      isVet: user.isVet,
+      vetLicense: user.vetLicense,
       createdAt: user.createdAt,
     });
   } catch (err) {

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, Navigate } from 'react-router-dom'
 import { registerRequest } from '../services/auth.service'
+import { patchMe } from '../services/users.service'
 import { useAuthStore } from '../stores/authStore'
 import { Button, Card, Input } from '../components/ui'
 
@@ -12,6 +13,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
+  const [isVet, setIsVet] = useState(false)
+  const [vetLicense, setVetLicense] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -34,6 +37,9 @@ export default function RegisterPage() {
     try {
       const res = await registerRequest({ email, password })
       setAuth(res)
+      if (isVet) {
+        await patchMe({ isVet: true, vetLicense: vetLicense.trim() || null }).catch(() => {})
+      }
       navigate('/verify-email', { replace: true, state: { emailSent: true } })
     } catch (err) {
       const msg =
@@ -81,6 +87,26 @@ export default function RegisterPage() {
             onChange={(e) => setPasswordConfirm(e.target.value)}
             error={error}
           />
+
+          <div className="border border-gray-200 rounded-lg p-3 flex flex-col gap-2">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isVet}
+                onChange={(e) => setIsVet(e.target.checked)}
+                className="w-4 h-4 accent-primary-600"
+              />
+              <span className="text-sm text-gray-700">Soy veterinario/a</span>
+            </label>
+            {isVet && (
+              <Input
+                label="Matrícula (opcional)"
+                value={vetLicense}
+                onChange={(e) => setVetLicense(e.target.value)}
+                placeholder="Ej: MV 12345"
+              />
+            )}
+          </div>
 
           <Button type="submit" loading={loading} fullWidth>
             {loading ? 'Creando cuenta…' : 'Crear cuenta'}

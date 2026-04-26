@@ -7,6 +7,7 @@ import { CaseImage } from '../models/case-image.model';
 import { CaseUpdate } from '../models/case-update.model';
 import { Contact } from '../models/contact.model';
 import { Report } from '../models/report.model';
+import { VetAssistance } from '../models/vet-assistance.model';
 
 export const sequelize = new Sequelize(env.DATABASE_URL, {
   dialect: 'postgres',
@@ -23,6 +24,7 @@ CaseImage.initModel(sequelize);
 CaseUpdate.initModel(sequelize);
 Contact.initModel(sequelize);
 Report.initModel(sequelize);
+VetAssistance.initModel(sequelize);
 
 // Auth associations
 User.hasMany(RefreshToken, { foreignKey: 'userId', as: 'refreshTokens' });
@@ -58,7 +60,14 @@ Report.belongsTo(User, { foreignKey: 'reporterId', as: 'reporter' });
 Case.hasMany(Report, { foreignKey: 'targetCaseId', as: 'reports' });
 Report.belongsTo(Case, { foreignKey: 'targetCaseId', as: 'targetCase' });
 
-export { User, RefreshToken, Case, CaseImage, CaseUpdate, Contact, Report };
+// VetAssistance associations
+Case.hasMany(VetAssistance, { foreignKey: 'caseId', as: 'vetAssistances' });
+VetAssistance.belongsTo(Case, { foreignKey: 'caseId', as: 'case' });
+
+User.hasMany(VetAssistance, { foreignKey: 'userId', as: 'vetAssistances' });
+VetAssistance.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+export { User, RefreshToken, Case, CaseImage, CaseUpdate, Contact, Report, VetAssistance };
 
 export const connectDb = async (): Promise<void> => {
   await sequelize.authenticate();
