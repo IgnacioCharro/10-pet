@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getCaseById, addCaseUpdate } from '../../services/cases.service'
+import { getVetAssistances, createVetAssistance } from '../../services/vet-assistances.service'
+import type { VetAssistanceItem } from '../../services/vet-assistances.service'
 import { useAuthStore } from '../../stores/authStore'
 import { toast } from '../../stores/toastStore'
 import type { CaseDetail, AnimalType, CaseStatus, CaseUpdateType, CaseUpdateItem } from '../../types/case'
@@ -69,6 +71,11 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
   const [addUpdateType, setAddUpdateType] = useState<CaseUpdateType>('comentario')
   const [addUpdateContent, setAddUpdateContent] = useState('')
   const [addUpdateLoading, setAddUpdateLoading] = useState(false)
+  const [vetAssistances, setVetAssistances] = useState<VetAssistanceItem[]>([])
+  const [showVetForm, setShowVetForm] = useState(false)
+  const [vetProcedure, setVetProcedure] = useState('')
+  const [vetMedication, setVetMedication] = useState('')
+  const [vetLoading, setVetLoading] = useState(false)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const currentUserId = useAuthStore((s) => s.user?.id)
   const navigate = useNavigate()
@@ -81,13 +88,20 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
       setReported(false)
       setShowAddUpdate(false)
       setAddUpdateContent('')
+      setShowVetForm(false)
+      setVetProcedure('')
+      setVetMedication('')
       return
     }
     setLoading(true)
+    setVetAssistances([])
     getCaseById(caseId)
       .then(setDetail)
       .catch(() => setDetail(null))
       .finally(() => setLoading(false))
+    getVetAssistances(caseId)
+      .then(setVetAssistances)
+      .catch(() => {})
   }, [caseId])
 
   if (!caseId) return null
@@ -128,6 +142,30 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
       toast.error('No se pudo agregar la novedad.')
     } finally {
       setAddUpdateLoading(false)
+    }
+  }
+
+  const handleVetSubmit = async () => {
+    if (!caseId) return
+    if (!vetProcedure.trim() && !vetMedication.trim()) {
+      toast.error('Completá al menos el procedimiento o la medicación.')
+      return
+    }
+    setVetLoading(true)
+    try {
+      const item = await createVetAssistance(caseId, {
+        procedure: vetProcedure.trim() || undefined,
+        medication: vetMedication.trim() || undefined,
+      })
+      setVetAssistances((prev) => [item, ...prev])
+      setVetProcedure('')
+      setVetMedication('')
+      setShowVetForm(false)
+      toast.success('Atención registrada.')
+    } catch {
+      toast.error('No se pudo guardar. Intentá de nuevo.')
+    } finally {
+      setVetLoading(false)
     }
   }
 
@@ -228,6 +266,19 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 onTypeChange={setAddUpdateType}
                 onContentChange={setAddUpdateContent}
                 onSubmit={handleAddUpdate}
+              />
+
+              <VetAssistancesSection
+                assistances={vetAssistances}
+                isAuthenticated={isAuthenticated}
+                showForm={showVetForm}
+                procedure={vetProcedure}
+                medication={vetMedication}
+                loading={vetLoading}
+                onToggleForm={() => setShowVetForm((v) => !v)}
+                onProcedureChange={setVetProcedure}
+                onMedicationChange={setVetMedication}
+                onSubmit={handleVetSubmit}
               />
 
               <div className="flex items-center justify-between">
@@ -428,6 +479,107 @@ function CaseTimeline({
           </div>
         )
       })}
+    </div>
+  )
+}
+
+interface VetAssistancesSectionProps {
+  assistances: VetAssistanceItem[]
+  isAuthenticated: boolean
+  showForm: boolean
+  procedure: string
+  medication: string
+  loading: boolean
+  onToggleForm: () => void
+  onProcedureChange: (v: string) => void
+  onMedicationChange: (v: string) => void
+  onSubmit: () => void
+}
+
+function VetAssistancesSection({
+  assistances, isAuthenticated, showForm, procedure, medication, loading,
+  onToggleForm, onProcedureChange, onMedicationChange, onSubmit,
+}: VetAssistancesSectionProps) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Atencion veterinaria
+        </p>
+        {isAuthenticated && (
+          <button
+            type="button"
+            onClick={onToggleForm}
+            className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+          >
+            {showForm ? 'Cancelar' : '+ Registrar atencion'}
+          </button>
+        )}
+      </div>
+
+      {showForm && (
+        <div className="border border-teal-200 rounded-xl p-3 flex flex-col gap-3 bg-teal-50">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Procedimiento</label>
+            <textarea
+              rows={2}
+              placeholder="Examen, diagnóstico, tratamiento aplicado..."
+              value={procedure}
+              onChange={(e) => onProcedureChange(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Medicacion</label>
+            <textarea
+              rows={2}
+              placeholder="Nombre, dosis, frecuencia..."
+              value={medication}
+              onChange={(e) => onMedicationChange(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            />
+          </div>
+          <p className="text-xs text-gray-400">Completá al menos uno de los dos campos.</p>
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={loading || (!procedure.trim() && !medication.trim())}
+            className="self-end px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {loading ? 'Guardando...' : 'Registrar'}
+          </button>
+        </div>
+      )}
+
+      {assistances.length === 0 && !showForm && (
+        <p className="text-xs text-gray-400 text-center py-1">Sin atenciones registradas.</p>
+      )}
+
+      {assistances.map((a) => (
+        <div key={a.id} className="border border-teal-100 rounded-xl px-3 py-2.5 bg-white">
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-teal-700">{a.userName ?? 'Usuario'}</span>
+              {a.isVet && (
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-teal-50 text-teal-700 text-[10px] font-medium rounded-full border border-teal-200">
+                  Profesional verificado
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-gray-400 flex-shrink-0">{formatDate(a.createdAt)}</span>
+          </div>
+          {a.procedure && (
+            <p className="text-xs text-gray-700 mb-0.5">
+              <span className="font-medium text-gray-500">Procedimiento: </span>{a.procedure}
+            </p>
+          )}
+          {a.medication && (
+            <p className="text-xs text-gray-700">
+              <span className="font-medium text-gray-500">Medicacion: </span>{a.medication}
+            </p>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

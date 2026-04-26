@@ -7,6 +7,8 @@ export interface AuthUser {
   name: string | null
   emailVerified: boolean
   isAdmin?: boolean
+  isVet?: boolean
+  vetLicense?: string | null
   createdAt?: string
 }
 

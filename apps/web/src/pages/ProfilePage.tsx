@@ -29,6 +29,10 @@ export default function ProfilePage() {
   const [nameInput, setNameInput] = useState(user?.name ?? '')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [vetEditing, setVetEditing] = useState(false)
+  const [isVetInput, setIsVetInput] = useState(user?.isVet ?? false)
+  const [vetLicenseInput, setVetLicenseInput] = useState(user?.vetLicense ?? '')
+  const [vetSaving, setVetSaving] = useState(false)
   const [cases, setCases] = useState<CaseItem[]>([])
   const [loadingCases, setLoadingCases] = useState(true)
 
@@ -64,6 +68,23 @@ export default function ProfilePage() {
       setSaveError('No se pudo guardar. Intentá de nuevo.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const saveVet = async () => {
+    setVetSaving(true)
+    try {
+      const updated = await patchMe({
+        isVet: isVetInput,
+        vetLicense: isVetInput ? vetLicenseInput.trim() || null : null,
+      })
+      setUser(updated)
+      setVetEditing(false)
+      toast.success('Perfil veterinario actualizado.')
+    } catch {
+      toast.error('No se pudo guardar. Intentá de nuevo.')
+    } finally {
+      setVetSaving(false)
     }
   }
 
@@ -126,6 +147,70 @@ export default function ProfilePage() {
           <StatCard label="Resueltos" value={resolvedCount} />
           <StatCard label="Activos" value={cases.filter((c) => c.status === 'abierto').length} />
         </div>
+
+        <Card>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-base font-semibold">Perfil veterinario</h2>
+            {!vetEditing && (
+              <button
+                onClick={() => {
+                  setIsVetInput(user?.isVet ?? false)
+                  setVetLicenseInput(user?.vetLicense ?? '')
+                  setVetEditing(true)
+                }}
+                className="text-xs text-gray-400 hover:text-gray-600 underline"
+              >
+                Editar
+              </button>
+            )}
+          </div>
+
+          {vetEditing ? (
+            <div className="flex flex-col gap-3">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isVetInput}
+                  onChange={(e) => setIsVetInput(e.target.checked)}
+                  className="w-4 h-4 accent-primary-600"
+                />
+                <span className="text-sm text-gray-700">Soy veterinario/a</span>
+              </label>
+              {isVetInput && (
+                <Input
+                  label="Matrícula (opcional)"
+                  value={vetLicenseInput}
+                  onChange={(e) => setVetLicenseInput(e.target.value)}
+                  placeholder="Ej: MV 12345"
+                />
+              )}
+              <div className="flex gap-2">
+                <Button size="sm" onClick={saveVet} loading={vetSaving}>
+                  Guardar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setVetEditing(false)}
+                  disabled={vetSaving}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          ) : user?.isVet ? (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 text-xs font-medium rounded-full border border-teal-200">
+                Veterinario/a verificado/a
+              </span>
+              {user.vetLicense && (
+                <span className="text-xs text-gray-500">Mat. {user.vetLicense}</span>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">No declarado. Editá para indicar si sos veterinario/a.</p>
+          )}
+        </Card>
 
         <div>
           <h2 className="text-base font-semibold mb-3">Mis casos</h2>
