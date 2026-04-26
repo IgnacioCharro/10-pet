@@ -4,6 +4,7 @@ import {
   postCase,
   getCases,
   getNearby,
+  getFeed,
   getCase,
   patchCase,
   postCaseUpdate,
@@ -14,6 +15,7 @@ export const casesRouter: Router = Router();
 // Public routes
 casesRouter.get('/', getCases);
 casesRouter.get('/nearby', getNearby);
+casesRouter.get('/feed', getFeed);
 casesRouter.get('/:id', getCase);
 
 // Authenticated routes

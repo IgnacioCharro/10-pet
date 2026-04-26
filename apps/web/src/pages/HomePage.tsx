@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Button, Card } from '../components/ui'
 import { useAuthStore } from '../stores/authStore'
+import HomeFeed from '../components/cases/HomeFeed'
 
 const features = [
   {
@@ -29,8 +30,13 @@ const steps = [
 
 export default function HomePage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  const ctaTo = isAuthenticated ? '/dashboard' : '/register'
-  const ctaText = isAuthenticated ? 'Ir al dashboard' : 'Empezar gratis'
+
+  if (isAuthenticated) {
+    return <HomeFeed />
+  }
+
+  const ctaTo = '/register'
+  const ctaText = 'Empezar gratis'
 
   return (
     <main className="flex-1">

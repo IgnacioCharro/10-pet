@@ -4,6 +4,7 @@ import {
   CreateCaseInput,
   ListCasesQuery,
   NearbyCasesQuery,
+  FeedCasesQuery,
   UpdateCaseInput,
   AddUpdateInput,
 } from './cases.validators';
@@ -315,6 +316,48 @@ export async function updateCase(
   );
 
   return rows[0] ?? null;
+}
+
+export interface FeedCaseRow {
+  id: string;
+  animalType: string;
+  locationText: string | null;
+  urgencyLevel: number;
+  createdAt: Date;
+  publisherName: string | null;
+  volunteerCount: number;
+}
+
+export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]> {
+  const { lat, lng, radius } = query;
+
+  const rows = await sequelize.query<FeedCaseRow>(
+    `SELECT
+       c.id,
+       c.animal_type AS "animalType",
+       c.location_text AS "locationText",
+       c.urgency_level AS "urgencyLevel",
+       c.created_at AS "createdAt",
+       u.name AS "publisherName",
+       COUNT(co.id) FILTER (WHERE co.status IN ('active', 'completed')) AS "volunteerCount"
+     FROM cases c
+     LEFT JOIN users u ON c.user_id = u.id
+     LEFT JOIN contacts co ON co.case_id = c.id
+     WHERE c.status IN ('abierto', 'en_rescate')
+       AND ST_DWithin(
+             c.location::geography,
+             ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+             :radiusM
+           )
+     GROUP BY c.id, u.name
+     ORDER BY c.urgency_level DESC, c.created_at DESC
+     LIMIT 10`,
+    {
+      replacements: { lat, lng, radiusM: radius * 1000 },
+      type: QueryTypes.SELECT,
+    },
+  );
+  return rows.map((r) => ({ ...r, volunteerCount: Number(r.volunteerCount) }));
 }
 
 export async function addCaseUpdate(

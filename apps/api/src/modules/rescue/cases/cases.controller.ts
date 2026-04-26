@@ -4,6 +4,7 @@ import {
   createCaseSchema,
   listCasesSchema,
   nearbyCasesSchema,
+  feedCasesSchema,
   updateCaseSchema,
   addUpdateSchema,
 } from './cases.validators';
@@ -12,6 +13,7 @@ import {
   insertCaseImages,
   listCases,
   getNearbyCases,
+  getFeedCases,
   getCaseById,
   updateCase,
   addCaseUpdate,
@@ -86,6 +88,16 @@ export async function getCases(req: Request, res: Response, next: NextFunction):
         pages: Math.ceil(total / limit),
       },
     });
+  } catch (err) {
+    handleError(err, res, next);
+  }
+}
+
+export async function getFeed(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const query = feedCasesSchema.parse(req.query);
+    const cases = await getFeedCases(query);
+    res.json({ cases });
   } catch (err) {
     handleError(err, res, next);
   }
