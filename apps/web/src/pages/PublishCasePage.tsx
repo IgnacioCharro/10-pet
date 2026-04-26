@@ -141,7 +141,9 @@ export default function PublishCasePage() {
         phoneContact: state.phoneContact.trim() || undefined,
         imageIds: state.images.map((i) => i.publicId),
       })
-      navigate(`/cases`, { state: { published: newCase.id } })
+      navigate(`/cases`, {
+        state: { published: newCase.id, lat: state.lat, lng: state.lng },
+      })
     } catch {
       setErrors((prev) => ({ ...prev, submit: 'Error al publicar el caso. Intentá de nuevo.' }))
     } finally {
