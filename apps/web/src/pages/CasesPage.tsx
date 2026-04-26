@@ -90,6 +90,8 @@ export default function CasesPage() {
   const handlePickerPick = useCallback((loc: PickedLocation) => {
     setCenter(loc.center)
     setZoneLabel(loc.label)
+    setFlyTo({ center: loc.center, zoom: 13 })
+    setTimeout(() => setFlyTo(null), 1500)
     if (loc.label !== 'Mi ubicación') {
       setUserLocation(null)
     } else {
