@@ -322,9 +322,16 @@ export async function addCaseUpdate(
   userId: string,
   input: AddUpdateInput,
 ): Promise<CaseUpdateRow> {
-  const caseExists = await Case.findByPk(caseId, { attributes: ['id'] });
-  if (!caseExists) {
+  const existing = await Case.findByPk(caseId, { attributes: ['id', 'userId'] });
+  if (!existing) {
     throw Object.assign(new Error('Caso no encontrado'), { code: 'CASE_NOT_FOUND', status: 404 });
+  }
+
+  if (existing.userId !== userId) {
+    throw Object.assign(new Error('Solo el autor del caso puede agregar novedades'), {
+      code: 'FORBIDDEN',
+      status: 403,
+    });
   }
 
   const update = await CaseUpdate.create({
