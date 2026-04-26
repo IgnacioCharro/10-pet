@@ -202,20 +202,31 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 </div>
               )}
 
-              {detail.images.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {[...detail.images]
-                    .sort((a, b) => a.position - b.position)
-                    .map((img) => (
-                      <img
-                        key={img.id}
-                        src={img.cloudinaryUrl}
-                        alt="Foto del caso"
-                        className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
-                      />
-                    ))}
-                </div>
-              )}
+              {detail.images.length > 0 && (() => {
+                const sorted = [...detail.images].sort((a, b) => a.position - b.position)
+                const [hero, ...rest] = sorted
+                return (
+                  <div className="flex flex-col gap-2 -mx-4">
+                    <img
+                      src={hero.cloudinaryUrl}
+                      alt="Foto del caso"
+                      className="w-full h-52 object-cover"
+                    />
+                    {rest.length > 0 && (
+                      <div className="flex gap-2 overflow-x-auto px-4 pb-1">
+                        {rest.map((img) => (
+                          <img
+                            key={img.id}
+                            src={img.cloudinaryUrl}
+                            alt="Foto del caso"
+                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
 
               <CaseTimeline
                 updates={detail.updates}
