@@ -1,3 +1,4 @@
+import './instrument';
 import app from './app';
 import { env } from './config/env';
 import './jobs/notify-new-case.job';
