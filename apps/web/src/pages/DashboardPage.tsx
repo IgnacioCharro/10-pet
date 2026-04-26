@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { useNotificationsStore } from '../stores/notificationsStore'
 import { getMyCases } from '../services/users.service'
 import { listContacts, updateContactStatus, type ContactItem } from '../services/contacts.service'
 import { toast } from '../stores/toastStore'
@@ -33,6 +34,7 @@ const CONTACT_STATUS_COLORS: Record<string, string> = {
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user)
+  const decrementPending = useNotificationsStore((s) => s.decrementPending)
   const [tab, setTab] = useState<Tab>('casos')
   const [cases, setCases] = useState<CaseItem[]>([])
   const [sent, setSent] = useState<ContactItem[]>([])
@@ -71,8 +73,14 @@ export default function DashboardPage() {
     try {
       const updated = await updateContactStatus(contactId, status)
       setReceived((prev) => prev.map((c) => (c.id === contactId ? { ...c, ...updated } : c)))
-      if (status === 'active') toast.success('Solicitud aceptada.')
-      if (status === 'rejected') toast.info('Solicitud rechazada.')
+      if (status === 'active') {
+        decrementPending()
+        toast.success('Solicitud aceptada.')
+      }
+      if (status === 'rejected') {
+        decrementPending()
+        toast.info('Solicitud rechazada.')
+      }
     } catch {
       toast.error('No se pudo actualizar. Intentá de nuevo.')
     }
@@ -212,6 +220,18 @@ function CaseCard({ item }: { item: CaseItem }) {
   )
 }
 
+const ANIMAL_LABELS: Record<string, string> = {
+  perro: 'Perro',
+  gato: 'Gato',
+  otro: 'Animal',
+}
+
+function caseSummary(item: ContactItem): string {
+  const animal = ANIMAL_LABELS[item.caseAnimalType ?? ''] ?? 'Caso'
+  const location = item.caseLocationText ?? ''
+  return location ? `${animal} · ${location}` : animal
+}
+
 function SentContactCard({ item }: { item: ContactItem }) {
   const statusClass = CONTACT_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'
   return (
@@ -219,7 +239,7 @@ function SentContactCard({ item }: { item: ContactItem }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">Solicitud enviada</p>
-          <p className="text-xs text-gray-500 mt-0.5 truncate">Caso: {item.caseId}</p>
+          <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
           {item.message && (
             <p className="text-xs text-gray-400 mt-0.5 italic truncate">"{item.message}"</p>
           )}
@@ -252,7 +272,7 @@ function ReceivedContactCard({
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">Alguien quiere ayudar</p>
-          <p className="text-xs text-gray-500 mt-0.5 truncate">Caso: {item.caseId}</p>
+          <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
           {item.message && (
             <p className="text-xs text-gray-600 mt-1 italic">"{item.message}"</p>
           )}

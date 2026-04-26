@@ -9,6 +9,7 @@ import {
   listContacts,
   getContactById,
   updateContact,
+  getPendingCount,
 } from './contacts.service';
 
 export async function postContact(req: Request, res: Response): Promise<void> {
@@ -53,6 +54,11 @@ export async function getContact(req: Request, res: Response): Promise<void> {
     return;
   }
   res.json(result);
+}
+
+export async function getPendingContactsCount(req: Request, res: Response): Promise<void> {
+  const count = await getPendingCount(req.user!.id);
+  res.json({ count });
 }
 
 export async function patchContact(req: Request, res: Response): Promise<void> {

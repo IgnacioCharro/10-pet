@@ -10,6 +10,8 @@ export interface ContactItem {
   message: string | null
   createdAt: string
   updatedAt: string
+  caseAnimalType: string | null
+  caseLocationText: string | null
 }
 
 export interface CreateContactResult {
@@ -41,4 +43,9 @@ export async function updateContactStatus(
 ): Promise<ContactItem> {
   const res = await api.patch<ContactItem>(`/contacts/${contactId}`, { status })
   return res.data
+}
+
+export async function getPendingContactsCount(): Promise<number> {
+  const res = await api.get<{ count: number }>('/contacts/pending-count')
+  return res.data.count
 }
