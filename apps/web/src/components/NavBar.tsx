@@ -111,6 +111,15 @@ export default function NavBar() {
           )}
         </div>
 
+        {isAuthenticated && (
+          <Link
+            to="/cases/new"
+            className="md:hidden flex items-center gap-1 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors"
+          >
+            + Reportar
+          </Link>
+        )}
+
         <button
           type="button"
           className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100"
