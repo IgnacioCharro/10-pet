@@ -1,10 +1,12 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import { uploadToCloudinary, type UploadedImage } from '../services/images.service'
 import { createCase } from '../services/cases.service'
 import type { AnimalType } from '../types/case'
+
+const LocationPickerMap = lazy(() => import('../components/map/LocationPickerMap'))
 
 type Step = 1 | 2 | 3 | 4
 
@@ -342,59 +344,189 @@ interface StepUbicacionProps {
   onLocationTextChange: (v: string) => void
 }
 
+type AddressMode = 'numero' | 'interseccion'
+
 function StepUbicacion({
   lat, lng, locationText, geolocating, error,
   onGeolocate, onLatChange, onLngChange, onLocationTextChange,
 }: StepUbicacionProps) {
+  const [localidad, setLocalidad] = useState('')
+  const [addressMode, setAddressMode] = useState<AddressMode>('numero')
+  const [calle, setCalle] = useState('')
+  const [numero, setNumero] = useState('')
+  const [calle2, setCalle2] = useState('')
+  const [geocoding, setGeocoding] = useState(false)
+  const [geocodeError, setGeocodeError] = useState<string | null>(null)
+
+  const handleGeocode = async () => {
+    if (!localidad.trim()) {
+      setGeocodeError('Ingresá la localidad.')
+      return
+    }
+    const callesPart = addressMode === 'numero'
+      ? `${calle.trim()} ${numero.trim()}`
+      : `${calle.trim()} y ${calle2.trim()}`
+    const query = `${callesPart}, ${localidad.trim()}, Argentina`
+    setGeocoding(true)
+    setGeocodeError(null)
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=ar`,
+        { headers: { 'Accept-Language': 'es', 'User-Agent': '10pet-web/1.0' } },
+      )
+      const data: Array<{ lat: string; lon: string; display_name: string }> = await res.json()
+      if (data.length === 0) {
+        setGeocodeError('No encontramos esa dirección. Revisá los datos o usá el mapa.')
+        return
+      }
+      const r = data[0]
+      onLatChange(parseFloat(r.lat))
+      onLngChange(parseFloat(r.lon))
+      const label = addressMode === 'numero'
+        ? `${calle.trim()} ${numero.trim()}, ${localidad.trim()}`
+        : `${calle.trim()} y ${calle2.trim()}, ${localidad.trim()}`
+      onLocationTextChange(label)
+    } catch {
+      setGeocodeError('Error al buscar la dirección. Intentá de nuevo.')
+    } finally {
+      setGeocoding(false)
+    }
+  }
+
+  const handleMapChange = (newLat: number, newLng: number) => {
+    onLatChange(newLat)
+    onLngChange(newLng)
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-gray-600">
-        ¿Dónde está el animal? Usá tu ubicación actual o ingresá las coordenadas manualmente.
+        ¿Dónde está el animal? Usá tu ubicación, ingresá la dirección o tocá el mapa.
       </p>
 
+      {/* Opcion 1: GPS */}
       <Button
-        variant={lat !== null ? 'secondary' : 'primary'}
+        variant={lat !== null && !geocoding ? 'secondary' : 'primary'}
         onClick={onGeolocate}
         loading={geolocating}
         fullWidth
       >
-        {lat !== null ? 'Ubicación obtenida ✓' : 'Usar mi ubicación actual'}
+        {lat !== null ? 'Ubicacion GPS obtenida ✓' : 'Usar mi ubicacion actual'}
       </Button>
-
-      {lat !== null && lng !== null && (
-        <p className="text-xs text-gray-500 text-center">
-          {lat.toFixed(5)}, {lng.toFixed(5)}
-        </p>
-      )}
 
       {error && <p className="text-xs text-red-600">{error}</p>}
 
-      <div className="flex gap-2">
-        <Input
-          label="Latitud"
-          type="number"
-          step="any"
-          placeholder="-34.603"
-          value={lat ?? ''}
-          onChange={(e) => onLatChange(e.target.value ? parseFloat(e.target.value) : null)}
-          className="flex-1"
-        />
-        <Input
-          label="Longitud"
-          type="number"
-          step="any"
-          placeholder="-58.381"
-          value={lng ?? ''}
-          onChange={(e) => onLngChange(e.target.value ? parseFloat(e.target.value) : null)}
-          className="flex-1"
-        />
+      {/* Divisor */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-gray-200" />
+        <span className="text-xs text-gray-400">o ingresa la direccion</span>
+        <div className="flex-1 h-px bg-gray-200" />
       </div>
 
+      {/* Opcion 2: Formulario estructurado */}
+      <div className="flex flex-col gap-3">
+        <Input
+          label="Localidad *"
+          placeholder="Ej: Pergamino, Tandil, Azul"
+          value={localidad}
+          onChange={(e) => setLocalidad(e.target.value)}
+        />
+
+        <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setAddressMode('numero')}
+            className={`flex-1 py-2 text-xs font-medium transition-colors ${addressMode === 'numero' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+          >
+            Calle y numero
+          </button>
+          <button
+            type="button"
+            onClick={() => setAddressMode('interseccion')}
+            className={`flex-1 py-2 text-xs font-medium transition-colors border-l border-gray-200 ${addressMode === 'interseccion' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+          >
+            Interseccion
+          </button>
+        </div>
+
+        {addressMode === 'numero' ? (
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Input
+                label="Calle"
+                placeholder="Av. San Martin"
+                value={calle}
+                onChange={(e) => setCalle(e.target.value)}
+              />
+            </div>
+            <div className="w-24">
+              <Input
+                label="Numero"
+                placeholder="1234"
+                value={numero}
+                onChange={(e) => setNumero(e.target.value)}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <Input
+                label="Calle 1"
+                placeholder="San Martin"
+                value={calle}
+                onChange={(e) => setCalle(e.target.value)}
+              />
+            </div>
+            <span className="pb-2.5 text-sm text-gray-400">y</span>
+            <div className="flex-1">
+              <Input
+                label="Calle 2"
+                placeholder="Belgrano"
+                value={calle2}
+                onChange={(e) => setCalle2(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {geocodeError && <p className="text-xs text-red-600">{geocodeError}</p>}
+
+        <Button
+          variant="secondary"
+          onClick={handleGeocode}
+          loading={geocoding}
+          disabled={!localidad.trim()}
+          fullWidth
+        >
+          Buscar direccion
+        </Button>
+      </div>
+
+      {/* Mapa picker — aparece cuando hay coordenadas */}
+      {lat !== null && lng !== null && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400">o ajusta el pin en el mapa</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Cargando mapa...</div>}>
+            <LocationPickerMap lat={lat} lng={lng} onChange={handleMapChange} />
+          </Suspense>
+          <p className="text-xs text-gray-500 text-center">
+            Toca o arrastra el pin para ajustar la posicion exacta
+          </p>
+        </div>
+      )}
+
       <Input
-        label="Dirección aproximada (opcional)"
-        placeholder="Ej: Av. Corrientes y Callao, CABA"
+        label="Referencia (opcional)"
+        placeholder="Ej: cerca de la plaza, frente al supermercado"
         value={locationText}
         onChange={(e) => onLocationTextChange(e.target.value)}
+        hint="Se muestra en la ficha del caso."
       />
     </div>
   )
