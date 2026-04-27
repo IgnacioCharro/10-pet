@@ -94,7 +94,7 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-semibold">Dashboard</h1>
             {user && (
               <p className="text-sm text-gray-500 mt-0.5">
-                Hola, <span className="font-medium">{user.name ?? user.email}</span>
+                Hola, <span className="font-medium">{user.name ?? 'Anónimo'}</span>
               </p>
             )}
           </div>
@@ -126,7 +126,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400">Cargando casos...</p>
             ) : cases.length === 0 ? (
               <Card>
-                <p className="text-sm text-gray-500 mb-3">Todavia no publicaste ningun caso.</p>
+                <p className="text-sm text-gray-500 mb-3">Todavía no publicaste ningún caso.</p>
                 <Link to="/cases/new">
                   <Button size="sm">Publicar mi primer caso</Button>
                 </Link>
@@ -147,9 +147,12 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400">Cargando...</p>
             ) : sent.length === 0 ? (
               <Card>
-                <p className="text-sm text-gray-500">
-                  Todavia no te ofreciste a ayudar en ningun caso.
+                <p className="text-sm text-gray-500 mb-3">
+                  Todavía no te ofreciste a ayudar en ningún caso.
                 </p>
+                <Link to="/cases">
+                  <Button size="sm" variant="secondary">Ver casos cercanos</Button>
+                </Link>
               </Card>
             ) : (
               <div className="flex flex-col gap-2">
@@ -167,7 +170,12 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400">Cargando...</p>
             ) : received.length === 0 ? (
               <Card>
-                <p className="text-sm text-gray-500">Nadie se ofrecio a ayudar en tus casos aun.</p>
+                <p className="text-sm text-gray-500 mb-3">
+                  Nadie se ofreció a ayudar en tus casos aún.
+                </p>
+                <Link to="/cases/new">
+                  <Button size="sm" variant="secondary">Publicar un caso</Button>
+                </Link>
               </Card>
             ) : (
               <div className="flex flex-col gap-2">

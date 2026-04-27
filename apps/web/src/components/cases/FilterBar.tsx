@@ -154,7 +154,7 @@ export default function FilterBar({ filters, view, onFiltersChange, onViewChange
             onClick={() => onViewChange('list')}
             className={`px-3 py-2 text-xs font-medium transition-colors border-l border-gray-300 ${view === 'list' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
           >
-            Lista
+            Explorar
           </button>
         </div>
       </div>

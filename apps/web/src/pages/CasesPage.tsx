@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import FilterBar, { type FilterState } from '../components/cases/FilterBar'
 import CaseCard from '../components/cases/CaseCard'
 import CaseDetailSheet from '../components/cases/CaseDetailSheet'
@@ -199,13 +199,35 @@ export default function CasesPage() {
           </Suspense>
         )}
 
+        {view === 'map' && cases.length === 0 && !loading && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 text-sm max-w-xs w-full mx-4">
+            <span className="text-2xl">🐾</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-700 font-medium text-xs leading-tight">Sin casos en esta zona</p>
+              <p className="text-gray-400 text-xs mt-0.5">¿Viste un animal en problema?</p>
+            </div>
+            <Link
+              to="/cases/new"
+              className="flex-shrink-0 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Publicar
+            </Link>
+          </div>
+        )}
+
         {view === 'list' && (
           <div className="h-full overflow-y-auto">
             <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
               {cases.length === 0 && !loading && (
                 <div className="text-center py-12 text-gray-400">
                   <p className="text-4xl mb-3">🐾</p>
-                  <p className="text-sm">Sin casos en esta zona con los filtros actuales.</p>
+                  <p className="text-sm mb-4">Sin casos en esta zona con los filtros actuales.</p>
+                  <Link
+                    to="/cases/new"
+                    className="inline-block bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Publicar un caso
+                  </Link>
                 </div>
               )}
               {cases.map((c) => (

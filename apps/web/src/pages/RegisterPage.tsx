@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const setAuth = useAuthStore((s) => s.setAuth)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
@@ -24,6 +25,10 @@ export default function RegisterPage() {
     e.preventDefault()
     setError(null)
 
+    if (!name.trim()) {
+      setError('El nombre es obligatorio')
+      return
+    }
     if (password !== passwordConfirm) {
       setError('Las contraseñas no coinciden')
       return
@@ -35,7 +40,7 @@ export default function RegisterPage() {
 
     setLoading(true)
     try {
-      const res = await registerRequest({ email, password })
+      const res = await registerRequest({ email, password, name: name.trim() })
       setAuth(res)
       if (isVet) {
         await patchMe({ isVet: true, vetLicense: vetLicense.trim() || null }).catch(() => {})
@@ -57,6 +62,16 @@ export default function RegisterPage() {
         <h1 className="text-2xl font-semibold mb-6 text-center">Crear cuenta</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Input
+            label="Nombre"
+            type="text"
+            required
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Como querés que te llamemos"
+          />
+
           <Input
             label="Email"
             type="email"
