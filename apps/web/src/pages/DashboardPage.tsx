@@ -18,6 +18,16 @@ const STATUS_LABELS: Record<string, string> = {
   inactivo: 'Inactivo',
 }
 
+const RESOLUTION_LABELS: Record<string, string> = {
+  adoptado:     'Adoptado',
+  en_transito:  'En transito',
+  zoonosis:     'Centro de zoonosis',
+  derivado_ong: 'Derivado a ONG',
+  fallecio:     'Fallecio',
+  sin_paradero: 'Sin paradero',
+  otro:         'Otro',
+}
+
 const CONTACT_STATUS_LABELS: Record<string, string> = {
   pending: 'Pendiente',
   active: 'Activo',
@@ -201,20 +211,27 @@ function CaseCard({ item }: { item: CaseItem }) {
             {new Date(item.createdAt).toLocaleDateString('es-AR')}
           </p>
         </div>
-        <span
-          className={[
-            'text-xs px-2 py-0.5 rounded-full font-medium shrink-0',
-            item.status === 'abierto'
-              ? 'bg-green-100 text-green-700'
-              : item.status === 'en_rescate'
-              ? 'bg-blue-100 text-blue-700'
-              : item.status === 'resuelto'
-              ? 'bg-gray-100 text-gray-600'
-              : 'bg-yellow-100 text-yellow-700',
-          ].join(' ')}
-        >
-          {STATUS_LABELS[item.status] ?? item.status}
-        </span>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span
+            className={[
+              'text-xs px-2 py-0.5 rounded-full font-medium',
+              item.status === 'abierto'
+                ? 'bg-green-100 text-green-700'
+                : item.status === 'en_rescate'
+                ? 'bg-blue-100 text-blue-700'
+                : item.status === 'resuelto'
+                ? 'bg-gray-100 text-gray-600'
+                : 'bg-yellow-100 text-yellow-700',
+            ].join(' ')}
+          >
+            {STATUS_LABELS[item.status] ?? item.status}
+          </span>
+          {item.status === 'resuelto' && item.resolutionType && (
+            <span className="text-[10px] text-gray-400">
+              {RESOLUTION_LABELS[item.resolutionType] ?? item.resolutionType}
+            </span>
+          )}
+        </div>
       </div>
     </Card>
   )

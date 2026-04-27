@@ -40,7 +40,7 @@ export const updateCaseSchema = z
   .object({
     status: z.enum(['abierto', 'en_rescate', 'resuelto', 'inactivo', 'spam']).optional(),
     resolutionType: z
-      .enum(['rescatado', 'adoptado', 'fallecido', 'sin_novedad'])
+      .enum(['adoptado', 'en_transito', 'zoonosis', 'derivado_ong', 'fallecio', 'sin_paradero', 'otro'])
       .optional(),
     urgencyLevel: z.number().int().min(1).max(5).optional(),
     description: z.string().trim().min(10).max(2000).optional(),
