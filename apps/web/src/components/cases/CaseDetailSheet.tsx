@@ -431,8 +431,8 @@ function ResolutionModal({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-60" onClick={onClose} aria-hidden="true" />
-      <div className="fixed z-70 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white rounded-2xl shadow-2xl p-5 flex flex-col gap-4">
+      <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} aria-hidden="true" />
+      <div className="fixed z-[70] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white rounded-2xl shadow-2xl p-5 flex flex-col gap-4">
         <h3 className="font-semibold text-gray-900 text-base">Como se resolvio?</h3>
         <div className="flex flex-col gap-2">
           {RESOLUTION_OPTIONS.map((opt) => (

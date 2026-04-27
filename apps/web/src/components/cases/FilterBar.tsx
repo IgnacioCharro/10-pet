@@ -41,7 +41,7 @@ interface Props {
   view: 'map' | 'list'
   onFiltersChange: (f: FilterState) => void
   onViewChange: (v: 'map' | 'list') => void
-  onLocationFound: (lat: number, lng: number, zoom: number) => void
+  onLocationFound: (lat: number, lng: number, zoom: number, label?: string) => void
   zoneLabel?: string | null
   onChangeZone?: () => void
 }
@@ -88,9 +88,10 @@ export default function FilterBar({ filters, view, onFiltersChange, onViewChange
   }
 
   const handleSuggestionClick = (r: NominatimResult) => {
-    setSearch(r.display_name.split(',').slice(0, 2).join(','))
+    const label = r.display_name.split(',').slice(0, 2).join(',').trim()
+    setSearch(label)
     setSuggestions([])
-    onLocationFound(parseFloat(r.lat), parseFloat(r.lon), 14)
+    onLocationFound(parseFloat(r.lat), parseFloat(r.lon), 14, label)
   }
 
   return (
