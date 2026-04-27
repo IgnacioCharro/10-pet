@@ -7,6 +7,7 @@ import LocalidadPicker, {
   type PickedLocation,
 } from './LocalidadPicker'
 import CaseDetailSheet from './CaseDetailSheet'
+import CasePopup from './CasePopup'
 import { Button } from '../ui'
 import type { AnimalType } from '../../types/case'
 
@@ -46,7 +47,8 @@ export default function HomeFeed() {
   const [showPicker, setShowPicker] = useState(() => !loadPickedLocation())
   const [rows, setRows] = useState<FeedRow[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null)
+  const [popupCaseId, setPopupCaseId] = useState<string | null>(null)
+  const [detailCaseId, setDetailCaseId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loc) return
@@ -127,7 +129,7 @@ export default function HomeFeed() {
                     return (
                       <tr
                         key={row.id}
-                        onClick={() => setSelectedCaseId(row.id)}
+                        onClick={() => setPopupCaseId(row.id)}
                         className="border-b border-gray-100 last:border-0 hover:bg-gray-50 cursor-pointer transition-colors"
                       >
                         <td className="px-4 py-3 font-medium text-gray-900">
@@ -177,7 +179,7 @@ export default function HomeFeed() {
                 return (
                   <button
                     key={row.id}
-                    onClick={() => setSelectedCaseId(row.id)}
+                    onClick={() => setPopupCaseId(row.id)}
                     className="w-full text-left bg-white rounded-xl border border-gray-200 px-4 py-3 shadow-sm hover:border-primary-300 active:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -212,7 +214,12 @@ export default function HomeFeed() {
         )}
       </div>
 
-      <CaseDetailSheet caseId={selectedCaseId} onClose={() => setSelectedCaseId(null)} />
+      <CasePopup
+        caseId={popupCaseId}
+        onClose={() => setPopupCaseId(null)}
+        onViewFull={() => { setDetailCaseId(popupCaseId); setPopupCaseId(null) }}
+      />
+      <CaseDetailSheet caseId={detailCaseId} onClose={() => setDetailCaseId(null)} />
     </>
   )
 }
