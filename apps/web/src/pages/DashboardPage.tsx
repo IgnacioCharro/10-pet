@@ -7,6 +7,7 @@ import { listContacts, updateContactStatus, type ContactItem } from '../services
 import { toast } from '../stores/toastStore'
 import { Card } from '../components/ui'
 import Button from '../components/ui/Button'
+import CaseDetailSheet from '../components/cases/CaseDetailSheet'
 import type { CaseItem } from '../types/case'
 
 type Tab = 'casos' | 'enviados' | 'recibidos'
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const user = useAuthStore((s) => s.user)
   const decrementPending = useNotificationsStore((s) => s.decrementPending)
   const [tab, setTab] = useState<Tab>('casos')
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null)
   const [cases, setCases] = useState<CaseItem[]>([])
   const [sent, setSent] = useState<ContactItem[]>([])
   const [received, setReceived] = useState<ContactItem[]>([])
@@ -91,7 +93,7 @@ export default function DashboardPage() {
       <div className="max-w-3xl mx-auto flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Dashboard</h1>
+            <h1 className="text-2xl font-semibold">Mis casos y solicitudes</h1>
             {user && (
               <p className="text-sm text-gray-500 mt-0.5">
                 Hola, <span className="font-medium">{user.name ?? user.email}</span>
@@ -134,7 +136,7 @@ export default function DashboardPage() {
             ) : (
               <div className="flex flex-col gap-2">
                 {cases.map((c) => (
-                  <CaseCard key={c.id} item={c} />
+                  <CaseCard key={c.id} item={c} onClick={() => setSelectedCaseId(c.id)} />
                 ))}
               </div>
             )}
@@ -184,13 +186,18 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      <CaseDetailSheet caseId={selectedCaseId} onClose={() => setSelectedCaseId(null)} />
     </main>
   )
 }
 
-function CaseCard({ item }: { item: CaseItem }) {
+function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
   return (
-    <Card className="p-4">
+    <Card
+      className={['p-4', onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''].join(' ')}
+      onClick={onClick}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium capitalize">{item.animalType}</p>
