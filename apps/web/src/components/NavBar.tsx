@@ -62,7 +62,7 @@ export default function NavBar() {
             <>
               <NavLink to="/dashboard" className={navLinkClass}>
                 <span className="relative inline-flex items-center">
-                  Dashboard
+                  Mis casos
                   {pendingCount > 0 && (
                     <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
                       {pendingCount > 9 ? '9+' : pendingCount}
@@ -160,7 +160,7 @@ export default function NavBar() {
               <>
                 <NavLink to="/dashboard" className={navLinkClass} onClick={() => setOpen(false)}>
                   <span className="relative inline-flex items-center">
-                    Dashboard
+                    Mis casos
                     {pendingCount > 0 && (
                       <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
                         {pendingCount > 9 ? '9+' : pendingCount}
