@@ -151,12 +151,12 @@ export default function CasesPage() {
     setPage(1)
   }, [filters, view, center])
 
-  const handleLocationFound = useCallback((lat: number, lng: number, zoom: number) => {
+  const handleLocationFound = useCallback((lat: number, lng: number, zoom: number, label?: string) => {
     const newCenter: [number, number] = [lat, lng]
     setCenter(newCenter)
     setFlyTo({ center: newCenter, zoom })
     setTimeout(() => setFlyTo(null), 1500)
-    const loc: PickedLocation = { center: newCenter, label: 'Zona buscada' }
+    const loc: PickedLocation = { center: newCenter, label: label ?? 'Zona buscada' }
     savePickedLocation(loc)
     setZoneLabel(loc.label)
   }, [])
