@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getCaseById, addCaseUpdate } from '../../services/cases.service'
+import { getCaseById, addCaseUpdate, updateCase, type ResolutionType } from '../../services/cases.service'
 import { getVetAssistances, createVetAssistance } from '../../services/vet-assistances.service'
 import type { VetAssistanceItem } from '../../services/vet-assistances.service'
 import { useAuthStore } from '../../stores/authStore'
@@ -76,6 +76,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
   const [vetProcedure, setVetProcedure] = useState('')
   const [vetMedication, setVetMedication] = useState('')
   const [vetLoading, setVetLoading] = useState(false)
+  const [showResolutionModal, setShowResolutionModal] = useState(false)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const currentUserId = useAuthStore((s) => s.user?.id)
   const navigate = useNavigate()
@@ -91,6 +92,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
       setShowVetForm(false)
       setVetProcedure('')
       setVetMedication('')
+      setShowResolutionModal(false)
       return
     }
     setLoading(true)
@@ -166,6 +168,18 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
       toast.error('No se pudo guardar. Intentá de nuevo.')
     } finally {
       setVetLoading(false)
+    }
+  }
+
+  const handleResolve = async (resolutionType: ResolutionType) => {
+    if (!caseId) return
+    try {
+      const updated = await updateCase(caseId, { status: 'resuelto', resolutionType })
+      setDetail(updated)
+      setShowResolutionModal(false)
+      toast.success('Caso marcado como resuelto.')
+    } catch {
+      toast.error('No se pudo actualizar. Intentá de nuevo.')
     }
   }
 
@@ -311,6 +325,19 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
           )}
         </div>
 
+        {detail && isAuthenticated && detail.userId === currentUserId &&
+          (detail.status === 'abierto' || detail.status === 'en_rescate') && (
+          <div className="px-4 pb-2 pt-3 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => setShowResolutionModal(true)}
+              className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-2.5 rounded-xl transition-colors text-sm"
+            >
+              Marcar como resuelto
+            </button>
+          </div>
+        )}
+
         {detail && detail.status === 'abierto' && (
           <div className="px-4 pb-4 pt-3 border-t border-gray-100 flex flex-col gap-2">
             {contacted && whatsappLink && (
@@ -364,6 +391,84 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
           onSuccess={handleReportSuccess}
         />
       )}
+
+      {showResolutionModal && (
+        <ResolutionModal
+          onClose={() => setShowResolutionModal(false)}
+          onConfirm={handleResolve}
+        />
+      )}
+    </>
+  )
+}
+
+const RESOLUTION_OPTIONS: { value: ResolutionType; label: string }[] = [
+  { value: 'adoptado',     label: 'Adoptado' },
+  { value: 'en_transito',  label: 'En transito' },
+  { value: 'zoonosis',     label: 'Centro de zoonosis' },
+  { value: 'derivado_ong', label: 'Derivado a ONG' },
+  { value: 'fallecio',     label: 'Fallecio' },
+  { value: 'sin_paradero', label: 'Sin paradero' },
+  { value: 'otro',         label: 'Otro' },
+]
+
+function ResolutionModal({
+  onClose,
+  onConfirm,
+}: {
+  onClose: () => void
+  onConfirm: (r: ResolutionType) => void
+}) {
+  const [selected, setSelected] = useState<ResolutionType | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleConfirm = async () => {
+    if (!selected) return
+    setLoading(true)
+    await onConfirm(selected)
+    setLoading(false)
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-60" onClick={onClose} aria-hidden="true" />
+      <div className="fixed z-70 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white rounded-2xl shadow-2xl p-5 flex flex-col gap-4">
+        <h3 className="font-semibold text-gray-900 text-base">Como se resolvio?</h3>
+        <div className="flex flex-col gap-2">
+          {RESOLUTION_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setSelected(opt.value)}
+              className={[
+                'w-full text-left px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors',
+                selected === opt.value
+                  ? 'border-primary-500 bg-primary-50 text-primary-700'
+                  : 'border-gray-200 text-gray-700 hover:border-gray-300',
+              ].join(' ')}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={!selected || loading}
+            className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
+          >
+            {loading ? 'Guardando...' : 'Confirmar'}
+          </button>
+        </div>
+      </div>
     </>
   )
 }

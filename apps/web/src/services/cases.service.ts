@@ -33,6 +33,23 @@ export const createCase = async (input: CreateCaseInput): Promise<CaseItem> => {
   return res.data.case
 }
 
+export type ResolutionType =
+  | 'adoptado'
+  | 'en_transito'
+  | 'zoonosis'
+  | 'derivado_ong'
+  | 'fallecio'
+  | 'sin_paradero'
+  | 'otro'
+
+export const updateCase = async (
+  id: string,
+  data: { status?: string; resolutionType?: ResolutionType },
+): Promise<CaseDetail> => {
+  const res = await api.patch<{ case: CaseDetail }>(`/cases/${id}`, data)
+  return res.data.case
+}
+
 export type ReportReason = 'spam' | 'contenido_inapropiado' | 'falso' | 'acoso' | 'otro'
 
 export const createCaseReport = async (
