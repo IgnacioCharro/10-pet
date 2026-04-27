@@ -3,6 +3,7 @@ import {
   createContactSchema,
   listContactsSchema,
   updateContactSchema,
+  unreadCountSchema,
 } from './contacts.validators';
 import {
   createContact,
@@ -10,6 +11,7 @@ import {
   getContactById,
   updateContact,
   getPendingCount,
+  getUnreadUpdatesCount,
 } from './contacts.service';
 
 export async function postContact(req: Request, res: Response): Promise<void> {
@@ -58,6 +60,17 @@ export async function getContact(req: Request, res: Response): Promise<void> {
 
 export async function getPendingContactsCount(req: Request, res: Response): Promise<void> {
   const count = await getPendingCount(req.user!.id);
+  res.json({ count });
+}
+
+export async function getUnreadContactsCount(req: Request, res: Response): Promise<void> {
+  const parsed = unreadCountSchema.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Parámetros inválidos' } });
+    return;
+  }
+  const since = parsed.data.since ? new Date(parsed.data.since) : new Date(0);
+  const count = await getUnreadUpdatesCount(req.user!.id, since);
   res.json({ count });
 }
 

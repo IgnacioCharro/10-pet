@@ -46,6 +46,7 @@ const CONTACT_STATUS_COLORS: Record<string, string> = {
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user)
   const decrementPending = useNotificationsStore((s) => s.decrementPending)
+  const clearVolunteerUpdates = useNotificationsStore((s) => s.clearVolunteerUpdates)
   const [tab, setTab] = useState<Tab>('casos')
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null)
   const [cases, setCases] = useState<CaseItem[]>([])
@@ -73,6 +74,13 @@ export default function DashboardPage() {
       .catch(() => {})
       .finally(() => setLoadingContacts(false))
   }, [tab])
+
+  useEffect(() => {
+    if (tab === 'enviados' && user?.id) {
+      localStorage.setItem(`10pet:contacts:lastCheck:${user.id}`, new Date().toISOString())
+      clearVolunteerUpdates()
+    }
+  }, [tab, user?.id, clearVolunteerUpdates])
 
   useEffect(() => {
     loadContacts()
