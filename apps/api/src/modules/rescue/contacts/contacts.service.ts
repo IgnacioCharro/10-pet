@@ -262,3 +262,12 @@ export async function getPendingCount(userId: string): Promise<number> {
   );
   return parseInt(count, 10);
 }
+
+export async function getUnreadUpdatesCount(userId: string, since: Date): Promise<number> {
+  const [{ count }] = await sequelize.query<{ count: string }>(
+    `SELECT COUNT(*) AS count FROM contacts
+     WHERE initiator_id = :userId AND status != 'pending' AND updated_at > :since`,
+    { replacements: { userId, since }, type: QueryTypes.SELECT },
+  );
+  return parseInt(count, 10);
+}

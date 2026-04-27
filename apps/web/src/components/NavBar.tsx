@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useNotificationsStore } from '../stores/notificationsStore'
-import { getPendingContactsCount } from '../services/contacts.service'
+import { getPendingContactsCount, getContactUpdatesCount } from '../services/contacts.service'
 import { logoutRequest } from '../services/auth.service'
 import Button from './ui/Button'
 
@@ -22,13 +22,21 @@ export default function NavBar() {
   const [open, setOpen] = useState(false)
   const pendingCount = useNotificationsStore((s) => s.pendingContactsCount)
   const setPendingContactsCount = useNotificationsStore((s) => s.setPendingContactsCount)
+  const volunteerUpdatesCount = useNotificationsStore((s) => s.volunteerUpdatesCount)
+  const setVolunteerUpdatesCount = useNotificationsStore((s) => s.setVolunteerUpdatesCount)
 
   useEffect(() => {
     if (!isAuthenticated) return
     getPendingContactsCount()
       .then(setPendingContactsCount)
       .catch(() => {})
-  }, [isAuthenticated, location.pathname, setPendingContactsCount])
+    const since = user?.id
+      ? (localStorage.getItem(`10pet:contacts:lastCheck:${user.id}`) ?? undefined)
+      : undefined
+    getContactUpdatesCount(since)
+      .then(setVolunteerUpdatesCount)
+      .catch(() => {})
+  }, [isAuthenticated, location.pathname, setPendingContactsCount, setVolunteerUpdatesCount, user?.id])
 
   const handleLogout = async () => {
     if (refreshToken) {
@@ -63,9 +71,9 @@ export default function NavBar() {
               <NavLink to="/dashboard" className={navLinkClass}>
                 <span className="relative inline-flex items-center">
                   Mis casos
-                  {pendingCount > 0 && (
+                  {(pendingCount + volunteerUpdatesCount) > 0 && (
                     <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-                      {pendingCount > 9 ? '9+' : pendingCount}
+                      {(pendingCount + volunteerUpdatesCount) > 9 ? '9+' : pendingCount + volunteerUpdatesCount}
                     </span>
                   )}
                 </span>

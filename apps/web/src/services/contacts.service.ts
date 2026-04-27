@@ -49,3 +49,10 @@ export async function getPendingContactsCount(): Promise<number> {
   const res = await api.get<{ count: number }>('/contacts/pending-count')
   return res.data.count
 }
+
+export async function getContactUpdatesCount(since?: string): Promise<number> {
+  const res = await api.get<{ count: number }>('/contacts/unread-count', {
+    params: since ? { since } : {},
+  })
+  return res.data.count
+}
