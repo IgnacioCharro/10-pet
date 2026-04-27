@@ -63,7 +63,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mt-6 text-xs text-gray-500">
-            MVP en construcción · Piloto inicial en interior de Buenos Aires
+            Piloto inicial en interior de Buenos Aires
           </p>
         </div>
       </section>

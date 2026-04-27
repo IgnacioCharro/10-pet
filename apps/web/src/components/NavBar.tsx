@@ -90,7 +90,7 @@ export default function NavBar() {
                   + Reportar
                 </Button>
               </Link>
-              {user && <span className="text-sm text-gray-500 max-w-[140px] truncate">{user.name ?? user.email}</span>}
+              {user && <span className="text-sm text-gray-500 max-w-[140px] truncate">{user.name ?? 'Anónimo'}</span>}
               <Button variant="secondary" size="sm" onClick={handleLogout}>
                 Salir
               </Button>

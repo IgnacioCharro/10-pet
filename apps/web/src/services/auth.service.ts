@@ -10,6 +10,7 @@ export interface AuthResponse {
 export interface RegisterInput {
   email: string
   password: string
+  name?: string
 }
 
 export interface LoginInput {

@@ -26,7 +26,7 @@ export interface AuthTokens {
 }
 
 export interface AuthResult extends AuthTokens {
-  user: { id: string; email: string; emailVerified: boolean };
+  user: { id: string; email: string; name: string | null; emailVerified: boolean };
 }
 
 const issueTokens = async (user: {
@@ -62,6 +62,7 @@ export const registerUser = async (input: RegisterInput): Promise<AuthResult> =>
   const user = await User.create({
     email: input.email,
     passwordHash,
+    name: input.name ?? null,
     emailVerificationToken: verificationToken,
     emailVerificationTokenExpiresAt: verificationExpiresAt(),
   });
@@ -73,7 +74,7 @@ export const registerUser = async (input: RegisterInput): Promise<AuthResult> =>
   const tokens = await issueTokens({ id: user.id, email: user.email });
   return {
     ...tokens,
-    user: { id: user.id, email: user.email, emailVerified: user.emailVerified },
+    user: { id: user.id, email: user.email, name: user.name, emailVerified: user.emailVerified },
   };
 };
 
@@ -105,7 +106,7 @@ export const loginUser = async (input: LoginInput): Promise<AuthResult> => {
   const tokens = await issueTokens({ id: user.id, email: user.email });
   return {
     ...tokens,
-    user: { id: user.id, email: user.email, emailVerified: user.emailVerified },
+    user: { id: user.id, email: user.email, name: user.name, emailVerified: user.emailVerified },
   };
 };
 
@@ -169,6 +170,6 @@ export const findOrCreateGoogleUser = async (profile: {
   const tokens = await issueTokens({ id: user.id, email: user.email });
   return {
     ...tokens,
-    user: { id: user.id, email: user.email, emailVerified: user.emailVerified },
+    user: { id: user.id, email: user.email, name: user.name, emailVerified: user.emailVerified },
   };
 };
