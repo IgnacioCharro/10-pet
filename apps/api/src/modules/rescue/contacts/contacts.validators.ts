@@ -16,6 +16,11 @@ export const updateContactSchema = z.object({
   status: z.enum(['active', 'rejected', 'completed']),
 });
 
+export const unreadCountSchema = z.object({
+  since: z.string().datetime({ offset: true }).optional(),
+});
+
 export type CreateContactInput = z.infer<typeof createContactSchema>;
 export type ListContactsQuery = z.infer<typeof listContactsSchema>;
 export type UpdateContactInput = z.infer<typeof updateContactSchema>;
+export type UnreadCountQuery = z.infer<typeof unreadCountSchema>;
