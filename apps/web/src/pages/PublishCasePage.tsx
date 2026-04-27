@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
@@ -26,6 +26,14 @@ const ANIMAL_LABELS: Record<AnimalType, string> = {
   perro: 'Perro',
   gato: 'Gato',
   otro: 'Otro',
+}
+
+const URGENCY_LABELS: Record<number, string> = {
+  1: 'Muy baja',
+  2: 'Baja',
+  3: 'Moderada',
+  4: 'Alta',
+  5: 'Urgente',
 }
 
 const STEPS = ['Fotos', 'Ubicacion', 'Descripcion', 'Contacto']
@@ -350,6 +358,7 @@ function StepUbicacion({
   lat, lng, locationText, geolocating, error,
   onGeolocate, onLatChange, onLngChange, onLocationTextChange,
 }: StepUbicacionProps) {
+  const [showForm, setShowForm] = useState(false)
   const [localidad, setLocalidad] = useState('')
   const [addressMode, setAddressMode] = useState<AddressMode>('numero')
   const [calle, setCalle] = useState('')
@@ -358,6 +367,10 @@ function StepUbicacion({
   const [geocoding, setGeocoding] = useState(false)
   const [geocodeError, setGeocodeError] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (error) setShowForm(true)
+  }, [error])
+
   const handleGeocode = async () => {
     if (!localidad.trim()) {
       setGeocodeError('Ingresá la localidad.')
@@ -365,7 +378,7 @@ function StepUbicacion({
     }
     const callesPart = addressMode === 'numero'
       ? `${calle.trim()} ${numero.trim()}`
-      : `${calle.trim()} y ${calle2.trim()}`
+      : `${calle.trim()} esq. ${calle2.trim()}`
     const query = `${callesPart}, ${localidad.trim()}, Argentina`
     setGeocoding(true)
     setGeocodeError(null)
@@ -416,14 +429,17 @@ function StepUbicacion({
 
       {error && <p className="text-xs text-red-600">{error}</p>}
 
-      {/* Divisor */}
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-gray-200" />
-        <span className="text-xs text-gray-400">o ingresa la direccion</span>
-        <div className="flex-1 h-px bg-gray-200" />
-      </div>
+      {!showForm && (
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
+          className="text-sm text-primary-600 hover:underline text-center"
+        >
+          Ingresar dirección manualmente
+        </button>
+      )}
 
-      {/* Opcion 2: Formulario estructurado */}
+      {showForm && (
       <div className="flex flex-col gap-3">
         <Input
           label="Localidad *"
@@ -502,6 +518,7 @@ function StepUbicacion({
           Buscar direccion
         </Button>
       </div>
+      )}
 
       {/* Mapa picker — aparece cuando hay coordenadas */}
       {lat !== null && lng !== null && (
@@ -599,7 +616,7 @@ function StepDescripcion({
 
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-gray-700">
-          Urgencia: <span className="text-primary-600">{urgencyLevel}/5</span>
+          Urgencia: <span className="text-primary-600">{urgencyLevel}/5 — {URGENCY_LABELS[urgencyLevel]}</span>
         </label>
         <input
           type="range"
@@ -609,10 +626,6 @@ function StepDescripcion({
           onChange={(e) => onUrgencyChange(parseInt(e.target.value))}
           className="w-full accent-primary-600"
         />
-        <div className="flex justify-between text-xs text-gray-400">
-          <span>Baja</span>
-          <span>Alta</span>
-        </div>
       </div>
     </div>
   )
