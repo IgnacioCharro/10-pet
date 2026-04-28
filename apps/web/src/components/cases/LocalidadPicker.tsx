@@ -104,31 +104,13 @@ export default function LocalidadPicker({ onPick }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/40">
-      <div className="w-full sm:max-w-sm bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl p-6 flex flex-col gap-5">
+    <div className="fixed inset-0 z-50 bg-black/40">
+      <div className="absolute left-0 right-0 top-0 sm:top-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-sm bg-white shadow-xl rounded-b-2xl sm:rounded-2xl p-5 flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">¿En qué zona buscás?</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Necesitamos saber desde dónde buscar casos cercanos.
+          <h2 className="text-base font-semibold text-gray-900">¿En qué zona buscás?</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Buscá tu localidad o usá tu ubicación actual.
           </p>
-        </div>
-
-        <Button
-          onClick={handleGeolocate}
-          loading={geolocating}
-          fullWidth
-        >
-          Usar mi ubicación
-        </Button>
-
-        {geoError && (
-          <p className="text-xs text-red-600 -mt-3">{geoError}</p>
-        )}
-
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400">o buscá tu localidad</span>
-          <div className="flex-1 h-px bg-gray-200" />
         </div>
 
         <div className="relative">
@@ -137,14 +119,13 @@ export default function LocalidadPicker({ onPick }: Props) {
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="Ej: Pergamino, Tandil, Azul…"
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            autoFocus
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
           {searching && (
             <div className="absolute right-3 top-3 w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
           )}
           {suggestions.length > 0 && (
-            <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
+            <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
               {suggestions.map((r, i) => (
                 <li key={i}>
                   <button
@@ -160,6 +141,25 @@ export default function LocalidadPicker({ onPick }: Props) {
             </ul>
           )}
         </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400">o usá tu ubicación</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
+        <Button
+          onClick={handleGeolocate}
+          loading={geolocating}
+          fullWidth
+          variant="secondary"
+        >
+          Usar mi ubicación
+        </Button>
+
+        {geoError && (
+          <p className="text-xs text-red-600 -mt-2">{geoError}</p>
+        )}
       </div>
     </div>
   )
