@@ -104,8 +104,8 @@ export default function LocalidadPicker({ onPick }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/40">
-      <div className="w-full sm:max-w-sm bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl p-6 flex flex-col gap-5">
+    <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/40 overflow-hidden">
+      <div className="w-full sm:max-w-sm bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl p-6 flex flex-col gap-5 overflow-x-hidden">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">¿En qué zona buscás?</h2>
           <p className="text-sm text-gray-500 mt-1">
