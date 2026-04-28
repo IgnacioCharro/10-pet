@@ -14,7 +14,7 @@ export default function BetaBanner() {
 
   return (
     <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-between gap-4 text-sm text-amber-800">
-      <p className="flex-1 text-center">
+      <p className="flex-1 min-w-0 text-center">
         <span className="font-semibold">Beta</span> — Esta app está en desarrollo activo.
         Los datos que ingresás son reales pero la plataforma puede cambiar sin aviso.
       </p>
