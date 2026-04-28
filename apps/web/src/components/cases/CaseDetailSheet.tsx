@@ -175,7 +175,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
     if (!caseId) return
     try {
       const updated = await updateCase(caseId, { status: 'resuelto', resolutionType })
-      setDetail(updated)
+      setDetail((prev) => prev ? { ...prev, ...updated } : prev)
       setShowResolutionModal(false)
       toast.success('Caso marcado como resuelto.')
     } catch {
