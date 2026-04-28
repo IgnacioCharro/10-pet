@@ -44,7 +44,16 @@ export type ResolutionType =
 
 export const updateCase = async (
   id: string,
-  data: { status?: string; resolutionType?: ResolutionType },
+  data: {
+    status?: string
+    resolutionType?: ResolutionType
+    animalType?: string
+    description?: string
+    condition?: string
+    urgencyLevel?: number
+    phoneContact?: string
+    locationText?: string
+  },
 ): Promise<CaseDetail> => {
   const res = await api.patch<{ case: CaseDetail }>(`/cases/${id}`, data)
   return res.data.case

@@ -284,6 +284,10 @@ export async function updateCase(
     setClauses.push(`resolution_type = :resolutionType`);
     replacements.resolutionType = input.resolutionType;
   }
+  if (input.animalType !== undefined) {
+    setClauses.push(`animal_type = :animalType`);
+    replacements.animalType = input.animalType;
+  }
   if (input.urgencyLevel !== undefined) {
     setClauses.push(`urgency_level = :urgencyLevel`);
     replacements.urgencyLevel = input.urgencyLevel;
@@ -291,6 +295,18 @@ export async function updateCase(
   if (input.description !== undefined) {
     setClauses.push(`description = :description`);
     replacements.description = input.description;
+  }
+  if (input.condition !== undefined) {
+    setClauses.push(`condition = :condition`);
+    replacements.condition = input.condition;
+  }
+  if (input.phoneContact !== undefined) {
+    setClauses.push(`phone_contact = :phoneContact`);
+    replacements.phoneContact = input.phoneContact;
+  }
+  if (input.locationText !== undefined) {
+    setClauses.push(`location_text = :locationText`);
+    replacements.locationText = input.locationText;
   }
   setClauses.push(`updated_at = NOW()`);
 
