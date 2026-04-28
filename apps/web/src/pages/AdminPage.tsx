@@ -216,7 +216,7 @@ export default function AdminPage() {
               >
                 <option value="pending">Pendientes</option>
                 <option value="dismissed">Descartados</option>
-                <option value="resolved">Resueltos</option>
+                <option value="actioned">Accionados</option>
                 <option value="">Todos</option>
               </select>
               <span className="text-sm text-gray-500">{reportsTotal} total</span>
