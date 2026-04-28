@@ -77,6 +77,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
   const [vetMedication, setVetMedication] = useState('')
   const [vetLoading, setVetLoading] = useState(false)
   const [showResolutionModal, setShowResolutionModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const currentUserId = useAuthStore((s) => s.user?.id)
   const navigate = useNavigate()
@@ -93,6 +94,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
       setVetProcedure('')
       setVetMedication('')
       setShowResolutionModal(false)
+      setShowEditModal(false)
       return
     }
     setLoading(true)
@@ -169,6 +171,17 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
     } finally {
       setVetLoading(false)
     }
+  }
+
+  const handleEdit = async (data: {
+    animalType: string; description: string; condition: string;
+    urgencyLevel: number; phoneContact: string; locationText: string
+  }) => {
+    if (!caseId) return
+    const updated = await updateCase(caseId, data)
+    setDetail((prev) => prev ? { ...prev, ...updated } : prev)
+    setShowEditModal(false)
+    toast.success('Caso actualizado.')
   }
 
   const handleResolve = async (resolutionType: ResolutionType) => {
@@ -327,11 +340,18 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
 
         {detail && isAuthenticated && detail.userId === currentUserId &&
           (detail.status === 'abierto' || detail.status === 'en_rescate') && (
-          <div className="px-4 pb-2 pt-3 border-t border-gray-100">
+          <div className="px-4 pb-2 pt-3 border-t border-gray-100 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowEditModal(true)}
+              className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-2.5 rounded-xl transition-colors text-sm"
+            >
+              Editar
+            </button>
             <button
               type="button"
               onClick={() => setShowResolutionModal(true)}
-              className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-2.5 rounded-xl transition-colors text-sm"
+              className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-2.5 rounded-xl transition-colors text-sm"
             >
               Marcar como resuelto
             </button>
@@ -398,6 +418,194 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
           onConfirm={handleResolve}
         />
       )}
+
+      {showEditModal && detail && (
+        <EditModal
+          initial={{
+            animalType: detail.animalType,
+            description: detail.description,
+            condition: detail.condition ?? '',
+            urgencyLevel: detail.urgencyLevel,
+            phoneContact: detail.phoneContact ?? '',
+            locationText: detail.locationText ?? '',
+          }}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleEdit}
+        />
+      )}
+    </>
+  )
+}
+
+const ANIMAL_OPTIONS: { value: string; label: string; emoji: string }[] = [
+  { value: 'perro', label: 'Perro', emoji: '🐕' },
+  { value: 'gato', label: 'Gato', emoji: '🐈' },
+  { value: 'otro', label: 'Otro', emoji: '🐾' },
+]
+
+const URGENCY_LABELS_EDIT: Record<number, string> = {
+  1: 'Muy baja',
+  2: 'Baja',
+  3: 'Moderada',
+  4: 'Alta',
+  5: 'Urgente — riesgo de vida',
+}
+
+interface EditModalProps {
+  initial: {
+    animalType: string
+    description: string
+    condition: string
+    urgencyLevel: number
+    phoneContact: string
+    locationText: string
+  }
+  onClose: () => void
+  onSave: (data: {
+    animalType: string; description: string; condition: string;
+    urgencyLevel: number; phoneContact: string; locationText: string
+  }) => Promise<void>
+}
+
+function EditModal({ initial, onClose, onSave }: EditModalProps) {
+  const [animalType, setAnimalType] = useState(initial.animalType)
+  const [description, setDescription] = useState(initial.description)
+  const [condition, setCondition] = useState(initial.condition)
+  const [urgencyLevel, setUrgencyLevel] = useState(initial.urgencyLevel)
+  const [phoneContact, setPhoneContact] = useState(initial.phoneContact)
+  const [locationText, setLocationText] = useState(initial.locationText)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSave = async () => {
+    if (description.trim().length < 10) {
+      setError('La descripción debe tener al menos 10 caracteres.')
+      return
+    }
+    setLoading(true)
+    setError(null)
+    try {
+      await onSave({ animalType, description: description.trim(), condition: condition.trim(), urgencyLevel, phoneContact: phoneContact.trim(), locationText: locationText.trim() })
+    } catch {
+      setError('No se pudo guardar. Intentá de nuevo.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} aria-hidden="true" />
+      <div className="fixed z-[70] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900 text-base">Editar caso</h3>
+          <button type="button" onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-gray-700">Tipo de animal</span>
+            <div className="flex gap-2">
+              {ANIMAL_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setAnimalType(opt.value)}
+                  className={[
+                    'flex-1 py-2 rounded-lg border text-sm font-medium transition-colors',
+                    animalType === opt.value
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300',
+                  ].join(' ')}
+                >
+                  {opt.emoji} {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700">Descripción</label>
+            <textarea
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base md:text-sm placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700">Condición</label>
+            <input
+              type="text"
+              value={condition}
+              onChange={(e) => setCondition(e.target.value)}
+              placeholder="Ej: herida en pata, con collar"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base md:text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700">
+              Urgencia: <span className="text-primary-600">{urgencyLevel}/5 — {URGENCY_LABELS_EDIT[urgencyLevel]}</span>
+            </label>
+            <input
+              type="range"
+              min={1}
+              max={5}
+              value={urgencyLevel}
+              onChange={(e) => setUrgencyLevel(parseInt(e.target.value))}
+              className="w-full accent-primary-600"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700">Teléfono de contacto</label>
+            <input
+              type="tel"
+              value={phoneContact}
+              onChange={(e) => setPhoneContact(e.target.value)}
+              placeholder="+54 9 11 1234-5678"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base md:text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700">Referencia de ubicación</label>
+            <input
+              type="text"
+              value={locationText}
+              onChange={(e) => setLocationText(e.target.value)}
+              placeholder="Ej: San Martín 200, Capitán Sarmiento"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base md:text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
+          {error && <p className="text-xs text-red-600">{error}</p>}
+        </div>
+
+        <div className="flex gap-2 px-5 py-4 border-t border-gray-100">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={loading}
+            className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
+          >
+            {loading ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
+      </div>
     </>
   )
 }

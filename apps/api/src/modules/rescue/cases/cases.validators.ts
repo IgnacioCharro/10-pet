@@ -42,8 +42,12 @@ export const updateCaseSchema = z
     resolutionType: z
       .enum(['adoptado', 'en_transito', 'zoonosis', 'derivado_ong', 'fallecio', 'sin_paradero', 'otro'])
       .optional(),
+    animalType: z.enum(['perro', 'gato', 'otro']).optional(),
     urgencyLevel: z.number().int().min(1).max(5).optional(),
     description: z.string().trim().min(10).max(2000).optional(),
+    condition: z.string().trim().max(100).optional(),
+    phoneContact: z.string().trim().max(20).optional(),
+    locationText: z.string().trim().max(255).optional(),
   })
   .refine((d) => Object.keys(d).length > 0, {
     message: 'Al menos un campo es requerido',
