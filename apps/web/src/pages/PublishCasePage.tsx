@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import { uploadToCloudinary, type UploadedImage } from '../services/images.service'
 import { createCase } from '../services/cases.service'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import type { AnimalType } from '../types/case'
 
-const LocationPickerMap = lazy(() => import('../components/map/LocationPickerMap'))
+const LocationPickerMap = lazyWithRetry(() => import('../components/map/LocationPickerMap'))
 
 type Step = 1 | 2 | 3 | 4
 

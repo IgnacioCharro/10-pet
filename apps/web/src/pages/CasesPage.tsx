@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import FilterBar, { type FilterState } from '../components/cases/FilterBar'
 import CaseCard from '../components/cases/CaseCard'
 import CaseDetailSheet from '../components/cases/CaseDetailSheet'
 import LocalidadPicker, { loadPickedLocation, savePickedLocation, type PickedLocation } from '../components/cases/LocalidadPicker'
 import { listCases, getNearbyCases } from '../services/cases.service'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import type { CaseItem } from '../types/case'
 
 interface PublishedState {
@@ -15,7 +16,7 @@ interface PublishedState {
 
 const PUBLISHED_ZOOM = 16
 
-const LeafletMap = lazy(() => import('../components/map/LeafletMap'))
+const LeafletMap = lazyWithRetry(() => import('../components/map/LeafletMap'))
 
 const FALLBACK_CENTER: [number, number] = [-34.6037, -58.3816]
 
