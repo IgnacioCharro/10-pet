@@ -44,7 +44,7 @@ export default function CasePopup({ caseId, onClose, onViewFull }: Props) {
 
   if (!caseId) return null
 
-  const heroImage = detail?.images.slice().sort((a, b) => a.position - b.position)[0]
+  const heroImage = detail?.images?.slice().sort((a, b) => a.position - b.position)[0]
   const urg = detail ? (URGENCY[detail.urgencyLevel] ?? URGENCY[3]) : null
 
   return (
