@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-  overflow-x: hidden;
+html {
+  overflow-x: hidden; /* fallback */
+  overflow-x: clip;   /* no crea BFC, no afecta position:fixed en iOS */
 }
