@@ -220,7 +220,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 px-4 py-4 space-y-4">
+        <div className="overflow-y-auto overflow-x-hidden flex-1 px-4 py-4 space-y-4">
           {loading && (
             <div className="flex justify-center py-8">
               <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
