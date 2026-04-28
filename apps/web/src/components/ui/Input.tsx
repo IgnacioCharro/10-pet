@@ -27,7 +27,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         aria-invalid={error ? true : undefined}
         aria-describedby={describedById}
         className={[
-          'rounded-md border px-3 py-2 text-base md:text-sm placeholder-gray-400',
+          'w-full rounded-md border px-3 py-2 text-base md:text-sm placeholder-gray-400',
           'focus:outline-none focus:ring-2 focus:ring-offset-0',
           error
             ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
