@@ -191,7 +191,7 @@ export default function HomeFeed() {
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 truncate">
-                      {row.locationText ?? (
+                      {row.locationText && !row.locationText.includes('undefined') ? row.locationText : (
                         <span className="text-gray-400 italic">Sin direccion</span>
                       )}
                     </p>
