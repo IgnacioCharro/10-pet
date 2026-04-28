@@ -228,7 +228,11 @@ function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium capitalize">{item.animalType}</p>
           <p className="text-xs text-gray-500 truncate mt-0.5">
-            {item.locationText ?? `${item.lat?.toFixed(3)}, ${item.lng?.toFixed(3)}`}
+            {item.locationText && !item.locationText.includes('undefined')
+              ? item.locationText
+              : item.lat != null && item.lng != null
+              ? `${item.lat.toFixed(3)}, ${item.lng.toFixed(3)}`
+              : <span className="italic">Sin direccion</span>}
           </p>
           <p className="text-xs text-gray-400 mt-0.5">
             {new Date(item.createdAt).toLocaleDateString('es-AR')}

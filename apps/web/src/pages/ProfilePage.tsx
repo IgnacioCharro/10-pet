@@ -251,7 +251,13 @@ function CaseRow({ item }: { item: CaseItem }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium capitalize">{item.animalType}</p>
-          <p className="text-xs text-gray-500 truncate">{item.locationText ?? `${item.lat?.toFixed(3)}, ${item.lng?.toFixed(3)}`}</p>
+          <p className="text-xs text-gray-500 truncate">
+            {item.locationText && !item.locationText.includes('undefined')
+              ? item.locationText
+              : item.lat != null && item.lng != null
+              ? `${item.lat.toFixed(3)}, ${item.lng.toFixed(3)}`
+              : <span className="italic">Sin direccion</span>}
+          </p>
           <p className="text-xs text-gray-400 mt-0.5">{new Date(item.createdAt).toLocaleDateString('es-AR')}</p>
         </div>
         <span className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(' ')}>
