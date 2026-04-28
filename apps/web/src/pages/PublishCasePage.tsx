@@ -467,7 +467,7 @@ function StepUbicacion({
 
         {addressMode === 'numero' ? (
           <div className="flex gap-2">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <Input
                 label="Calle"
                 placeholder="Av. San Martin"
@@ -475,7 +475,7 @@ function StepUbicacion({
                 onChange={(e) => setCalle(e.target.value)}
               />
             </div>
-            <div className="w-24">
+            <div className="w-24 shrink-0">
               <Input
                 label="Numero"
                 placeholder="1234"
@@ -486,7 +486,7 @@ function StepUbicacion({
           </div>
         ) : (
           <div className="flex gap-2 items-end">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <Input
                 label="Calle 1"
                 placeholder="San Martin"
@@ -494,8 +494,8 @@ function StepUbicacion({
                 onChange={(e) => setCalle(e.target.value)}
               />
             </div>
-            <span className="pb-2.5 text-sm text-gray-400">y</span>
-            <div className="flex-1">
+            <span className="pb-2.5 text-sm text-gray-400 shrink-0">y</span>
+            <div className="flex-1 min-w-0">
               <Input
                 label="Calle 2"
                 placeholder="Belgrano"

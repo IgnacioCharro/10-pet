@@ -73,7 +73,7 @@ export default function HomeFeed() {
       {showPicker && <LocalidadPicker onPick={handlePick} />}
 
       <div className="max-w-5xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col gap-2 mb-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Casos urgentes</h1>
             {loc && (
@@ -82,7 +82,7 @@ export default function HomeFeed() {
               </p>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <button
               onClick={() => setShowPicker(true)}
               className="text-sm text-primary-600 hover:underline"
