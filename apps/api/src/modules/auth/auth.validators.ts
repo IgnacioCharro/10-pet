@@ -8,7 +8,7 @@ export const registerSchema = z.object({
     .string()
     .min(8, 'La contrase\u00f1a debe tener al menos 8 caracteres')
     .max(128),
-  name: z.string().trim().min(1).max(100).optional(),
+  name: z.string().trim().min(1, 'El nombre es obligatorio').max(100),
 });
 
 export const loginSchema = z.object({
