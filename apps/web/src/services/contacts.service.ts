@@ -4,6 +4,7 @@ export interface ContactItem {
   id: string
   caseId: string
   initiatorId: string
+  initiatorName: string | null
   responderId: string
   status: 'pending' | 'active' | 'completed' | 'rejected'
   contactMethod: string

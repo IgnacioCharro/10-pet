@@ -21,11 +21,15 @@ const ANIMAL_EMOJI: Record<AnimalType, string> = {
   otro: '🐾',
 }
 
-function makeCaseIcon(c: CaseItem) {
+function makeCaseIcon(c: CaseItem, isOwn = false) {
   const color = URGENCY_COLOR[c.urgencyLevel] ?? '#6b7280'
   const emoji = ANIMAL_EMOJI[c.animalType] ?? '🐾'
+  const border = isOwn ? '3px solid #7c3aed' : '2px solid white'
+  const shadow = isOwn
+    ? '0 0 0 2px white, 0 2px 8px rgba(124,58,237,.5)'
+    : '0 2px 6px rgba(0,0,0,.35)'
   return L.divIcon({
-    html: `<div style="background:${color};border:2px solid white;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.35)">${emoji}</div>`,
+    html: `<div style="background:${color};border:${border};border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:${shadow}">${emoji}</div>`,
     className: '',
     iconSize: [34, 34],
     iconAnchor: [17, 17],
@@ -43,9 +47,10 @@ const userIcon = L.divIcon({
 interface ClusterLayerProps {
   cases: CaseItem[]
   onCaseClick: (c: CaseItem) => void
+  currentUserId?: string
 }
 
-function MarkerClusterLayer({ cases, onCaseClick }: ClusterLayerProps) {
+function MarkerClusterLayer({ cases, onCaseClick, currentUserId }: ClusterLayerProps) {
   const map = useMap()
 
   const handleClick = useCallback(
@@ -57,7 +62,7 @@ function MarkerClusterLayer({ cases, onCaseClick }: ClusterLayerProps) {
     const group = L.markerClusterGroup({ maxClusterRadius: 60, showCoverageOnHover: false })
 
     for (const c of cases) {
-      const marker = L.marker([c.lat, c.lng], { icon: makeCaseIcon(c) })
+      const marker = L.marker([c.lat, c.lng], { icon: makeCaseIcon(c, !!currentUserId && c.userId === currentUserId) })
       marker.on('click', handleClick(c))
       group.addLayer(marker)
     }
@@ -91,6 +96,7 @@ export interface LeafletMapProps {
   userLocation: [number, number] | null
   onCaseClick: (c: CaseItem) => void
   flyToTrigger?: { center: [number, number]; zoom: number } | null
+  currentUserId?: string
 }
 
 const DEFAULT_ZOOM = 13
@@ -102,6 +108,7 @@ export default function LeafletMap({
   userLocation,
   onCaseClick,
   flyToTrigger,
+  currentUserId,
 }: LeafletMapProps) {
   return (
     <MapContainer
@@ -116,7 +123,7 @@ export default function LeafletMap({
         maxZoom={19}
       />
 
-      <MarkerClusterLayer cases={cases} onCaseClick={onCaseClick} />
+      <MarkerClusterLayer cases={cases} onCaseClick={onCaseClick} currentUserId={currentUserId} />
 
       {userLocation && (
         <>

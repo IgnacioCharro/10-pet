@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../stores/authStore'
 import FilterBar, { type FilterState } from '../components/cases/FilterBar'
 import CaseCard from '../components/cases/CaseCard'
 import CaseDetailSheet from '../components/cases/CaseDetailSheet'
@@ -30,6 +31,7 @@ const DEFAULT_FILTERS: FilterState = {
 export default function CasesPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const currentUserId = useAuthStore((s) => s.user?.id)
 
   const [initialPublished] = useState<PublishedState | null>(() => {
     const s = location.state as PublishedState | null
@@ -196,6 +198,7 @@ export default function CasesPage() {
               userLocation={userLocation}
               onCaseClick={handleCaseClick}
               flyToTrigger={flyTo}
+              currentUserId={currentUserId}
             />
           </Suspense>
         )}
