@@ -63,7 +63,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mt-6 text-xs text-gray-500">
-            Piloto inicial en interior de Buenos Aires
+            Plataforma en desarrollo activo · Argentina
           </p>
         </div>
       </section>
@@ -100,10 +100,10 @@ export default function HomePage() {
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl md:text-3xl font-bold mb-3">Sumate al MVP</h2>
+        <h2 className="text-2xl md:text-3xl font-bold mb-3">Empezá ahora</h2>
         <p className="text-gray-600 mb-6">
-          Estamos arrancando con un piloto en una ciudad del interior. Si querés ser de los
-          primeros en usarlo, registrate hoy y te escribimos cuando abramos en tu zona.
+          La plataforma está abierta. Registrate, publicá tu primer caso y conectate con
+          voluntarios de tu zona en minutos.
         </p>
         <Link to={ctaTo}>
           <Button size="lg">{ctaText}</Button>

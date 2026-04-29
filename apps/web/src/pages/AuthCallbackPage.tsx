@@ -35,7 +35,7 @@ export default function AuthCallbackPage() {
         const user = await getMe()
         if (cancelled) return
         setAuth({ user, accessToken, refreshToken })
-        navigate('/dashboard', { replace: true })
+        navigate('/', { replace: true })
       } catch {
         if (cancelled) return
         useAuthStore.getState().clearAuth()
