@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import axios from 'axios'
 import { api } from '../../lib/api'
 import LocalidadPicker, {
   loadPickedLocation,
@@ -62,14 +63,16 @@ export default function HomeFeed() {
 
   useEffect(() => {
     if (!loc) return
+    const controller = new AbortController()
     setLoading(true)
     const params: Record<string, unknown> = { lat: loc.center[0], lng: loc.center[1], radius: 10 }
     if (tab !== 'all') params.listingType = tab
     api
-      .get<{ cases: FeedRow[] }>('/cases/feed', { params })
+      .get<{ cases: FeedRow[] }>('/cases/feed', { params, signal: controller.signal })
       .then((res) => setRows(res.data.cases))
-      .catch(() => setRows([]))
+      .catch((err) => { if (!axios.isCancel(err)) setRows([]) })
       .finally(() => setLoading(false))
+    return () => controller.abort()
   }, [loc, tab])
 
   const handlePick = (picked: PickedLocation) => {
