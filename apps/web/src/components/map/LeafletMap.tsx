@@ -99,7 +99,7 @@ export interface LeafletMapProps {
   currentUserId?: string
 }
 
-const DEFAULT_ZOOM = 13
+const DEFAULT_ZOOM = 14
 
 export default function LeafletMap({
   center,
