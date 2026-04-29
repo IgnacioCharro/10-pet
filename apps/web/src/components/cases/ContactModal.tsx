@@ -12,6 +12,7 @@ export function ContactModal({ caseId, onClose, onSuccess }: Props) {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [alreadySent, setAlreadySent] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,6 +26,7 @@ export function ContactModal({ caseId, onClose, onSuccess }: Props) {
         ?.response?.data?.error?.code
       if (code === 'ALREADY_CONTACTED') {
         setError('Ya enviaste una solicitud para este caso.')
+        setAlreadySent(true)
       } else {
         setError('No se pudo enviar la solicitud. Intentá de nuevo.')
       }
@@ -65,7 +67,7 @@ export function ContactModal({ caseId, onClose, onSuccess }: Props) {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || alreadySent}
               className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
             >
               {loading ? 'Enviando...' : 'Enviar solicitud'}
