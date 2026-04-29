@@ -315,7 +315,9 @@ function ReceivedContactCard({
     <Card className="p-4">
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium">Alguien quiere ayudar</p>
+          <p className="text-sm font-medium">
+            {item.initiatorName ?? 'Alguien'} quiere ayudar
+          </p>
           <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
           {item.message && (
             <p className="text-xs text-gray-600 mt-1 italic">"{item.message}"</p>

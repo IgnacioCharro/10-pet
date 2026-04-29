@@ -7,6 +7,7 @@ export interface ContactRow {
   id: string;
   caseId: string;
   initiatorId: string;
+  initiatorName: string | null;
   responderId: string;
   status: string;
   contactMethod: string;
@@ -144,6 +145,7 @@ export async function listContacts(
        c.id,
        c.case_id AS "caseId",
        c.initiator_id AS "initiatorId",
+       u.name AS "initiatorName",
        c.responder_id AS "responderId",
        c.status,
        c.contact_method AS "contactMethod",
@@ -155,6 +157,7 @@ export async function listContacts(
        cs.location_text AS "caseLocationText"
      FROM contacts c
      LEFT JOIN cases cs ON cs.id = c.case_id
+     LEFT JOIN users u ON u.id = c.initiator_id
      WHERE ${where}
      ORDER BY c.created_at DESC
      LIMIT :limit OFFSET :offset`,

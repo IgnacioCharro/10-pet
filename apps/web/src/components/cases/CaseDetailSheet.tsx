@@ -358,7 +358,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
           </div>
         )}
 
-        {detail && detail.status === 'abierto' && (
+        {detail && detail.status === 'abierto' && detail.userId !== currentUserId && (
           <div className="px-4 pb-4 pt-3 border-t border-gray-100 flex flex-col gap-2">
             {contacted && whatsappLink && (
               <a
