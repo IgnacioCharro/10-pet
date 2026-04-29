@@ -13,6 +13,7 @@ import { notifyNewCaseQueue } from '../../../jobs/queue';
 export interface CaseRow {
   id: string;
   userId: string;
+  listingType: string;
   animalType: string;
   description: string;
   status: string;
@@ -52,6 +53,7 @@ export interface CaseDetail extends CaseRow {
 const BASE_CASE_SELECT = `
   c.id,
   c.user_id AS "userId",
+  c.listing_type AS "listingType",
   c.animal_type AS "animalType",
   c.description,
   c.status,
@@ -74,16 +76,17 @@ export async function createCase(
 
   const result = await sequelize.query<CaseRow>(
     `INSERT INTO cases
-       (id, user_id, animal_type, description, status, urgency_level,
+       (id, user_id, listing_type, animal_type, description, status, urgency_level,
         location, location_text, condition, phone_contact,
         created_at, updated_at)
      VALUES
-       (gen_random_uuid(), :userId, :animalType, :description, 'abierto', :urgencyLevel,
+       (gen_random_uuid(), :userId, :listingType, :animalType, :description, 'abierto', :urgencyLevel,
         ST_SetSRID(ST_MakePoint(:lng, :lat), 4326), :locationText, :condition, :phoneContact,
         NOW(), NOW())
      RETURNING
        id,
        user_id AS "userId",
+       listing_type AS "listingType",
        animal_type AS "animalType",
        description,
        status,
@@ -99,6 +102,7 @@ export async function createCase(
     {
       replacements: {
         userId,
+        listingType: input.listingType,
         animalType: input.animalType,
         description: input.description,
         urgencyLevel: input.urgencyLevel,
@@ -147,7 +151,7 @@ export async function listCases(
   query: ListCasesQuery,
 ): Promise<{ cases: CaseRow[]; total: number }> {
   const {
-    lat, lng, radius, status, animalType, urgencyMin, page, limit, sort,
+    lat, lng, radius, status, animalType, listingType, urgencyMin, page, limit, sort,
   } = query;
 
   const conditions: string[] = [];
@@ -157,13 +161,17 @@ export async function listCases(
     conditions.push(`c.status = :status`);
     replacements.status = status;
   } else {
-    // By default only show open/active cases
     conditions.push(`c.status IN ('abierto','en_rescate')`);
   }
 
   if (animalType) {
     conditions.push(`c.animal_type = :animalType`);
     replacements.animalType = animalType;
+  }
+
+  if (listingType) {
+    conditions.push(`c.listing_type = :listingType`);
+    replacements.listingType = listingType;
   }
 
   if (urgencyMin !== undefined) {
@@ -316,6 +324,7 @@ export async function updateCase(
      RETURNING
        id,
        user_id AS "userId",
+       listing_type AS "listingType",
        animal_type AS "animalType",
        description,
        status,
@@ -336,6 +345,7 @@ export async function updateCase(
 
 export interface FeedCaseRow {
   id: string;
+  listingType: string;
   animalType: string;
   locationText: string | null;
   urgencyLevel: number;
@@ -345,11 +355,32 @@ export interface FeedCaseRow {
 }
 
 export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]> {
-  const { lat, lng, radius } = query;
+  const { lat, lng, radius, listingType } = query;
+
+  const conditions: string[] = [
+    `c.status IN ('abierto', 'en_rescate')`,
+    `ST_DWithin(
+       c.location::geography,
+       ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+       :radiusM
+     )`,
+  ];
+  const replacements: Record<string, unknown> = { lat, lng, radiusM: radius * 1000 };
+
+  if (listingType) {
+    conditions.push(`c.listing_type = :listingType`);
+    replacements.listingType = listingType;
+  }
+
+  // lost cases: most recent first; found cases (or all): urgency then recency
+  const orderBy = listingType === 'lost'
+    ? 'c.created_at DESC'
+    : 'c.urgency_level DESC, c.created_at DESC';
 
   const rows = await sequelize.query<FeedCaseRow>(
     `SELECT
        c.id,
+       c.listing_type AS "listingType",
        c.animal_type AS "animalType",
        c.location_text AS "locationText",
        c.urgency_level AS "urgencyLevel",
@@ -359,19 +390,11 @@ export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]
      FROM cases c
      LEFT JOIN users u ON c.user_id = u.id
      LEFT JOIN contacts co ON co.case_id = c.id
-     WHERE c.status IN ('abierto', 'en_rescate')
-       AND ST_DWithin(
-             c.location::geography,
-             ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
-             :radiusM
-           )
+     WHERE ${conditions.join(' AND ')}
      GROUP BY c.id, u.name
-     ORDER BY c.urgency_level DESC, c.created_at DESC
+     ORDER BY ${orderBy}
      LIMIT 10`,
-    {
-      replacements: { lat, lng, radiusM: radius * 1000 },
-      type: QueryTypes.SELECT,
-    },
+    { replacements, type: QueryTypes.SELECT },
   );
   return rows.map((r) => ({ ...r, volunteerCount: Number(r.volunteerCount) }));
 }

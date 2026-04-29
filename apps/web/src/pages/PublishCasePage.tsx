@@ -5,13 +5,14 @@ import Input from '../components/ui/Input'
 import { uploadToCloudinary, type UploadedImage } from '../services/images.service'
 import { createCase } from '../services/cases.service'
 import { lazyWithRetry } from '../lib/lazyWithRetry'
-import type { AnimalType } from '../types/case'
+import type { AnimalType, ListingType } from '../types/case'
 
 const LocationPickerMap = lazyWithRetry(() => import('../components/map/LocationPickerMap'))
 
-type Step = 1 | 2 | 3 | 4
+type Step = 0 | 1 | 2 | 3 | 4
 
 interface WizardState {
+  listingType: ListingType | null
   images: UploadedImage[]
   lat: number | null
   lng: number | null
@@ -42,8 +43,9 @@ const STEPS = ['Fotos', 'Ubicacion', 'Descripcion', 'Contacto']
 export default function PublishCasePage() {
   const navigate = useNavigate()
 
-  const [step, setStep] = useState<Step>(1)
+  const [step, setStep] = useState<Step>(0)
   const [state, setState] = useState<WizardState>({
+    listingType: null,
     images: [],
     lat: null,
     lng: null,
@@ -135,14 +137,15 @@ export default function PublishCasePage() {
     setStep((s) => Math.min(s + 1, 4) as Step)
   }
 
-  const back = () => setStep((s) => Math.max(s - 1, 1) as Step)
+  const back = () => setStep((s) => Math.max(s - 1, 0) as Step)
 
   const submit = async () => {
     if (!validateStep()) return
-    if (state.lat === null || state.lng === null || !state.animalType) return
+    if (state.lat === null || state.lng === null || !state.animalType || !state.listingType) return
     setSubmitting(true)
     try {
       const newCase = await createCase({
+        listingType: state.listingType,
         animalType: state.animalType,
         description: state.description.trim(),
         location: { lat: state.lat, lng: state.lng },
@@ -165,83 +168,136 @@ export default function PublishCasePage() {
   return (
     <main className="flex-1 px-4 py-8">
       <div className="max-w-xl mx-auto flex flex-col gap-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Reportar animal</h1>
-          <p className="text-sm text-gray-500 mt-1">Paso {step} de 4 — {STEPS[step - 1]}</p>
-        </div>
+        {step === 0 ? (
+          <StepTipo onSelect={(type) => {
+            setState((prev) => ({ ...prev, listingType: type }))
+            setStep(1)
+          }} />
+        ) : (
+          <>
+            <div>
+              <h1 className="text-2xl font-semibold">
+                {state.listingType === 'lost' ? 'Buscar mi mascota' : 'Reportar animal encontrado'}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">Paso {step} de 4 — {STEPS[step - 1]}</p>
+            </div>
 
-        <StepIndicator current={step} />
+            <StepIndicator current={step} />
 
-        {step === 1 && (
-          <StepFotos
-            images={state.images}
-            uploading={uploadingImages}
-            error={errors.images}
-            fileInputRef={fileInputRef}
-            onFiles={handleFiles}
-            onRemove={removeImage}
-          />
+            {step === 1 && (
+              <StepFotos
+                images={state.images}
+                uploading={uploadingImages}
+                error={errors.images}
+                fileInputRef={fileInputRef}
+                onFiles={handleFiles}
+                onRemove={removeImage}
+              />
+            )}
+
+            {step === 2 && (
+              <StepUbicacion
+                lat={state.lat}
+                lng={state.lng}
+                locationText={state.locationText}
+                geolocating={geolocating}
+                error={errors.lat}
+                onGeolocate={geolocate}
+                onLatChange={(v) => update('lat', v)}
+                onLngChange={(v) => update('lng', v)}
+                onLocationTextChange={(v) => update('locationText', v)}
+              />
+            )}
+
+            {step === 3 && (
+              <StepDescripcion
+                listingType={state.listingType ?? 'found'}
+                animalType={state.animalType}
+                description={state.description}
+                condition={state.condition}
+                urgencyLevel={state.urgencyLevel}
+                errors={{ animalType: errors.animalType, description: errors.description }}
+                onAnimalTypeChange={(v) => update('animalType', v)}
+                onDescriptionChange={(v) => update('description', v)}
+                onConditionChange={(v) => update('condition', v)}
+                onUrgencyChange={(v) => update('urgencyLevel', v)}
+              />
+            )}
+
+            {step === 4 && (
+              <StepContacto
+                phoneContact={state.phoneContact}
+                onPhoneChange={(v) => update('phoneContact', v)}
+                summary={state}
+              />
+            )}
+
+            {errors.submit && (
+              <p className="text-sm text-red-600 text-center">{errors.submit}</p>
+            )}
+
+            <div className="flex gap-3">
+              <Button variant="secondary" onClick={back} disabled={submitting}>
+                Atras
+              </Button>
+              <div className="flex-1" />
+              {step < 4 ? (
+                <Button onClick={next} disabled={uploadingImages}>
+                  Siguiente
+                </Button>
+              ) : (
+                <Button onClick={submit} loading={submitting}>
+                  Publicar caso
+                </Button>
+              )}
+            </div>
+          </>
         )}
-
-        {step === 2 && (
-          <StepUbicacion
-            lat={state.lat}
-            lng={state.lng}
-            locationText={state.locationText}
-            geolocating={geolocating}
-            error={errors.lat}
-            onGeolocate={geolocate}
-            onLatChange={(v) => update('lat', v)}
-            onLngChange={(v) => update('lng', v)}
-            onLocationTextChange={(v) => update('locationText', v)}
-          />
-        )}
-
-        {step === 3 && (
-          <StepDescripcion
-            animalType={state.animalType}
-            description={state.description}
-            condition={state.condition}
-            urgencyLevel={state.urgencyLevel}
-            errors={{ animalType: errors.animalType, description: errors.description }}
-            onAnimalTypeChange={(v) => update('animalType', v)}
-            onDescriptionChange={(v) => update('description', v)}
-            onConditionChange={(v) => update('condition', v)}
-            onUrgencyChange={(v) => update('urgencyLevel', v)}
-          />
-        )}
-
-        {step === 4 && (
-          <StepContacto
-            phoneContact={state.phoneContact}
-            onPhoneChange={(v) => update('phoneContact', v)}
-            summary={state}
-          />
-        )}
-
-        {errors.submit && (
-          <p className="text-sm text-red-600 text-center">{errors.submit}</p>
-        )}
-
-        <div className="flex gap-3">
-          {step > 1 && (
-            <Button variant="secondary" onClick={back} disabled={submitting}>
-              Atras
-            </Button>
-          )}
-          <div className="flex-1" />
-          {step < 4 ? (
-            <Button onClick={next} disabled={uploadingImages}>
-              Siguiente
-            </Button>
-          ) : (
-            <Button onClick={submit} loading={submitting}>
-              Publicar caso
-            </Button>
-          )}
-        </div>
       </div>
     </main>
+  )
+}
+
+function StepTipo({ onSelect }: { onSelect: (type: ListingType) => void }) {
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Reportar caso</h1>
+        <p className="text-sm text-gray-500 mt-1">¿Qué querés publicar?</p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={() => onSelect('found')}
+          className="flex items-start gap-4 p-5 rounded-xl border-2 border-gray-200 bg-white hover:border-orange-400 hover:bg-orange-50 active:bg-orange-100 transition-colors text-left group"
+        >
+          <span className="text-3xl mt-0.5">🐾</span>
+          <div>
+            <p className="font-semibold text-gray-900 group-hover:text-orange-700">
+              Encontré un animal
+            </p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Encontraste un animal perdido, herido o en situación de calle y necesitás ayuda.
+            </p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => onSelect('lost')}
+          className="flex items-start gap-4 p-5 rounded-xl border-2 border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50 active:bg-blue-100 transition-colors text-left group"
+        >
+          <span className="text-3xl mt-0.5">🔍</span>
+          <div>
+            <p className="font-semibold text-gray-900 group-hover:text-blue-700">
+              Busco mi mascota
+            </p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Se te perdió o escapó tu animal y estás buscando que alguien te avise si lo ve.
+            </p>
+          </div>
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -249,7 +305,7 @@ function StepIndicator({ current }: { current: Step }) {
   return (
     <div className="flex items-center gap-0">
       {STEPS.map((label, i) => {
-        const n = i + 1
+        const n = (i + 1) as Step
         const done = n < current
         const active = n === current
         return (
@@ -418,7 +474,6 @@ function StepUbicacion({
         ¿Dónde está el animal? Usá tu ubicación, ingresá la dirección o tocá el mapa.
       </p>
 
-      {/* Opcion 1: GPS */}
       <Button
         variant={lat !== null && !geocoding ? 'secondary' : 'primary'}
         onClick={onGeolocate}
@@ -521,7 +576,6 @@ function StepUbicacion({
       </div>
       )}
 
-      {/* Mapa picker — aparece cuando hay coordenadas */}
       {lat !== null && lng !== null && (
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
@@ -551,6 +605,7 @@ function StepUbicacion({
 }
 
 interface StepDescripcionProps {
+  listingType: ListingType
   animalType: AnimalType | ''
   description: string
   condition: string
@@ -563,9 +618,13 @@ interface StepDescripcionProps {
 }
 
 function StepDescripcion({
-  animalType, description, condition, urgencyLevel, errors,
+  listingType, animalType, description, condition, urgencyLevel, errors,
   onAnimalTypeChange, onDescriptionChange, onConditionChange, onUrgencyChange,
 }: StepDescripcionProps) {
+  const descPlaceholder = listingType === 'lost'
+    ? 'Describí tu mascota: raza, color, collar, dónde se perdió, etc.'
+    : 'Describí la situación: dónde está, cómo está, si tiene collar, etc.'
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
@@ -594,7 +653,7 @@ function StepDescripcion({
         <label className="text-sm font-medium text-gray-700">Descripción *</label>
         <textarea
           rows={4}
-          placeholder="Describí la situación: dónde está, cómo está, si tiene collar, etc."
+          placeholder={descPlaceholder}
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
           className={[
@@ -609,8 +668,8 @@ function StepDescripcion({
       </div>
 
       <Input
-        label="Condición (opcional)"
-        placeholder="Ej: herida en pata delantera, muy flaco, asustado"
+        label={listingType === 'lost' ? 'Señas particulares (opcional)' : 'Condición (opcional)'}
+        placeholder={listingType === 'lost' ? 'Ej: collar azul, mancha en la pata' : 'Ej: herida en pata delantera, muy flaco'}
         value={condition}
         onChange={(e) => onConditionChange(e.target.value)}
       />
@@ -642,6 +701,7 @@ function StepContacto({ phoneContact, onPhoneChange, summary }: StepContactoProp
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-gray-50 rounded-xl p-4 text-sm flex flex-col gap-1">
+        <p><span className="font-medium">Tipo:</span> {summary.listingType === 'lost' ? 'Busco mi mascota' : 'Animal encontrado'}</p>
         <p><span className="font-medium">Animal:</span> {summary.animalType ? ANIMAL_LABELS[summary.animalType as AnimalType] : '—'}</p>
         <p><span className="font-medium">Ubicación:</span> {summary.locationText || (summary.lat ? `${summary.lat?.toFixed(4)}, ${summary.lng?.toFixed(4)}` : '—')}</p>
         <p><span className="font-medium">Fotos:</span> {summary.images.length}</p>

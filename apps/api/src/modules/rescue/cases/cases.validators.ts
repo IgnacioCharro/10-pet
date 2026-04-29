@@ -6,6 +6,7 @@ const locationSchema = z.object({
 });
 
 export const createCaseSchema = z.object({
+  listingType: z.enum(['found', 'lost']).default('found'),
   animalType: z.enum(['perro', 'gato', 'otro']),
   description: z.string().trim().min(10).max(2000),
   location: locationSchema,
@@ -24,6 +25,7 @@ export const listCasesSchema = z.object({
     .enum(['abierto', 'en_rescate', 'resuelto', 'inactivo', 'spam'])
     .optional(),
   animalType: z.enum(['perro', 'gato', 'otro']).optional(),
+  listingType: z.enum(['found', 'lost']).optional(),
   urgencyMin: z.coerce.number().int().min(1).max(5).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
@@ -65,6 +67,7 @@ export const feedCasesSchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
   radius: z.coerce.number().min(0.1).max(100).default(10),
+  listingType: z.enum(['found', 'lost']).optional(),
 });
 
 export type CreateCaseInput = z.infer<typeof createCaseSchema>;

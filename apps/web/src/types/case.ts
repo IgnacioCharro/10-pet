@@ -1,10 +1,12 @@
 export type AnimalType = 'perro' | 'gato' | 'otro'
 export type CaseStatus = 'abierto' | 'en_rescate' | 'resuelto' | 'inactivo' | 'spam'
 export type SortOrder = 'recent' | 'urgency' | 'distance'
+export type ListingType = 'found' | 'lost'
 
 export interface CaseItem {
   id: string
   userId: string
+  listingType: ListingType
   animalType: AnimalType
   description: string
   status: CaseStatus
@@ -51,6 +53,7 @@ export interface ListCasesQuery {
   radius?: number
   status?: CaseStatus
   animalType?: AnimalType
+  listingType?: ListingType
   urgencyMin?: number
   page?: number
   limit?: number
@@ -58,6 +61,7 @@ export interface ListCasesQuery {
 }
 
 export interface CreateCaseInput {
+  listingType: ListingType
   animalType: AnimalType
   description: string
   location: { lat: number; lng: number }
