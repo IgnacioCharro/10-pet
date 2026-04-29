@@ -21,9 +21,9 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />
+  if (isAuthenticated) return <Navigate to="/" replace />
 
-  const from = (location.state as LocationState | null)?.from?.pathname ?? '/dashboard'
+  const from = (location.state as LocationState | null)?.from?.pathname ?? '/'
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
