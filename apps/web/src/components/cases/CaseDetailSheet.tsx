@@ -9,6 +9,18 @@ import type { CaseDetail, AnimalType, CaseStatus, CaseUpdateType, CaseUpdateItem
 import { ContactModal } from './ContactModal'
 import { ReportModal } from './ReportModal'
 
+function contactedKey(userId: string) { return `10pet:contacted:${userId}` }
+function hasContactedCase(userId: string, caseId: string): boolean {
+  try { return (JSON.parse(localStorage.getItem(contactedKey(userId)) ?? '[]') as string[]).includes(caseId) }
+  catch { return false }
+}
+function saveContactedCase(userId: string, caseId: string): void {
+  try {
+    const ids = JSON.parse(localStorage.getItem(contactedKey(userId)) ?? '[]') as string[]
+    if (!ids.includes(caseId)) localStorage.setItem(contactedKey(userId), JSON.stringify([...ids, caseId]))
+  } catch { /* noop */ }
+}
+
 const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', otro: 'Otro' }
 const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', otro: '🐾' }
 
@@ -97,6 +109,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
       setShowEditModal(false)
       return
     }
+    setContacted(currentUserId ? hasContactedCase(currentUserId, caseId) : false)
     setLoading(true)
     setVetAssistances([])
     getCaseById(caseId)
@@ -106,7 +119,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
     getVetAssistances(caseId)
       .then(setVetAssistances)
       .catch(() => {})
-  }, [caseId])
+  }, [caseId, currentUserId])
 
   if (!caseId) return null
 
@@ -122,6 +135,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
     setShowContactModal(false)
     setContacted(true)
     setWhatsappLink(link)
+    if (currentUserId && caseId) saveContactedCase(currentUserId, caseId)
     toast.success('Solicitud enviada correctamente.')
   }
 
