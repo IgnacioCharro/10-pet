@@ -752,7 +752,7 @@ function StepContacto({ phoneContact, onPhoneChange, summary }: StepContactoProp
       <div className="bg-gray-50 rounded-xl p-4 text-sm flex flex-col gap-1">
         <p><span className="font-medium">Tipo:</span> {summary.listingType === 'lost' ? 'Busco mi mascota' : 'Animal encontrado'}</p>
         <p><span className="font-medium">Animal:</span> {summary.animalType ? ANIMAL_LABELS[summary.animalType as AnimalType] : '—'}</p>
-        <p><span className="font-medium">Ubicación:</span> {summary.locationText || (summary.lat ? `${summary.lat?.toFixed(4)}, ${summary.lng?.toFixed(4)}` : '—')}</p>
+        <p><span className="font-medium">Ubicación:</span> {summary.locationText || 'Sin dirección exacta'}</p>
         <p><span className="font-medium">Fotos:</span> {summary.images.length}</p>
         <p><span className="font-medium">Urgencia:</span> {summary.urgencyLevel}/5</p>
       </div>
