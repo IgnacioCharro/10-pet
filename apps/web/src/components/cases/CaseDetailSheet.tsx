@@ -66,6 +66,13 @@ function timeAgo(iso: string): string {
   return `hace ${Math.floor(d / 30)} meses`
 }
 
+function formatExact(iso: string): string {
+  return new Date(iso).toLocaleString('es-AR', {
+    day: 'numeric', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
 interface Props {
   caseId: string | null
   onClose: () => void
@@ -349,7 +356,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
               />
 
               <div className="flex items-center justify-between">
-                <p className="text-xs text-gray-400">{timeAgo(detail.createdAt)}</p>
+                <p className="text-xs text-gray-400 cursor-help" title={formatExact(detail.createdAt)}>{timeAgo(detail.createdAt)}</p>
                 {isAuthenticated && detail.userId !== currentUserId && !reported && (
                   <button
                     type="button"

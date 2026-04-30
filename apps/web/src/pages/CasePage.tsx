@@ -72,6 +72,13 @@ function timeAgo(iso: string): string {
   return `hace ${Math.floor(d / 30)} meses`
 }
 
+function formatExact(iso: string): string {
+  return new Date(iso).toLocaleString('es-AR', {
+    day: 'numeric', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
 export default function CasePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -322,7 +329,7 @@ export default function CasePage() {
           />
 
           <div className="flex items-center justify-between pt-2">
-            <p className="text-xs text-gray-400">{timeAgo(detail.createdAt)}</p>
+            <p className="text-xs text-gray-400 cursor-help" title={formatExact(detail.createdAt)}>{timeAgo(detail.createdAt)}</p>
             {isAuthenticated && !isOwner && !reported && (
               <button
                 type="button"
