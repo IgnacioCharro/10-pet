@@ -47,6 +47,7 @@ export default function DashboardPage() {
   const user = useAuthStore((s) => s.user)
   const decrementPending = useNotificationsStore((s) => s.decrementPending)
   const clearVolunteerUpdates = useNotificationsStore((s) => s.clearVolunteerUpdates)
+  const pendingContactsCount = useNotificationsStore((s) => s.pendingContactsCount)
   const [tab, setTab] = useState<Tab>('casos')
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null)
   const [cases, setCases] = useState<CaseItem[]>([])
@@ -135,7 +136,16 @@ export default function DashboardPage() {
                   : 'border-transparent text-gray-500 hover:text-gray-700',
               ].join(' ')}
             >
-              {t === 'casos' ? 'Mis casos' : t === 'enviados' ? 'Enviados' : 'Recibidos'}
+              {t === 'casos' ? 'Mis casos' : t === 'enviados' ? 'Enviados' : (
+                <span className="flex items-center gap-1.5">
+                  Recibidos
+                  {pendingContactsCount > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                      {pendingContactsCount}
+                    </span>
+                  )}
+                </span>
+              )}
             </button>
           ))}
         </div>
