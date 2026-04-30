@@ -50,6 +50,13 @@ function timeAgo(dateStr: string): string {
   return `hace ${Math.floor(hours / 24)}d`
 }
 
+function formatExact(iso: string): string {
+  return new Date(iso).toLocaleString('es-AR', {
+    day: 'numeric', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
 export default function HomeFeed() {
   const navigate = useNavigate()
   const [loc, setLoc] = useState<PickedLocation | null>(() => loadPickedLocation())
@@ -202,7 +209,7 @@ export default function HomeFeed() {
                           </td>
                         )}
                         <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                          {timeAgo(row.createdAt)}
+                          <span title={formatExact(row.createdAt)} className="cursor-help">{timeAgo(row.createdAt)}</span>
                         </td>
                         <td className="px-4 py-3 text-gray-600 max-w-[140px] truncate">
                           {row.publisherName ?? (
@@ -260,7 +267,7 @@ export default function HomeFeed() {
                       )}
                     </p>
                     <div className="mt-1.5 flex items-center gap-2 text-xs text-gray-400 flex-wrap">
-                      <span>{timeAgo(row.createdAt)}</span>
+                      <span title={formatExact(row.createdAt)} className="cursor-help">{timeAgo(row.createdAt)}</span>
                       {row.publisherName && (
                         <span>· {row.publisherName}</span>
                       )}

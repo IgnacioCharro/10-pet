@@ -98,7 +98,14 @@ export default function NavBar() {
                   + Reportar
                 </Button>
               </Link>
-              {user && <span className="text-sm text-gray-500 max-w-[140px] truncate">{user.name ?? 'Anónimo'}</span>}
+              {user && (
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                    {(user.name ?? 'A').charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm text-gray-700 max-w-[120px] truncate">{user.name ?? 'Anonimo'}</span>
+                </div>
+              )}
               <Button variant="secondary" size="sm" onClick={handleLogout}>
                 Salir
               </Button>

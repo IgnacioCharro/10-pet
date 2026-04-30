@@ -45,6 +45,13 @@ function timeAgo(iso: string): string {
   return `hace ${Math.floor(d / 30)}m`
 }
 
+function formatExact(iso: string): string {
+  return new Date(iso).toLocaleString('es-AR', {
+    day: 'numeric', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
 interface Props {
   caseItem: CaseItem
   onClick: () => void
@@ -92,7 +99,7 @@ export default function CaseCard({ caseItem: c, onClick }: Props) {
             {c.distanceKm != null && (
               <span className="flex-shrink-0">{c.distanceKm.toFixed(1)} km</span>
             )}
-            <span className="flex-shrink-0 ml-auto">{timeAgo(c.createdAt)}</span>
+            <span className="flex-shrink-0 ml-auto cursor-help" title={formatExact(c.createdAt)}>{timeAgo(c.createdAt)}</span>
           </div>
         </div>
       </div>

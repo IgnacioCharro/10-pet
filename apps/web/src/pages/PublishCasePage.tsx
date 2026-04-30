@@ -31,11 +31,11 @@ const ANIMAL_LABELS: Record<AnimalType, string> = {
 }
 
 const URGENCY_LABELS: Record<number, string> = {
-  1: 'Muy baja',
-  2: 'Baja',
-  3: 'Moderada',
-  4: 'Alta',
-  5: 'Urgente',
+  1: 'Sin urgencia',
+  2: 'Baja — estable',
+  3: 'Moderada — necesita atencion pronto',
+  4: 'Alta — en riesgo, actuar rapido',
+  5: 'Critica — riesgo de vida / atropellado',
 }
 
 const STEPS = ['Fotos', 'Ubicacion', 'Descripcion', 'Contacto']
