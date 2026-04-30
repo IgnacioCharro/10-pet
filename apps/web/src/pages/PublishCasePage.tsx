@@ -347,7 +347,7 @@ function StepFotos({ images, uploading, error, fileInputRef, onFiles, onRemove }
         Agregá fotos del animal (hasta 5). Una buena foto aumenta las chances de que alguien ayude.
       </p>
 
-      {images.length < 5 && (
+      {images.length === 0 ? (
         <div
           className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center gap-3 cursor-pointer hover:border-primary-400 transition-colors"
           onClick={() => fileInputRef.current?.click()}
@@ -355,29 +355,15 @@ function StepFotos({ images, uploading, error, fileInputRef, onFiles, onRemove }
           onDragOver={(e) => e.preventDefault()}
         >
           {uploading ? (
-            <span className="text-sm text-gray-500">Subiendo...</span>
+            <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
               <span className="text-3xl">📷</span>
-              <span className="text-sm text-gray-500 text-center">
-                Hacé clic o arrastrá fotos aquí
-              </span>
+              <span className="text-sm text-gray-500 text-center">Hacé clic o arrastrá fotos aquí</span>
             </>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => onFiles(e.target.files)}
-          />
         </div>
-      )}
-
-      {error && <p className="text-xs text-red-600">{error}</p>}
-
-      {images.length > 0 && (
+      ) : (
         <div className="grid grid-cols-3 gap-2">
           {images.map((img, i) => (
             <div key={img.publicId} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
@@ -391,8 +377,37 @@ function StepFotos({ images, uploading, error, fileInputRef, onFiles, onRemove }
               </button>
             </div>
           ))}
+          {images.length < 5 && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              onDrop={onDrop}
+              onDragOver={(e) => e.preventDefault()}
+              className="aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-primary-400 flex flex-col items-center justify-center gap-1 transition-colors"
+            >
+              {uploading ? (
+                <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span className="text-xl leading-none text-gray-400">+</span>
+                  <span className="text-[10px] text-gray-400">Agregar</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => onFiles(e.target.files)}
+      />
+
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   )
 }
@@ -423,6 +438,8 @@ function StepUbicacion({
   const [calle2, setCalle2] = useState('')
   const [geocoding, setGeocoding] = useState(false)
   const [geocodeError, setGeocodeError] = useState<string | null>(null)
+  const [reverseGeocoding, setReverseGeocoding] = useState(false)
+  const reverseDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (error) setShowForm(true)
@@ -466,6 +483,30 @@ function StepUbicacion({
   const handleMapChange = (newLat: number, newLng: number) => {
     onLatChange(newLat)
     onLngChange(newLng)
+    if (reverseDebounceRef.current) clearTimeout(reverseDebounceRef.current)
+    reverseDebounceRef.current = setTimeout(async () => {
+      setReverseGeocoding(true)
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${newLat}&lon=${newLng}&format=json&accept-language=es`,
+          { headers: { 'User-Agent': '10pet-web/1.0' } },
+        )
+        const data: { address?: Record<string, string>; display_name?: string } = await res.json()
+        if (data.address) {
+          const a = data.address
+          const road = a.road ?? a.pedestrian ?? a.path ?? a.footway ?? ''
+          const num = a.house_number ? ` ${a.house_number}` : ''
+          const city = a.town ?? a.city ?? a.village ?? a.municipality ?? a.county ?? ''
+          const label = road
+            ? `${road}${num}${city ? ', ' + city : ''}`
+            : (data.display_name?.split(',').slice(0, 2).join(',').trim() ?? '')
+          if (label) onLocationTextChange(label)
+        } else if (data.display_name) {
+          onLocationTextChange(data.display_name.split(',').slice(0, 2).join(',').trim())
+        }
+      } catch { /* ignorar, usuario puede escribir manualmente */ }
+      finally { setReverseGeocoding(false) }
+    }, 400)
   }
 
   return (
@@ -593,13 +634,21 @@ function StepUbicacion({
         </div>
       )}
 
-      <Input
-        label="Referencia (opcional)"
-        placeholder="Ej: cerca de la plaza, frente al supermercado"
-        value={locationText}
-        onChange={(e) => onLocationTextChange(e.target.value)}
-        hint="Se muestra en la ficha del caso."
-      />
+      <div className="relative">
+        {reverseGeocoding && (
+          <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+            <span className="inline-block w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin" />
+            Buscando dirección...
+          </p>
+        )}
+        <Input
+          label="Referencia (opcional)"
+          placeholder="Ej: cerca de la plaza, frente al supermercado"
+          value={locationText}
+          onChange={(e) => onLocationTextChange(e.target.value)}
+          hint="Se muestra en la ficha del caso."
+        />
+      </div>
     </div>
   )
 }
