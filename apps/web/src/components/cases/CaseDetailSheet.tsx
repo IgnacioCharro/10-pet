@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getCaseById, addCaseUpdate, updateCase, type ResolutionType } from '../../services/cases.service'
 import { getVetAssistances, createVetAssistance } from '../../services/vet-assistances.service'
 import type { VetAssistanceItem } from '../../services/vet-assistances.service'
@@ -221,7 +221,22 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col md:max-w-lg md:left-auto md:right-4 md:bottom-4 md:rounded-2xl">
         <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100">
           <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto md:hidden absolute left-1/2 -translate-x-1/2 top-2" />
-          <h2 className="font-semibold text-gray-800 text-base">Detalle del caso</h2>
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <h2 className="font-semibold text-gray-800 text-base">
+              {detail
+                ? `${ANIMAL_EMOJI[detail.animalType]} ${ANIMAL_LABEL[detail.animalType]} · ${URGENCY_LABEL[detail.urgencyLevel] ?? `Urgencia ${detail.urgencyLevel}`}`
+                : 'Detalle del caso'}
+            </h2>
+            {caseId && (
+              <Link
+                to={`/cases/${caseId}`}
+                onClick={onClose}
+                className="text-xs text-primary-600 hover:underline"
+              >
+                Ver caso completo →
+              </Link>
+            )}
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -465,7 +480,7 @@ const URGENCY_LABELS_EDIT: Record<number, string> = {
   5: 'Urgente — riesgo de vida',
 }
 
-interface EditModalProps {
+export interface EditModalProps {
   initial: {
     animalType: string
     description: string
@@ -481,7 +496,7 @@ interface EditModalProps {
   }) => Promise<void>
 }
 
-function EditModal({ initial, onClose, onSave }: EditModalProps) {
+export function EditModal({ initial, onClose, onSave }: EditModalProps) {
   const [animalType, setAnimalType] = useState(initial.animalType)
   const [description, setDescription] = useState(initial.description)
   const [condition, setCondition] = useState(initial.condition)
@@ -634,7 +649,7 @@ const RESOLUTION_OPTIONS: { value: ResolutionType; label: string }[] = [
   { value: 'otro',         label: 'Otro' },
 ]
 
-function ResolutionModal({
+export function ResolutionModal({
   onClose,
   onConfirm,
 }: {
@@ -721,7 +736,7 @@ function formatDate(iso: string): string {
   })
 }
 
-interface CaseTimelineProps {
+export interface CaseTimelineProps {
   updates: CaseUpdateItem[]
   isOwner: boolean
   showAddUpdate: boolean
@@ -734,7 +749,7 @@ interface CaseTimelineProps {
   onSubmit: () => void
 }
 
-function CaseTimeline({
+export function CaseTimeline({
   updates, isOwner, showAddUpdate, addUpdateType, addUpdateContent, addUpdateLoading,
   onToggleForm, onTypeChange, onContentChange, onSubmit,
 }: CaseTimelineProps) {
@@ -821,7 +836,7 @@ function CaseTimeline({
   )
 }
 
-interface VetAssistancesSectionProps {
+export interface VetAssistancesSectionProps {
   assistances: VetAssistanceItem[]
   isAuthenticated: boolean
   showForm: boolean
@@ -834,7 +849,7 @@ interface VetAssistancesSectionProps {
   onSubmit: () => void
 }
 
-function VetAssistancesSection({
+export function VetAssistancesSection({
   assistances, isAuthenticated, showForm, procedure, medication, loading,
   onToggleForm, onProcedureChange, onMedicationChange, onSubmit,
 }: VetAssistancesSectionProps) {
