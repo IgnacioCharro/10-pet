@@ -1,7 +1,7 @@
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '../../../db';
 import { RefreshToken } from '../../../db';
-import { ListUsersQuery, PatchAdminUserInput, PatchAdminCaseInput } from './admin.validators';
+import { ListUsersQuery, PatchAdminUserInput, PatchAdminCaseInput, ListAdminCasesQuery } from './admin.validators';
 
 export interface AdminStats {
   totalUsers: number;
@@ -155,11 +155,54 @@ export async function patchAdminCase(
     return { error: { code: 'CASE_NOT_FOUND', message: 'Caso no encontrado', status: 404 } };
   }
 
-  const newStatus = input.action === 'delete' ? 'eliminado' : 'abierto';
+  const newStatus =
+    input.action === 'delete' ? 'eliminado' :
+    input.action === 'archive' ? 'archivado' :
+    'abierto';
   await sequelize.query(
     `UPDATE cases SET status = :status, updated_at = NOW() WHERE id = :caseId`,
     { replacements: { status: newStatus, caseId }, type: QueryTypes.UPDATE },
   );
 
   return { ok: true };
+}
+
+export interface AdminCaseRow {
+  id: string;
+  animalType: string;
+  locationText: string | null;
+  status: string;
+  urgencyLevel: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export async function listAdminCases(
+  query: ListAdminCasesQuery,
+): Promise<{ cases: AdminCaseRow[]; total: number }> {
+  const offset = (query.page - 1) * query.limit;
+  const replacements = { status: query.status, limit: query.limit, offset };
+
+  const [{ count }] = await sequelize.query<{ count: string }>(
+    `SELECT COUNT(*) AS count FROM cases WHERE status = :status`,
+    { replacements, type: QueryTypes.SELECT },
+  );
+
+  const cases = await sequelize.query<AdminCaseRow>(
+    `SELECT
+       id,
+       animal_type AS "animalType",
+       location_text AS "locationText",
+       status,
+       urgency_level AS "urgencyLevel",
+       created_at AS "createdAt",
+       updated_at AS "updatedAt"
+     FROM cases
+     WHERE status = :status
+     ORDER BY updated_at DESC
+     LIMIT :limit OFFSET :offset`,
+    { replacements, type: QueryTypes.SELECT },
+  );
+
+  return { cases, total: parseInt(count, 10) };
 }

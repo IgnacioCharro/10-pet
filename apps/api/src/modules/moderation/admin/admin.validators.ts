@@ -11,9 +11,16 @@ export const patchAdminUserSchema = z.object({
 });
 
 export const patchAdminCaseSchema = z.object({
-  action: z.enum(['delete', 'restore']),
+  action: z.enum(['delete', 'restore', 'archive']),
+});
+
+export const listAdminCasesSchema = z.object({
+  status: z.enum(['archivado', 'eliminado']).default('archivado'),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 export type ListUsersQuery = z.infer<typeof listUsersSchema>;
 export type PatchAdminUserInput = z.infer<typeof patchAdminUserSchema>;
 export type PatchAdminCaseInput = z.infer<typeof patchAdminCaseSchema>;
+export type ListAdminCasesQuery = z.infer<typeof listAdminCasesSchema>;

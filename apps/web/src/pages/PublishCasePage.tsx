@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
+import LocalidadAutocomplete from '../components/cases/LocalidadAutocomplete'
 import { uploadToCloudinary, type UploadedImage } from '../services/images.service'
 import { createCase } from '../services/cases.service'
 import { lazyWithRetry } from '../lib/lazyWithRetry'
@@ -543,12 +544,13 @@ function StepUbicacion({
 
       {showForm && (
       <div className="flex flex-col gap-3">
-        <Input
-          label="Localidad *"
-          placeholder="Ej: Pergamino, Tandil, Azul"
-          value={localidad}
-          onChange={(e) => setLocalidad(e.target.value)}
-        />
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-gray-700">Localidad *</label>
+          <LocalidadAutocomplete
+            value={localidad}
+            onChange={setLocalidad}
+          />
+        </div>
 
         <div className="flex rounded-lg border border-gray-200 overflow-hidden">
           <button

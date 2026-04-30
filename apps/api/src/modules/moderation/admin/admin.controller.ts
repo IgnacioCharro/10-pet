@@ -4,12 +4,14 @@ import {
   listUsersSchema,
   patchAdminUserSchema,
   patchAdminCaseSchema,
+  listAdminCasesSchema,
 } from './admin.validators';
 import {
   getAdminStats,
   listAdminUsers,
   banUser,
   patchAdminCase,
+  listAdminCases,
 } from './admin.service';
 
 export const getStats = async (
@@ -86,6 +88,26 @@ export const patchCase = async (
     if (err instanceof ZodError) {
       res.status(400).json({
         error: { code: 'VALIDATION_ERROR', message: 'Datos invalidos', fields: err.flatten().fieldErrors },
+      });
+      return;
+    }
+    next(err);
+  }
+};
+
+export const getCases = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const query = listAdminCasesSchema.parse(req.query);
+    const result = await listAdminCases(query);
+    res.json(result);
+  } catch (err) {
+    if (err instanceof ZodError) {
+      res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: 'Parametros invalidos', fields: err.flatten().fieldErrors },
       });
       return;
     }

@@ -23,7 +23,7 @@ export const listCasesSchema = z.object({
   radius: z.coerce.number().min(0.1).max(100).default(10),
   status: z
     .enum(['abierto', 'en_rescate', 'resuelto', 'inactivo', 'spam'])
-    .optional(),
+    .optional(), // 'archivado' omitido a propósito — no expuesto en búsqueda pública
   animalType: z.enum(['perro', 'gato', 'otro']).optional(),
   listingType: z.enum(['found', 'lost']).optional(),
   urgencyMin: z.coerce.number().int().min(1).max(5).optional(),
@@ -40,7 +40,7 @@ export const nearbyCasesSchema = z.object({
 
 export const updateCaseSchema = z
   .object({
-    status: z.enum(['abierto', 'en_rescate', 'resuelto', 'inactivo', 'spam']).optional(),
+    status: z.enum(['abierto', 'en_rescate', 'resuelto', 'inactivo', 'spam', 'archivado']).optional(),
     resolutionType: z
       .enum(['adoptado', 'en_transito', 'zoonosis', 'derivado_ong', 'fallecio', 'sin_paradero', 'otro'])
       .optional(),

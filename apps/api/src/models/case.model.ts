@@ -1,7 +1,7 @@
 import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
 
 export type AnimalType = 'perro' | 'gato' | 'otro';
-export type CaseStatus = 'abierto' | 'en_rescate' | 'resuelto' | 'inactivo' | 'spam';
+export type CaseStatus = 'abierto' | 'en_rescate' | 'resuelto' | 'inactivo' | 'spam' | 'archivado';
 export type ResolutionType = 'rescatado' | 'adoptado' | 'fallecido' | 'sin_novedad';
 
 export interface CaseLocation {
