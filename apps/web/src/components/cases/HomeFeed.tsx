@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { api } from '../../lib/api'
 import LocalidadPicker, {
@@ -7,8 +7,6 @@ import LocalidadPicker, {
   savePickedLocation,
   type PickedLocation,
 } from './LocalidadPicker'
-import CaseDetailSheet from './CaseDetailSheet'
-import CasePopup from './CasePopup'
 import { Button } from '../ui'
 import type { AnimalType, ListingType } from '../../types/case'
 
@@ -53,13 +51,12 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function HomeFeed() {
+  const navigate = useNavigate()
   const [loc, setLoc] = useState<PickedLocation | null>(() => loadPickedLocation())
   const [showPicker, setShowPicker] = useState(() => !loadPickedLocation())
   const [tab, setTab] = useState<Tab>('all')
   const [rows, setRows] = useState<FeedRow[]>([])
   const [loading, setLoading] = useState(false)
-  const [popupCaseId, setPopupCaseId] = useState<string | null>(null)
-  const [detailCaseId, setDetailCaseId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loc) return
@@ -174,7 +171,7 @@ export default function HomeFeed() {
                     return (
                       <tr
                         key={row.id}
-                        onClick={() => setPopupCaseId(row.id)}
+                        onClick={() => navigate(`/cases/${row.id}`)}
                         className="border-b border-gray-100 last:border-0 hover:bg-gray-50 cursor-pointer transition-colors"
                       >
                         <td className="px-4 py-3">
@@ -235,7 +232,7 @@ export default function HomeFeed() {
                 return (
                   <button
                     key={row.id}
-                    onClick={() => setPopupCaseId(row.id)}
+                    onClick={() => navigate(`/cases/${row.id}`)}
                     className="w-full text-left bg-white rounded-xl border border-gray-200 px-4 py-3 shadow-sm hover:border-primary-300 active:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -281,12 +278,6 @@ export default function HomeFeed() {
         )}
       </div>
 
-      <CasePopup
-        caseId={popupCaseId}
-        onClose={() => setPopupCaseId(null)}
-        onViewFull={() => { setDetailCaseId(popupCaseId); setPopupCaseId(null) }}
-      />
-      <CaseDetailSheet caseId={detailCaseId} onClose={() => setDetailCaseId(null)} />
     </>
   )
 }
