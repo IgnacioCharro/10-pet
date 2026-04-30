@@ -496,10 +496,14 @@ function StepUbicacion({
         if (data.address) {
           const a = data.address
           const road = a.road ?? a.pedestrian ?? a.path ?? a.footway ?? ''
-          const num = a.house_number ? ` ${a.house_number}` : ''
+          const num = a.house_number ?? ''
           const city = a.town ?? a.city ?? a.village ?? a.municipality ?? a.county ?? ''
+          if (road) setCalle(road)
+          if (num) { setNumero(num); setAddressMode('numero') }
+          if (city) setLocalidad(city)
+          if (road || city) setShowForm(true)
           const label = road
-            ? `${road}${num}${city ? ', ' + city : ''}`
+            ? `${road}${num ? ' ' + num : ''}${city ? ', ' + city : ''}`
             : (data.display_name?.split(',').slice(0, 2).join(',').trim() ?? '')
           if (label) onLocationTextChange(label)
         } else if (data.display_name) {
