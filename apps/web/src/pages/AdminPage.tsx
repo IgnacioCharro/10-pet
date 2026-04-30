@@ -134,17 +134,6 @@ export default function AdminPage() {
     }
   }
 
-  const handleArchiveCase = async (c: AdminCase) => {
-    try {
-      await patchAdminCase(c.id, 'archive')
-      setAdminCases((prev) => prev.filter((x) => x.id !== c.id))
-      setAdminCasesTotal((t) => t - 1)
-      toast.success('Caso archivado.')
-    } catch {
-      toast.error('No se pudo archivar el caso.')
-    }
-  }
-
   const handleDismissReport = async (report: AdminReport) => {
     try {
       await updateAdminReport(report.id, 'dismissed')
