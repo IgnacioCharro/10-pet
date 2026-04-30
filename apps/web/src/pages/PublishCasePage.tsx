@@ -5,6 +5,7 @@ import Input from '../components/ui/Input'
 import { uploadToCloudinary, type UploadedImage } from '../services/images.service'
 import { createCase } from '../services/cases.service'
 import { lazyWithRetry } from '../lib/lazyWithRetry'
+import ErrorBoundary from '../components/ErrorBoundary'
 import type { AnimalType, ListingType } from '../types/case'
 
 const LocationPickerMap = lazyWithRetry(() => import('../components/map/LocationPickerMap'))
@@ -625,9 +626,16 @@ function StepUbicacion({
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
-          <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Cargando mapa...</div>}>
-            <LocationPickerMap lat={lat} lng={lng} onChange={handleMapChange} />
-          </Suspense>
+          <ErrorBoundary fallback={
+            <div className="h-[220px] rounded-xl bg-gray-100 flex flex-col items-center justify-center gap-2 text-gray-400 text-sm">
+              <span>No se pudo cargar el mapa.</span>
+              <button type="button" className="text-primary-600 underline text-xs" onClick={() => window.location.reload()}>Recargar pagina</button>
+            </div>
+          }>
+            <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Cargando mapa...</div>}>
+              <LocationPickerMap lat={lat} lng={lng} onChange={handleMapChange} />
+            </Suspense>
+          </ErrorBoundary>
           <p className="text-xs text-gray-500 text-center">
             Toca o arrastra el pin para ajustar la posicion exacta
           </p>
