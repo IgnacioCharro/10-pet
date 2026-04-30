@@ -65,6 +65,25 @@ export async function updateAdminReport(
   await api.patch(`/admin/reports/${reportId}`, { status })
 }
 
-export async function patchAdminCase(caseId: string, action: 'delete' | 'restore'): Promise<void> {
+export interface AdminCase {
+  id: string
+  animalType: string
+  locationText: string | null
+  status: string
+  urgencyLevel: number
+  createdAt: string
+  updatedAt: string
+}
+
+export async function patchAdminCase(caseId: string, action: 'delete' | 'restore' | 'archive'): Promise<void> {
   await api.patch(`/admin/cases/${caseId}`, { action })
+}
+
+export async function listAdminCases(params?: {
+  status?: 'archivado' | 'eliminado'
+  page?: number
+  limit?: number
+}): Promise<{ cases: AdminCase[]; total: number }> {
+  const res = await api.get<{ cases: AdminCase[]; total: number }>('/admin/cases', { params })
+  return res.data
 }

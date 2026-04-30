@@ -8,13 +8,15 @@ import {
   listAdminReports,
   updateAdminReport,
   patchAdminCase,
+  listAdminCases,
   type AdminStats,
   type AdminUser,
   type AdminReport,
+  type AdminCase,
 } from '../services/admin.service'
 import { toast } from '../stores/toastStore'
 
-type Tab = 'stats' | 'reports' | 'users'
+type Tab = 'stats' | 'reports' | 'users' | 'casos'
 
 const REASON_LABELS: Record<string, string> = {
   spam: 'Spam',
@@ -60,6 +62,12 @@ export default function AdminPage() {
   const [usersSearch, setUsersSearch] = useState('')
   const [loadingUsers, setLoadingUsers] = useState(false)
 
+  const [adminCases, setAdminCases] = useState<AdminCase[]>([])
+  const [adminCasesTotal, setAdminCasesTotal] = useState(0)
+  const [adminCasesPage, setAdminCasesPage] = useState(1)
+  const [adminCasesStatus, setAdminCasesStatus] = useState<'archivado' | 'eliminado'>('archivado')
+  const [loadingAdminCases, setLoadingAdminCases] = useState(false)
+
   useEffect(() => {
     getAdminStats()
       .then(setStats)
@@ -99,6 +107,44 @@ export default function AdminPage() {
     loadUsers()
   }, [loadUsers])
 
+  const loadAdminCases = useCallback(() => {
+    if (tab !== 'casos') return
+    setLoadingAdminCases(true)
+    listAdminCases({ status: adminCasesStatus, page: adminCasesPage, limit: 20 })
+      .then((r) => {
+        setAdminCases(r.cases)
+        setAdminCasesTotal(r.total)
+      })
+      .catch(() => {})
+      .finally(() => setLoadingAdminCases(false))
+  }, [tab, adminCasesStatus, adminCasesPage])
+
+  useEffect(() => {
+    loadAdminCases()
+  }, [loadAdminCases])
+
+  const handleReactivateCase = async (c: AdminCase) => {
+    try {
+      await patchAdminCase(c.id, 'restore')
+      setAdminCases((prev) => prev.filter((x) => x.id !== c.id))
+      setAdminCasesTotal((t) => t - 1)
+      toast.success('Caso reactivado.')
+    } catch {
+      toast.error('No se pudo reactivar el caso.')
+    }
+  }
+
+  const handleArchiveCase = async (c: AdminCase) => {
+    try {
+      await patchAdminCase(c.id, 'archive')
+      setAdminCases((prev) => prev.filter((x) => x.id !== c.id))
+      setAdminCasesTotal((t) => t - 1)
+      toast.success('Caso archivado.')
+    } catch {
+      toast.error('No se pudo archivar el caso.')
+    }
+  }
+
   const handleDismissReport = async (report: AdminReport) => {
     try {
       await updateAdminReport(report.id, 'dismissed')
@@ -118,6 +164,18 @@ export default function AdminPage() {
       toast.success('Caso eliminado.')
     } catch {
       toast.error('No se pudo eliminar el caso.')
+    }
+  }
+
+  const handleArchiveCaseFromReport = async (report: AdminReport) => {
+    if (!report.targetCaseId) return
+    try {
+      await patchAdminCase(report.targetCaseId, 'archive')
+      await updateAdminReport(report.id, 'actioned')
+      setReports((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: 'actioned' } : r)))
+      toast.success('Caso archivado.')
+    } catch {
+      toast.error('No se pudo archivar el caso.')
     }
   }
 
@@ -166,6 +224,9 @@ export default function AdminPage() {
           </button>
           <button className={tabClass('users')} onClick={() => setTab('users')}>
             Usuarios
+          </button>
+          <button className={tabClass('casos')} onClick={() => setTab('casos')}>
+            Casos
           </button>
         </div>
 
@@ -262,6 +323,11 @@ export default function AdminPage() {
                         <Button variant="secondary" size="sm" onClick={() => handleDismissReport(r)}>
                           Descartar
                         </Button>
+                        {r.targetCaseId && (
+                          <Button variant="secondary" size="sm" onClick={() => handleArchiveCaseFromReport(r)}>
+                            Archivar caso
+                          </Button>
+                        )}
                         {r.targetCaseId && (
                           <Button variant="danger" size="sm" onClick={() => handleDeleteCase(r)}>
                             Eliminar caso
@@ -380,6 +446,98 @@ export default function AdminPage() {
                   size="sm"
                   disabled={usersPage >= Math.ceil(usersTotal / 20)}
                   onClick={() => setUsersPage((p) => p + 1)}
+                >
+                  Siguiente
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+        {tab === 'casos' && (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <select
+                className="text-sm border border-gray-200 rounded-md px-3 py-1.5 bg-white"
+                value={adminCasesStatus}
+                onChange={(e) => {
+                  setAdminCasesStatus(e.target.value as 'archivado' | 'eliminado')
+                  setAdminCasesPage(1)
+                }}
+              >
+                <option value="archivado">Archivados</option>
+                <option value="eliminado">Eliminados</option>
+              </select>
+              <span className="text-sm text-gray-500">{adminCasesTotal} total</span>
+            </div>
+
+            {loadingAdminCases ? (
+              <p className="text-sm text-gray-400">Cargando...</p>
+            ) : adminCases.length === 0 ? (
+              <p className="text-sm text-gray-400">Sin casos.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {adminCases.map((c) => (
+                  <Card key={c.id} className="p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="text-sm font-medium text-gray-900 capitalize">{c.animalType}</span>
+                        {c.locationText && (
+                          <span className="text-xs text-gray-500 truncate">{c.locationText}</span>
+                        )}
+                        <span className="text-xs text-gray-400">
+                          {new Date(c.updatedAt).toLocaleDateString('es-AR')}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        {c.status === 'archivado' && (
+                          <Button variant="secondary" size="sm" onClick={() => handleReactivateCase(c)}>
+                            Reactivar
+                          </Button>
+                        )}
+                        {c.status === 'archivado' && (
+                          <Button variant="danger" size="sm" onClick={async () => {
+                            try {
+                              await patchAdminCase(c.id, 'delete')
+                              setAdminCases((prev) => prev.filter((x) => x.id !== c.id))
+                              setAdminCasesTotal((t) => t - 1)
+                              toast.success('Caso eliminado.')
+                            } catch {
+                              toast.error('No se pudo eliminar.')
+                            }
+                          }}>
+                            Eliminar
+                          </Button>
+                        )}
+                        {c.status === 'eliminado' && (
+                          <Button variant="secondary" size="sm" onClick={() => handleReactivateCase(c)}>
+                            Restaurar
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {adminCasesTotal > 20 && (
+              <div className="flex items-center gap-2 justify-center">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={adminCasesPage === 1}
+                  onClick={() => setAdminCasesPage((p) => p - 1)}
+                >
+                  Anterior
+                </Button>
+                <span className="text-sm text-gray-500">
+                  Pag {adminCasesPage} / {Math.ceil(adminCasesTotal / 20)}
+                </span>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={adminCasesPage >= Math.ceil(adminCasesTotal / 20)}
+                  onClick={() => setAdminCasesPage((p) => p + 1)}
                 >
                   Siguiente
                 </Button>
