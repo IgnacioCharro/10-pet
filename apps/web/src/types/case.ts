@@ -20,6 +20,7 @@ export interface CaseItem {
   updatedAt: string
   resolvedAt: string | null
   distanceKm?: number
+  heroUrl?: string | null
 }
 
 export interface CaseImageItem {

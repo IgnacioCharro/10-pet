@@ -68,10 +68,19 @@ export default function CaseCard({ caseItem: c, onClick }: Props) {
       className="w-full text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-300 hover:shadow-sm transition-all"
     >
       <div className="flex items-start gap-3">
-        <span className="text-2xl flex-shrink-0 mt-0.5">{ANIMAL_EMOJI[c.animalType]}</span>
+        {c.heroUrl ? (
+          <img
+            src={c.heroUrl}
+            alt=""
+            className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+          />
+        ) : (
+          <span className="text-2xl flex-shrink-0 mt-0.5">{ANIMAL_EMOJI[c.animalType]}</span>
+        )}
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className="text-base leading-none">{ANIMAL_EMOJI[c.animalType]}</span>
             <span className="font-medium text-gray-800 text-sm">{ANIMAL_LABEL[c.animalType]}</span>
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${c.listingType === 'lost' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
               {c.listingType === 'lost' ? 'Busco' : 'Encontré'}

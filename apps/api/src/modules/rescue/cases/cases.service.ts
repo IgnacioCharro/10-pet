@@ -27,6 +27,7 @@ export interface CaseRow {
   updatedAt: Date;
   resolvedAt: Date | null;
   distanceKm?: number;
+  heroUrl?: string | null;
 }
 
 export interface CaseImageRow {
@@ -66,6 +67,11 @@ const BASE_CASE_SELECT = `
   c.created_at AS "createdAt",
   c.updated_at AS "updatedAt",
   c.resolved_at AS "resolvedAt"
+`;
+
+const HERO_URL_SELECT = `
+  (SELECT ci.cloudinary_url FROM case_images ci
+   WHERE ci.case_id = c.id ORDER BY ci.position ASC LIMIT 1) AS "heroUrl"
 `;
 
 export async function createCase(
@@ -197,7 +203,7 @@ export async function listCases(
   if (sort === 'distance' && lat !== undefined) orderBy = 'distance_km ASC NULLS LAST';
 
   const rows = await sequelize.query<CaseRow & { distanceKm: number | null }>(
-    `SELECT ${BASE_CASE_SELECT}, ${distanceExpr} AS "distanceKm"
+    `SELECT ${BASE_CASE_SELECT}, ${distanceExpr} AS "distanceKm", ${HERO_URL_SELECT}
      FROM cases c
      ${where}
      ORDER BY ${orderBy}
@@ -218,7 +224,8 @@ export async function getNearbyCases(query: NearbyCasesQuery): Promise<CaseRow[]
 
   return sequelize.query<CaseRow>(
     `SELECT ${BASE_CASE_SELECT},
-            ST_Distance(c.location::geography, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography) / 1000 AS "distanceKm"
+            ST_Distance(c.location::geography, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography) / 1000 AS "distanceKm",
+            ${HERO_URL_SELECT}
      FROM cases c
      WHERE c.status IN ('abierto','en_rescate')
        AND ST_DWithin(
