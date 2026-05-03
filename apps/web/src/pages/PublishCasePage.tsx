@@ -7,7 +7,7 @@ import { uploadToCloudinary, type UploadedImage } from '../services/images.servi
 import { createCase } from '../services/cases.service'
 import { lazyWithRetry } from '../lib/lazyWithRetry'
 import ErrorBoundary from '../components/ErrorBoundary'
-import type { AnimalType, ListingType } from '../types/case'
+import type { AnimalType, AnimalSex, AnimalSize, AnimalColor, ListingType } from '../types/case'
 
 const LocationPickerMap = lazyWithRetry(() => import('../components/map/LocationPickerMap'))
 
@@ -24,6 +24,9 @@ interface WizardState {
   condition: string
   urgencyLevel: number
   phoneContact: string
+  animalSex: AnimalSex | ''
+  animalSize: AnimalSize | ''
+  animalColor: AnimalColor | ''
 }
 
 const ANIMAL_LABELS: Record<AnimalType, string> = {
@@ -57,6 +60,9 @@ export default function PublishCasePage() {
     condition: '',
     urgencyLevel: 3,
     phoneContact: '',
+    animalSex: '',
+    animalSize: '',
+    animalColor: '',
   })
   const [uploadingImages, setUploadingImages] = useState(false)
   const [geolocating, setGeolocating] = useState(false)
@@ -156,6 +162,9 @@ export default function PublishCasePage() {
         urgencyLevel: state.urgencyLevel,
         phoneContact: state.phoneContact.trim() || undefined,
         imageIds: state.images.map((i) => i.publicId),
+        animalSex: state.animalSex || undefined,
+        animalSize: state.animalSize || undefined,
+        animalColor: state.animalColor || undefined,
       })
       navigate(`/cases`, {
         state: { published: newCase.id, lat: state.lat, lng: state.lng },
@@ -218,11 +227,17 @@ export default function PublishCasePage() {
                 description={state.description}
                 condition={state.condition}
                 urgencyLevel={state.urgencyLevel}
+                animalSex={state.animalSex}
+                animalSize={state.animalSize}
+                animalColor={state.animalColor}
                 errors={{ animalType: errors.animalType, description: errors.description }}
                 onAnimalTypeChange={(v) => update('animalType', v)}
                 onDescriptionChange={(v) => update('description', v)}
                 onConditionChange={(v) => update('condition', v)}
                 onUrgencyChange={(v) => update('urgencyLevel', v)}
+                onAnimalSexChange={(v) => update('animalSex', v)}
+                onAnimalSizeChange={(v) => update('animalSize', v)}
+                onAnimalColorChange={(v) => update('animalColor', v)}
               />
             )}
 
@@ -667,26 +682,66 @@ function StepUbicacion({
   )
 }
 
+const SEX_OPTIONS: { value: AnimalSex; label: string }[] = [
+  { value: 'macho', label: 'Macho' },
+  { value: 'hembra', label: 'Hembra' },
+  { value: 'desconocido', label: 'No se' },
+]
+
+const SIZE_OPTIONS: { value: AnimalSize; label: string }[] = [
+  { value: 'chico', label: 'Chico' },
+  { value: 'mediano', label: 'Mediano' },
+  { value: 'grande', label: 'Grande' },
+]
+
+const COLOR_OPTIONS: { value: AnimalColor; label: string; hex: string; border?: boolean }[] = [
+  { value: 'negro', label: 'Negro', hex: '#1f2937' },
+  { value: 'blanco', label: 'Blanco', hex: '#f9fafb', border: true },
+  { value: 'marron', label: 'Marron', hex: '#92400e' },
+  { value: 'gris', label: 'Gris', hex: '#9ca3af' },
+  { value: 'dorado', label: 'Dorado', hex: '#d97706' },
+  { value: 'manchado', label: 'Manchado', hex: '#6366f1' },
+  { value: 'tricolor', label: 'Tricolor', hex: '#10b981' },
+]
+
 interface StepDescripcionProps {
   listingType: ListingType
   animalType: AnimalType | ''
   description: string
   condition: string
   urgencyLevel: number
+  animalSex: AnimalSex | ''
+  animalSize: AnimalSize | ''
+  animalColor: AnimalColor | ''
   errors: { animalType?: string; description?: string }
   onAnimalTypeChange: (v: AnimalType | '') => void
   onDescriptionChange: (v: string) => void
   onConditionChange: (v: string) => void
   onUrgencyChange: (v: number) => void
+  onAnimalSexChange: (v: AnimalSex | '') => void
+  onAnimalSizeChange: (v: AnimalSize | '') => void
+  onAnimalColorChange: (v: AnimalColor | '') => void
 }
 
 function StepDescripcion({
-  listingType, animalType, description, condition, urgencyLevel, errors,
+  listingType, animalType, description, condition, urgencyLevel,
+  animalSex, animalSize, animalColor, errors,
   onAnimalTypeChange, onDescriptionChange, onConditionChange, onUrgencyChange,
+  onAnimalSexChange, onAnimalSizeChange, onAnimalColorChange,
 }: StepDescripcionProps) {
+  const [showDetails, setShowDetails] = useState(false)
+  const hasDetails = animalSex !== '' || animalSize !== '' || animalColor !== ''
+
   const descPlaceholder = listingType === 'lost'
     ? 'Describí tu mascota: raza, color, collar, dónde se perdió, etc.'
     : 'Describí la situación: dónde está, cómo está, si tiene collar, etc.'
+
+  const detailChip = (active: boolean) => [
+    'px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors',
+    active
+      ? 'border-primary-500 bg-primary-50 text-primary-700'
+      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300',
+  ].join(' ')
 
   return (
     <div className="flex flex-col gap-4">
@@ -749,6 +804,85 @@ function StepDescripcion({
           onChange={(e) => onUrgencyChange(parseInt(e.target.value))}
           className="w-full accent-primary-600"
         />
+      </div>
+
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowDetails((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            Mas detalles del animal (opcional)
+            {hasDetails && (
+              <span className="w-2 h-2 rounded-full bg-primary-500 inline-block" />
+            )}
+          </span>
+          <svg
+            className={['w-4 h-4 text-gray-400 transition-transform', showDetails || hasDetails ? 'rotate-180' : ''].join(' ')}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {(showDetails || hasDetails) && (
+          <div className="px-4 py-4 flex flex-col gap-4 border-t border-gray-100">
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-medium text-gray-600">Sexo</span>
+              <div className="flex gap-2">
+                {SEX_OPTIONS.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => onAnimalSexChange(animalSex === o.value ? '' : o.value)}
+                    className={detailChip(animalSex === o.value)}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-medium text-gray-600">Tamaño</span>
+              <div className="flex gap-2">
+                {SIZE_OPTIONS.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => onAnimalSizeChange(animalSize === o.value ? '' : o.value)}
+                    className={detailChip(animalSize === o.value)}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-medium text-gray-600">Color predominante</span>
+              <div className="flex flex-wrap gap-2">
+                {COLOR_OPTIONS.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => onAnimalColorChange(animalColor === o.value ? '' : o.value)}
+                    className={detailChip(animalColor === o.value)}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        className={['w-3 h-3 rounded-full inline-block flex-shrink-0', o.border ? 'border border-gray-300' : ''].join(' ')}
+                        style={{ background: o.hex }}
+                      />
+                      {o.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

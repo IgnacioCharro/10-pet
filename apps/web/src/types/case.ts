@@ -1,4 +1,7 @@
 export type AnimalType = 'perro' | 'gato' | 'otro'
+export type AnimalSex = 'macho' | 'hembra' | 'desconocido'
+export type AnimalSize = 'chico' | 'mediano' | 'grande'
+export type AnimalColor = 'negro' | 'blanco' | 'marron' | 'gris' | 'dorado' | 'manchado' | 'tricolor'
 export type CaseStatus = 'abierto' | 'en_rescate' | 'resuelto' | 'inactivo' | 'spam'
 export type SortOrder = 'recent' | 'urgency' | 'distance'
 export type ListingType = 'found' | 'lost'
@@ -16,6 +19,9 @@ export interface CaseItem {
   lng: number
   locationText: string | null
   condition: string | null
+  animalSex: AnimalSex | null
+  animalSize: AnimalSize | null
+  animalColor: AnimalColor | null
   createdAt: string
   updatedAt: string
   resolvedAt: string | null
@@ -59,6 +65,9 @@ export interface ListCasesQuery {
   page?: number
   limit?: number
   sort?: SortOrder
+  animalSex?: AnimalSex
+  animalSize?: AnimalSize
+  animalColor?: AnimalColor
 }
 
 export interface CreateCaseInput {
@@ -71,6 +80,9 @@ export interface CreateCaseInput {
   urgencyLevel?: number
   phoneContact?: string
   imageIds?: string[]
+  animalSex?: AnimalSex
+  animalSize?: AnimalSize
+  animalColor?: AnimalColor
 }
 
 export interface PaginatedCasesResponse {

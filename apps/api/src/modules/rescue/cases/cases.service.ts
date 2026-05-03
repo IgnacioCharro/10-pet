@@ -23,6 +23,9 @@ export interface CaseRow {
   lng: number;
   locationText: string | null;
   condition: string | null;
+  animalSex: string | null;
+  animalSize: string | null;
+  animalColor: string | null;
   createdAt: Date;
   updatedAt: Date;
   resolvedAt: Date | null;
@@ -64,6 +67,9 @@ const BASE_CASE_SELECT = `
   ST_X(c.location) AS lng,
   c.location_text AS "locationText",
   c.condition,
+  c.animal_sex AS "animalSex",
+  c.animal_size AS "animalSize",
+  c.animal_color AS "animalColor",
   c.created_at AS "createdAt",
   c.updated_at AS "updatedAt",
   c.resolved_at AS "resolvedAt"
@@ -84,10 +90,12 @@ export async function createCase(
     `INSERT INTO cases
        (id, user_id, listing_type, animal_type, description, status, urgency_level,
         location, location_text, condition, phone_contact,
+        animal_sex, animal_size, animal_color,
         created_at, updated_at)
      VALUES
        (gen_random_uuid(), :userId, :listingType, :animalType, :description, 'abierto', :urgencyLevel,
         ST_SetSRID(ST_MakePoint(:lng, :lat), 4326), :locationText, :condition, :phoneContact,
+        :animalSex, :animalSize, :animalColor,
         NOW(), NOW())
      RETURNING
        id,
@@ -102,6 +110,9 @@ export async function createCase(
        ST_X(location) AS lng,
        location_text AS "locationText",
        condition,
+       animal_sex AS "animalSex",
+       animal_size AS "animalSize",
+       animal_color AS "animalColor",
        created_at AS "createdAt",
        updated_at AS "updatedAt",
        resolved_at AS "resolvedAt"`,
@@ -117,6 +128,9 @@ export async function createCase(
         locationText: input.locationText ?? null,
         condition: input.condition ?? null,
         phoneContact: input.phoneContact ?? null,
+        animalSex: input.animalSex ?? null,
+        animalSize: input.animalSize ?? null,
+        animalColor: input.animalColor ?? null,
       },
       type: QueryTypes.SELECT,
     },
@@ -158,6 +172,7 @@ export async function listCases(
 ): Promise<{ cases: CaseRow[]; total: number }> {
   const {
     lat, lng, radius, status, animalType, listingType, urgencyMin, page, limit, sort,
+    animalSex, animalSize, animalColor,
   } = query;
 
   const conditions: string[] = [];
@@ -183,6 +198,21 @@ export async function listCases(
   if (urgencyMin !== undefined) {
     conditions.push(`c.urgency_level >= :urgencyMin`);
     replacements.urgencyMin = urgencyMin;
+  }
+
+  if (animalSex) {
+    conditions.push(`c.animal_sex = :animalSex`);
+    replacements.animalSex = animalSex;
+  }
+
+  if (animalSize) {
+    conditions.push(`c.animal_size = :animalSize`);
+    replacements.animalSize = animalSize;
+  }
+
+  if (animalColor) {
+    conditions.push(`c.animal_color = :animalColor`);
+    replacements.animalColor = animalColor;
   }
 
   let distanceExpr = 'NULL::float';
@@ -323,6 +353,18 @@ export async function updateCase(
     setClauses.push(`location_text = :locationText`);
     replacements.locationText = input.locationText;
   }
+  if (input.animalSex !== undefined) {
+    setClauses.push(`animal_sex = :animalSex`);
+    replacements.animalSex = input.animalSex;
+  }
+  if (input.animalSize !== undefined) {
+    setClauses.push(`animal_size = :animalSize`);
+    replacements.animalSize = input.animalSize;
+  }
+  if (input.animalColor !== undefined) {
+    setClauses.push(`animal_color = :animalColor`);
+    replacements.animalColor = input.animalColor;
+  }
   setClauses.push(`updated_at = NOW()`);
 
   const rows = await sequelize.query<CaseRow>(
@@ -341,6 +383,9 @@ export async function updateCase(
        ST_X(location) AS lng,
        location_text AS "locationText",
        condition,
+       animal_sex AS "animalSex",
+       animal_size AS "animalSize",
+       animal_color AS "animalColor",
        created_at AS "createdAt",
        updated_at AS "updatedAt",
        resolved_at AS "resolvedAt"`,

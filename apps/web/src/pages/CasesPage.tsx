@@ -26,6 +26,9 @@ const DEFAULT_FILTERS: FilterState = {
   urgencyMin: 0,
   radius: 10,
   sort: 'recent',
+  animalSex: '',
+  animalSize: '',
+  animalColor: '',
 }
 
 export default function CasesPage() {
@@ -120,6 +123,9 @@ export default function CasesPage() {
         const filtered = data.filter((c) => {
           if (filters.animalType && c.animalType !== filters.animalType) return false
           if (filters.urgencyMin && c.urgencyLevel < filters.urgencyMin) return false
+          if (filters.animalSex && c.animalSex !== filters.animalSex) return false
+          if (filters.animalSize && c.animalSize !== filters.animalSize) return false
+          if (filters.animalColor && c.animalColor !== filters.animalColor) return false
           return true
         })
         setCases(filtered)
@@ -135,6 +141,9 @@ export default function CasesPage() {
           page,
           limit: 20,
           status: 'abierto',
+          animalSex: filters.animalSex || undefined,
+          animalSize: filters.animalSize || undefined,
+          animalColor: filters.animalColor || undefined,
         })
         setCases(res.cases)
         setTotalPages(res.meta.pages)

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import type { AnimalType, SortOrder } from '../../types/case'
+import type { AnimalType, AnimalSex, AnimalSize, AnimalColor, SortOrder } from '../../types/case'
 
 const ANIMAL_OPTIONS: { value: AnimalType | ''; label: string }[] = [
   { value: '', label: 'Todos' },
@@ -23,6 +23,31 @@ const SORT_OPTIONS: { value: SortOrder; label: string }[] = [
   { value: 'distance', label: 'Distancia' },
 ]
 
+const SEX_OPTIONS: { value: AnimalSex | ''; label: string }[] = [
+  { value: '', label: 'Todos' },
+  { value: 'macho', label: 'Macho' },
+  { value: 'hembra', label: 'Hembra' },
+  { value: 'desconocido', label: 'No se' },
+]
+
+const SIZE_OPTIONS: { value: AnimalSize | ''; label: string }[] = [
+  { value: '', label: 'Todos' },
+  { value: 'chico', label: 'Chico' },
+  { value: 'mediano', label: 'Mediano' },
+  { value: 'grande', label: 'Grande' },
+]
+
+const COLOR_OPTIONS: { value: AnimalColor | ''; label: string; hex?: string; border?: boolean }[] = [
+  { value: '', label: 'Todos' },
+  { value: 'negro', label: 'Negro', hex: '#1f2937' },
+  { value: 'blanco', label: 'Blanco', hex: '#f9fafb', border: true },
+  { value: 'marron', label: 'Marron', hex: '#92400e' },
+  { value: 'gris', label: 'Gris', hex: '#9ca3af' },
+  { value: 'dorado', label: 'Dorado', hex: '#d97706' },
+  { value: 'manchado', label: 'Manchado', hex: '#6366f1' },
+  { value: 'tricolor', label: 'Tricolor', hex: '#10b981' },
+]
+
 interface NominatimResult {
   lat: string
   lon: string
@@ -34,6 +59,9 @@ export interface FilterState {
   urgencyMin: number
   radius: number
   sort: SortOrder
+  animalSex: AnimalSex | ''
+  animalSize: AnimalSize | ''
+  animalColor: AnimalColor | ''
 }
 
 interface Props {
@@ -59,9 +87,12 @@ export default function FilterBar({ filters, view, onFiltersChange, onViewChange
   const [search, setSearch] = useState('')
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([])
   const [searching, setSearching] = useState(false)
+  const [showMore, setShowMore] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const set = (patch: Partial<FilterState>) => onFiltersChange({ ...filters, ...patch })
+
+  const hasExtraFilters = filters.animalSex !== '' || filters.animalSize !== '' || filters.animalColor !== ''
 
   const handleSearchChange = (q: string) => {
     setSearch(q)
@@ -225,8 +256,92 @@ export default function FilterBar({ filters, view, onFiltersChange, onViewChange
               </div>
             </>
           )}
+
+          <div className="w-px bg-gray-200 self-stretch" />
+
+          <button
+            type="button"
+            onClick={() => setShowMore((v) => !v)}
+            className={[
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+              hasExtraFilters
+                ? 'bg-primary-600 text-white border-primary-600'
+                : showMore
+                ? 'bg-gray-100 text-gray-700 border-gray-300'
+                : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400',
+            ].join(' ')}
+          >
+            {hasExtraFilters && <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" />}
+            Mas filtros
+            <svg
+              className={['w-3 h-3 transition-transform', showMore || hasExtraFilters ? 'rotate-180' : ''].join(' ')}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
       </div>
+
+      {(showMore || hasExtraFilters) && (
+        <div className="overflow-x-auto pb-1 border-t border-gray-100 pt-3">
+          <div className="flex gap-4 min-w-max">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-400 flex-shrink-0">Sexo:</span>
+              {SEX_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => set({ animalSex: o.value as AnimalSex | '' })}
+                  className={chip(filters.animalSex === o.value)}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="w-px bg-gray-200 self-stretch" />
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-400 flex-shrink-0">Tamaño:</span>
+              {SIZE_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => set({ animalSize: o.value as AnimalSize | '' })}
+                  className={chip(filters.animalSize === o.value)}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="w-px bg-gray-200 self-stretch" />
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-400 flex-shrink-0">Color:</span>
+              {COLOR_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => set({ animalColor: o.value as AnimalColor | '' })}
+                  className={chip(filters.animalColor === o.value)}
+                >
+                  {o.hex ? (
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        className={['w-3 h-3 rounded-full inline-block flex-shrink-0', o.border ? 'border border-gray-400' : ''].join(' ')}
+                        style={{ background: o.hex }}
+                      />
+                      {o.label}
+                    </span>
+                  ) : o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

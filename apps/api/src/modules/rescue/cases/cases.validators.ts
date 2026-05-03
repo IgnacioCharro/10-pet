@@ -5,6 +5,10 @@ const locationSchema = z.object({
   lng: z.number().min(-180).max(180),
 });
 
+const animalSexSchema = z.enum(['macho', 'hembra', 'desconocido']);
+const animalSizeSchema = z.enum(['chico', 'mediano', 'grande']);
+const animalColorSchema = z.enum(['negro', 'blanco', 'marron', 'gris', 'dorado', 'manchado', 'tricolor']);
+
 export const createCaseSchema = z.object({
   listingType: z.enum(['found', 'lost']).default('found'),
   animalType: z.enum(['perro', 'gato', 'otro']),
@@ -15,6 +19,9 @@ export const createCaseSchema = z.object({
   urgencyLevel: z.number().int().min(1).max(5).default(1),
   phoneContact: z.string().trim().max(20).optional(),
   imageIds: z.array(z.string().max(500)).max(10).optional(),
+  animalSex: animalSexSchema.optional(),
+  animalSize: animalSizeSchema.optional(),
+  animalColor: animalColorSchema.optional(),
 });
 
 export const listCasesSchema = z.object({
@@ -30,6 +37,9 @@ export const listCasesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
   sort: z.enum(['recent', 'urgency', 'distance']).default('recent'),
+  animalSex: animalSexSchema.optional(),
+  animalSize: animalSizeSchema.optional(),
+  animalColor: animalColorSchema.optional(),
 });
 
 export const nearbyCasesSchema = z.object({
@@ -50,6 +60,9 @@ export const updateCaseSchema = z
     condition: z.string().trim().max(100).optional(),
     phoneContact: z.string().trim().max(20).optional(),
     locationText: z.string().trim().max(255).optional(),
+    animalSex: animalSexSchema.optional(),
+    animalSize: animalSizeSchema.optional(),
+    animalColor: animalColorSchema.optional(),
   })
   .refine((d) => Object.keys(d).length > 0, {
     message: 'Al menos un campo es requerido',
