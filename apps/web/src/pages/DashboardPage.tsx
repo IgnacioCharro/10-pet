@@ -186,9 +186,11 @@ export default function DashboardPage() {
               </Card>
             ) : (
               <div className="flex flex-col gap-2">
-                {sent.map((c) => (
-                  <SentContactCard key={c.id} item={c} />
-                ))}
+                {sent.map((c) => {
+                  const lc = user?.id ? localStorage.getItem(`10pet:contacts:lastCheck:${user.id}`) : null
+                  const isNew = lc ? new Date(c.updatedAt) > new Date(lc) : false
+                  return <SentContactCard key={c.id} item={c} isNew={isNew} />
+                })}
               </div>
             )}
           </>
@@ -209,7 +211,7 @@ export default function DashboardPage() {
               </Card>
             ) : (
               <div className="flex flex-col gap-2">
-                {received.map((c) => (
+                {[...received].sort((a, b) => (a.status === 'pending' ? -1 : b.status === 'pending' ? 1 : 0)).map((c) => (
                   <ReceivedContactCard
                     key={c.id}
                     item={c}
@@ -286,13 +288,20 @@ function caseSummary(item: ContactItem): string {
   return location ? `${animal} · ${location}` : animal
 }
 
-function SentContactCard({ item }: { item: ContactItem }) {
+function SentContactCard({ item, isNew }: { item: ContactItem; isNew: boolean }) {
   const statusClass = CONTACT_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'
   return (
-    <Card className="p-4">
+    <Card className={['p-4', isNew ? 'border-l-4 border-primary-500' : ''].join(' ')}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium">Solicitud enviada</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium">Solicitud enviada</p>
+            {isNew && (
+              <span className="text-[10px] bg-primary-100 text-primary-700 font-semibold px-1.5 py-0.5 rounded-full">
+                Actualizado
+              </span>
+            )}
+          </div>
           <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
           {item.message && (
             <p className="text-xs text-gray-400 mt-0.5 italic truncate">"{item.message}"</p>
@@ -322,12 +331,19 @@ function ReceivedContactCard({
   const isPending = item.status === 'pending'
 
   return (
-    <Card className="p-4">
+    <Card className={['p-4', isPending ? 'border-l-4 border-amber-400' : ''].join(' ')}>
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium">
-            {item.initiatorName ?? 'Alguien'} quiere ayudar
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium">
+              {item.initiatorName ?? 'Alguien'} quiere ayudar
+            </p>
+            {isPending && (
+              <span className="text-[10px] bg-amber-100 text-amber-700 font-semibold px-1.5 py-0.5 rounded-full">
+                Nuevo
+              </span>
+            )}
+          </div>
           <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
           {item.message && (
             <p className="text-xs text-gray-600 mt-1 italic">"{item.message}"</p>

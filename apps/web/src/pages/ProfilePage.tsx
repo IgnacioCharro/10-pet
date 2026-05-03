@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { getMe, patchMe, getMyCases } from '../services/users.service'
 import { toast } from '../stores/toastStore'
@@ -247,23 +248,25 @@ function StatCard({ label, value }: { label: string; value: number }) {
 function CaseRow({ item }: { item: CaseItem }) {
   const statusClass = STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'
   return (
-    <Card>
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium capitalize">{item.animalType}</p>
-          <p className="text-xs text-gray-500 truncate">
-            {item.locationText && !item.locationText.includes('undefined')
-              ? item.locationText
-              : item.lat != null && item.lng != null
-              ? `${item.lat.toFixed(3)}, ${item.lng.toFixed(3)}`
-              : <span className="italic">Sin direccion</span>}
-          </p>
-          <p className="text-xs text-gray-400 mt-0.5">{new Date(item.createdAt).toLocaleDateString('es-AR')}</p>
+    <Link to={`/cases/${item.id}`} className="block">
+      <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium capitalize">{item.animalType}</p>
+            <p className="text-xs text-gray-500 truncate">
+              {item.locationText && !item.locationText.includes('undefined')
+                ? item.locationText
+                : item.lat != null && item.lng != null
+                ? `${item.lat.toFixed(3)}, ${item.lng.toFixed(3)}`
+                : <span className="italic">Sin direccion</span>}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">{new Date(item.createdAt).toLocaleDateString('es-AR')}</p>
+          </div>
+          <span className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(' ')}>
+            {STATUS_LABELS[item.status] ?? item.status}
+          </span>
         </div>
-        <span className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(' ')}>
-          {STATUS_LABELS[item.status] ?? item.status}
-        </span>
-      </div>
-    </Card>
+      </Card>
+    </Link>
   )
 }
