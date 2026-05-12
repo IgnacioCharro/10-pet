@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../../../middleware/require-auth';
+import { requireVerifiedEmail } from '../../../middleware/require-verified-email';
 import {
   postCase,
   getCases,
@@ -18,7 +19,7 @@ casesRouter.get('/nearby', getNearby);
 casesRouter.get('/feed', getFeed);
 casesRouter.get('/:id', getCase);
 
-// Authenticated routes
-casesRouter.post('/', requireAuth, postCase);
-casesRouter.patch('/:id', requireAuth, patchCase);
-casesRouter.post('/:id/updates', requireAuth, postCaseUpdate);
+// Authenticated + email verified routes
+casesRouter.post('/', requireAuth, requireVerifiedEmail, postCase);
+casesRouter.patch('/:id', requireAuth, requireVerifiedEmail, patchCase);
+casesRouter.post('/:id/updates', requireAuth, requireVerifiedEmail, postCaseUpdate);

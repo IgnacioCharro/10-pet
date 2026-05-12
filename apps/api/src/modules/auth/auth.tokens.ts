@@ -5,6 +5,7 @@ import { env } from '../../config/env';
 export interface AccessTokenPayload {
   sub: string;
   email: string;
+  emailVerified: boolean;
 }
 
 export const signAccessToken = (payload: AccessTokenPayload): string => {
@@ -20,7 +21,11 @@ export const verifyAccessToken = (token: string): AccessTokenPayload => {
   if (typeof decoded === 'string' || !decoded.sub) {
     throw new Error('Token payload invalido');
   }
-  return { sub: String(decoded.sub), email: String(decoded['email'] ?? '') };
+  return {
+    sub: String(decoded.sub),
+    email: String(decoded['email'] ?? ''),
+    emailVerified: decoded['emailVerified'] === true,
+  };
 };
 
 export const generateRefreshToken = (): string => {

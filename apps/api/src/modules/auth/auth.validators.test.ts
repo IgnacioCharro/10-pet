@@ -7,6 +7,7 @@ describe('auth.validators', () => {
       const r = registerSchema.parse({
         email: '  Foo@Bar.COM  ',
         password: 'secret12',
+        name: 'Test User',
       });
       expect(r.email).toBe('foo@bar.com');
       expect(r.password).toBe('secret12');

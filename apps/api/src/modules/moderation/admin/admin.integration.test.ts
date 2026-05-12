@@ -12,6 +12,7 @@ vi.mock('./admin.service', () => ({
   listAdminUsers: vi.fn(),
   banUser: vi.fn(),
   patchAdminCase: vi.fn(),
+  listAdminCases: vi.fn(),
 }));
 
 vi.mock('../../../db', () => ({
@@ -36,8 +37,8 @@ import { signAccessToken } from '../../auth/auth.tokens';
 
 const userId = 'user-uuid-1';
 const adminId = 'admin-uuid-1';
-const userHeader = `Bearer ${signAccessToken({ sub: userId, email: 'user@test.com' })}`;
-const adminHeader = `Bearer ${signAccessToken({ sub: adminId, email: 'admin@test.com' })}`;
+const userHeader = `Bearer ${signAccessToken({ sub: userId, email: 'user@test.com', emailVerified: true })}`;
+const adminHeader = `Bearer ${signAccessToken({ sub: adminId, email: 'admin@test.com', emailVerified: true })}`;
 
 const fakeStats: svc.AdminStats = {
   totalUsers: 10,
@@ -175,5 +176,62 @@ describe('PATCH /api/v1/admin/cases/:id', () => {
       .set('Authorization', userHeader)
       .send({ action: 'delete' });
     expect(res.status).toBe(403);
+  });
+});
+
+const fakeAdminCase = {
+  id: 'case-uuid-1',
+  animalType: 'perro',
+  locationText: 'Centro',
+  status: 'archivado',
+  urgencyLevel: 2,
+  createdAt: new Date('2026-04-20'),
+  updatedAt: new Date('2026-04-22'),
+};
+
+describe('GET /api/v1/admin/cases', () => {
+  it('lista casos archivados para admin (status por defecto)', async () => {
+    vi.mocked(svc.listAdminCases).mockResolvedValueOnce({ cases: [fakeAdminCase], total: 1 });
+
+    const res = await request(app).get('/api/v1/admin/cases').set('Authorization', adminHeader);
+
+    expect(res.status).toBe(200);
+    expect(res.body.cases).toHaveLength(1);
+    expect(res.body.total).toBe(1);
+    expect(svc.listAdminCases).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'archivado' }),
+    );
+  });
+
+  it('acepta filtro status=eliminado', async () => {
+    vi.mocked(svc.listAdminCases).mockResolvedValueOnce({ cases: [], total: 0 });
+
+    const res = await request(app)
+      .get('/api/v1/admin/cases?status=eliminado')
+      .set('Authorization', adminHeader);
+
+    expect(res.status).toBe(200);
+    expect(svc.listAdminCases).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'eliminado' }),
+    );
+  });
+
+  it('devuelve 400 con status no permitido (abierto es publico, no admin)', async () => {
+    const res = await request(app)
+      .get('/api/v1/admin/cases?status=abierto')
+      .set('Authorization', adminHeader);
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rechaza a usuario no admin (403)', async () => {
+    const res = await request(app).get('/api/v1/admin/cases').set('Authorization', userHeader);
+    expect(res.status).toBe(403);
+  });
+
+  it('rechaza sin token (401)', async () => {
+    const res = await request(app).get('/api/v1/admin/cases');
+    expect(res.status).toBe(401);
   });
 });

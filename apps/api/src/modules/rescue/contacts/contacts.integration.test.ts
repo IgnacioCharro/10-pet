@@ -12,6 +12,8 @@ vi.mock('./contacts.service', () => ({
   listContacts: vi.fn(),
   getContactById: vi.fn(),
   updateContact: vi.fn(),
+  getPendingCount: vi.fn(),
+  getUnreadUpdatesCount: vi.fn(),
 }));
 
 vi.mock('../../../db', () => ({
@@ -35,7 +37,7 @@ import * as svc from './contacts.service';
 import { signAccessToken } from '../../auth/auth.tokens';
 
 const userId = 'user-uuid-1';
-const authHeader = `Bearer ${signAccessToken({ sub: userId, email: 'user@test.com' })}`;
+const authHeader = `Bearer ${signAccessToken({ sub: userId, email: 'user@test.com', emailVerified: true })}`;
 
 const fakeContact = {
   id: '22222222-0000-0000-0000-000000000001',
@@ -132,6 +134,87 @@ describe('GET /api/v1/contacts', () => {
 
   it('devuelve 401 sin token', async () => {
     const res = await request(app).get('/api/v1/contacts');
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('GET /api/v1/contacts/:id', () => {
+  it('devuelve el detalle del contacto', async () => {
+    vi.mocked(svc.getContactById).mockResolvedValueOnce(fakeContact as never);
+
+    const res = await request(app)
+      .get(`/api/v1/contacts/${fakeContact.id}`)
+      .set('Authorization', authHeader);
+
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(fakeContact.id);
+    expect(res.body.status).toBe('pending');
+  });
+
+  it('devuelve 404 si el contacto no existe', async () => {
+    vi.mocked(svc.getContactById).mockResolvedValueOnce(null);
+
+    const res = await request(app)
+      .get('/api/v1/contacts/non-existent-uuid')
+      .set('Authorization', authHeader);
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('NOT_FOUND');
+  });
+
+  it('devuelve 401 sin token', async () => {
+    const res = await request(app).get(`/api/v1/contacts/${fakeContact.id}`);
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('GET /api/v1/contacts/pending-count', () => {
+  it('devuelve el conteo de contactos pendientes de responder', async () => {
+    vi.mocked(svc.getPendingCount).mockResolvedValueOnce(3 as never);
+
+    const res = await request(app)
+      .get('/api/v1/contacts/pending-count')
+      .set('Authorization', authHeader);
+
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(3);
+  });
+
+  it('devuelve 401 sin token', async () => {
+    const res = await request(app).get('/api/v1/contacts/pending-count');
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('GET /api/v1/contacts/unread-count', () => {
+  it('devuelve el conteo de actualizaciones no leidas', async () => {
+    vi.mocked(svc.getUnreadUpdatesCount).mockResolvedValueOnce(5 as never);
+
+    const res = await request(app)
+      .get('/api/v1/contacts/unread-count')
+      .set('Authorization', authHeader);
+
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(5);
+  });
+
+  it('acepta parametro since como fecha ISO valida', async () => {
+    vi.mocked(svc.getUnreadUpdatesCount).mockResolvedValueOnce(2 as never);
+
+    const res = await request(app)
+      .get('/api/v1/contacts/unread-count?since=2026-04-20T00:00:00.000Z')
+      .set('Authorization', authHeader);
+
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(2);
+    expect(svc.getUnreadUpdatesCount).toHaveBeenCalledWith(
+      userId,
+      expect.any(Date),
+    );
+  });
+
+  it('devuelve 401 sin token', async () => {
+    const res = await request(app).get('/api/v1/contacts/unread-count');
     expect(res.status).toBe(401);
   });
 });
