@@ -9,6 +9,8 @@ import {
   logout,
   verifyEmailHandler,
   googleCallbackHandler,
+  forgotPasswordHandler,
+  resetPasswordHandler,
 } from './auth.controller';
 
 export const authRouter: Router = Router();
@@ -18,6 +20,8 @@ authRouter.post('/login', login);
 authRouter.post('/refresh', refresh);
 authRouter.post('/logout', logout);
 authRouter.get('/verify-email', verifyEmailHandler);
+authRouter.post('/forgot-password', forgotPasswordHandler);
+authRouter.post('/reset-password', resetPasswordHandler);
 
 if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
   passport.use(

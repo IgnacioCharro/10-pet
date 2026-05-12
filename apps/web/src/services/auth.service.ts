@@ -31,3 +31,11 @@ export const loginRequest = async (input: LoginInput): Promise<AuthResponse> => 
 export const logoutRequest = async (refreshToken: string): Promise<void> => {
   await api.post('/auth/logout', { refreshToken })
 }
+
+export const forgotPasswordRequest = async (email: string): Promise<void> => {
+  await api.post('/auth/forgot-password', { email })
+}
+
+export const resetPasswordRequest = async (token: string, password: string): Promise<void> => {
+  await api.post('/auth/reset-password', { token, password })
+}

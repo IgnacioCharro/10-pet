@@ -5,6 +5,8 @@ import {
   loginSchema,
   refreshSchema,
   logoutSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from './auth.validators';
 import {
   registerUser,
@@ -13,6 +15,8 @@ import {
   revokeRefreshToken,
   verifyEmail,
   findOrCreateGoogleUser,
+  forgotPassword,
+  resetPassword,
 } from './auth.service';
 import { AuthError, googleOAuthError } from './auth.errors';
 import { env } from '../../config/env';
@@ -112,6 +116,35 @@ export const verifyEmailHandler = async (
       return;
     }
     next(err);
+  }
+};
+
+export const forgotPasswordHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { email } = forgotPasswordSchema.parse(req.body);
+    await forgotPassword(email);
+    // Siempre 200 — no revelar si el email existe
+    res.status(200).json({ message: 'Si el email existe, recibirás un link para restablecer tu contraseña.' });
+  } catch (err) {
+    handleError(err, res, next);
+  }
+};
+
+export const resetPasswordHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { token, password } = resetPasswordSchema.parse(req.body);
+    await resetPassword(token, password);
+    res.status(200).json({ message: 'Contraseña actualizada correctamente.' });
+  } catch (err) {
+    handleError(err, res, next);
   }
 };
 

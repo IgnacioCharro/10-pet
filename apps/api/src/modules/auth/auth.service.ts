@@ -13,12 +13,17 @@ import {
   invalidCredentials,
   invalidRefreshToken,
   invalidVerificationToken,
+  invalidResetToken,
 } from './auth.errors';
-import { sendVerificationEmail } from '../../services/email.service';
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} from '../../services/email.service';
 import type { LoginInput, RegisterInput } from './auth.validators';
 
 const BCRYPT_COST = 12;
 const VERIFICATION_TOKEN_EXPIRES_HOURS = 24;
+const PASSWORD_RESET_EXPIRES_HOURS = 1;
 
 export interface AuthTokens {
   accessToken: string;
@@ -50,6 +55,12 @@ const generateVerificationToken = (): string =>
 const verificationExpiresAt = (): Date => {
   const d = new Date();
   d.setHours(d.getHours() + VERIFICATION_TOKEN_EXPIRES_HOURS);
+  return d;
+};
+
+const resetExpiresAt = (): Date => {
+  const d = new Date();
+  d.setHours(d.getHours() + PASSWORD_RESET_EXPIRES_HOURS);
   return d;
 };
 
@@ -139,6 +150,46 @@ export const revokeRefreshToken = async (presentedToken: string): Promise<void> 
   await RefreshToken.update(
     { revoked: true },
     { where: { tokenHash: hash, revoked: false } },
+  );
+};
+
+export const forgotPassword = async (email: string): Promise<void> => {
+  const user = await User.findOne({ where: { email } });
+  // No revelar si el email existe o no — responder siempre OK
+  if (!user || !user.passwordHash) return;
+
+  const token = generateVerificationToken();
+  user.passwordResetToken = token;
+  user.passwordResetExpiresAt = resetExpiresAt();
+  await user.save();
+
+  sendPasswordResetEmail(email, token).catch((err) =>
+    console.error('[email] error sending password reset email:', err),
+  );
+};
+
+export const resetPassword = async (
+  token: string,
+  newPassword: string,
+): Promise<void> => {
+  const user = await User.findOne({
+    where: {
+      passwordResetToken: token,
+      passwordResetExpiresAt: { [Op.gt]: new Date() },
+    },
+  });
+  if (!user) {
+    throw invalidResetToken();
+  }
+  user.passwordHash = await bcrypt.hash(newPassword, BCRYPT_COST);
+  user.passwordResetToken = null;
+  user.passwordResetExpiresAt = null;
+  await user.save();
+
+  // Revocar todos los refresh tokens del usuario para forzar re-login
+  await RefreshToken.update(
+    { revoked: true },
+    { where: { userId: user.id, revoked: false } },
   );
 };
 

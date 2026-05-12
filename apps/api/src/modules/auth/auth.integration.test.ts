@@ -14,6 +14,8 @@ vi.mock('./auth.service', () => ({
   revokeRefreshToken: vi.fn(),
   verifyEmail: vi.fn(),
   findOrCreateGoogleUser: vi.fn(),
+  forgotPassword: vi.fn(),
+  resetPassword: vi.fn(),
 }));
 
 vi.mock('../../db', () => ({
@@ -130,5 +132,53 @@ describe('GET /api/v1/auth/verify-email', () => {
   it('devuelve 400 cuando falta el token', async () => {
     const res = await request(app).get('/api/v1/auth/verify-email');
     expect(res.status).toBe(400);
+  });
+});
+
+describe('POST /api/v1/auth/forgot-password', () => {
+  it('devuelve 200 siempre (no revela si el email existe)', async () => {
+    vi.mocked(svc.forgotPassword).mockResolvedValueOnce(undefined);
+    const res = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({ email: 'user@example.com' });
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('message');
+  });
+
+  it('devuelve 400 con email invalido', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({ email: 'not-an-email' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+});
+
+describe('POST /api/v1/auth/reset-password', () => {
+  it('devuelve 200 cuando el token y password son validos', async () => {
+    vi.mocked(svc.resetPassword).mockResolvedValueOnce(undefined);
+    const res = await request(app)
+      .post('/api/v1/auth/reset-password')
+      .send({ token: 'valid-reset-token', password: 'newPassword123' });
+    expect(res.status).toBe(200);
+  });
+
+  it('devuelve 400 cuando el token es invalido o expirado', async () => {
+    vi.mocked(svc.resetPassword).mockRejectedValueOnce(
+      new AuthError('INVALID_RESET_TOKEN', 'Token de recuperacion invalido o expirado', 400),
+    );
+    const res = await request(app)
+      .post('/api/v1/auth/reset-password')
+      .send({ token: 'expired-token', password: 'newPassword123' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_RESET_TOKEN');
+  });
+
+  it('devuelve 400 cuando el password es muy corto', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/reset-password')
+      .send({ token: 'sometoken', password: '123' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 });

@@ -62,18 +62,25 @@ export default function LoginPage() {
             }}
           />
 
-          <Input
-            label="Contraseña"
-            type="password"
-            required
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value)
-              if (error) setError(null)
-            }}
-            error={error}
-          />
+          <div className="flex flex-col gap-1">
+            <Input
+              label="Contraseña"
+              type="password"
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                if (error) setError(null)
+              }}
+              error={error}
+            />
+            <div className="text-right">
+              <Link to="/forgot-password" className="text-xs text-primary-600 hover:underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+          </div>
 
           <Button type="submit" loading={loading} fullWidth>
             {loading ? 'Ingresando…' : 'Ingresar'}
