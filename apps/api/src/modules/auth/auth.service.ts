@@ -32,8 +32,9 @@ export interface AuthResult extends AuthTokens {
 const issueTokens = async (user: {
   id: string;
   email: string;
+  emailVerified: boolean;
 }): Promise<AuthTokens> => {
-  const accessToken = signAccessToken({ sub: user.id, email: user.email });
+  const accessToken = signAccessToken({ sub: user.id, email: user.email, emailVerified: user.emailVerified });
   const refreshToken = generateRefreshToken();
   await RefreshToken.create({
     userId: user.id,
@@ -71,7 +72,7 @@ export const registerUser = async (input: RegisterInput): Promise<AuthResult> =>
     console.error('[email] error sending verification email:', err),
   );
 
-  const tokens = await issueTokens({ id: user.id, email: user.email });
+  const tokens = await issueTokens({ id: user.id, email: user.email, emailVerified: user.emailVerified });
   return {
     ...tokens,
     user: { id: user.id, email: user.email, name: user.name, emailVerified: user.emailVerified },
@@ -103,7 +104,7 @@ export const loginUser = async (input: LoginInput): Promise<AuthResult> => {
   if (!ok) {
     throw invalidCredentials();
   }
-  const tokens = await issueTokens({ id: user.id, email: user.email });
+  const tokens = await issueTokens({ id: user.id, email: user.email, emailVerified: user.emailVerified });
   return {
     ...tokens,
     user: { id: user.id, email: user.email, name: user.name, emailVerified: user.emailVerified },
@@ -130,7 +131,7 @@ export const rotateRefreshToken = async (
   }
   record.revoked = true;
   await record.save();
-  return issueTokens({ id: user.id, email: user.email });
+  return issueTokens({ id: user.id, email: user.email, emailVerified: user.emailVerified });
 };
 
 export const revokeRefreshToken = async (presentedToken: string): Promise<void> => {
@@ -167,7 +168,7 @@ export const findOrCreateGoogleUser = async (profile: {
     }
   }
 
-  const tokens = await issueTokens({ id: user.id, email: user.email });
+  const tokens = await issueTokens({ id: user.id, email: user.email, emailVerified: user.emailVerified });
   return {
     ...tokens,
     user: { id: user.id, email: user.email, name: user.name, emailVerified: user.emailVerified },

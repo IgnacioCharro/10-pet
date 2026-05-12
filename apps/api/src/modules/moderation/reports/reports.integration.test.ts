@@ -35,8 +35,8 @@ import { signAccessToken } from '../../auth/auth.tokens';
 
 const userId = 'user-uuid-1';
 const adminId = 'admin-uuid-1';
-const authHeader = `Bearer ${signAccessToken({ sub: userId, email: 'user@test.com' })}`;
-const adminHeader = `Bearer ${signAccessToken({ sub: adminId, email: 'admin@test.com' })}`;
+const authHeader = `Bearer ${signAccessToken({ sub: userId, email: 'user@test.com', emailVerified: true })}`;
+const adminHeader = `Bearer ${signAccessToken({ sub: adminId, email: 'admin@test.com', emailVerified: true })}`;
 
 const fakeReport = {
   id: '44444444-0000-0000-0000-000000000001',

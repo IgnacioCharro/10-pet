@@ -36,7 +36,7 @@ describe('POST /api/v1/auth/register', () => {
     vi.mocked(svc.registerUser).mockResolvedValueOnce(fakeTokens);
     const res = await request(app)
       .post('/api/v1/auth/register')
-      .send({ email: 'a@b.com', password: 'password1' });
+      .send({ email: 'a@b.com', password: 'password1', name: 'Test User' });
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('accessToken');
     expect(res.body).toHaveProperty('refreshToken');
@@ -56,7 +56,7 @@ describe('POST /api/v1/auth/register', () => {
     );
     const res = await request(app)
       .post('/api/v1/auth/register')
-      .send({ email: 'existing@b.com', password: 'password1' });
+      .send({ email: 'existing@b.com', password: 'password1', name: 'Test User' });
     expect(res.status).toBe(409);
     expect(res.body.error.code).toBe('EMAIL_ALREADY_REGISTERED');
   });

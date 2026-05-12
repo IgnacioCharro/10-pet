@@ -28,7 +28,7 @@ export const requireAuth = (
       throw missingToken();
     }
     const payload = verifyAccessToken(token);
-    req.user = { id: payload.sub, email: payload.email };
+    req.user = { id: payload.sub, email: payload.email, emailVerified: payload.emailVerified };
     next();
   } catch (err) {
     const authErr = err instanceof AuthError ? err : invalidAccessToken();

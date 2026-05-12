@@ -15,18 +15,30 @@ beforeAll(async () => {
 
 describe('auth.tokens', () => {
   describe('signAccessToken / verifyAccessToken', () => {
-    it('firma y verifica un token con sub y email', () => {
+    it('firma y verifica un token con sub, email y emailVerified', () => {
       const token = tokens.signAccessToken({
         sub: 'user-123',
         email: 'foo@bar.com',
+        emailVerified: true,
       });
       const payload = tokens.verifyAccessToken(token);
       expect(payload.sub).toBe('user-123');
       expect(payload.email).toBe('foo@bar.com');
+      expect(payload.emailVerified).toBe(true);
+    });
+
+    it('preserva emailVerified false', () => {
+      const token = tokens.signAccessToken({
+        sub: 'user-456',
+        email: 'bar@baz.com',
+        emailVerified: false,
+      });
+      const payload = tokens.verifyAccessToken(token);
+      expect(payload.emailVerified).toBe(false);
     });
 
     it('rechaza un token modificado', () => {
-      const token = tokens.signAccessToken({ sub: 'u', email: 'e@e.com' });
+      const token = tokens.signAccessToken({ sub: 'u', email: 'e@e.com', emailVerified: false });
       const tampered = token.slice(0, -1) + (token.slice(-1) === 'a' ? 'b' : 'a');
       expect(() => tokens.verifyAccessToken(tampered)).toThrow();
     });

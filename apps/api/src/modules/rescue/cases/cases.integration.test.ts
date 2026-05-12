@@ -11,6 +11,7 @@ vi.mock('./cases.service', () => ({
   insertCaseImages: vi.fn(),
   listCases: vi.fn(),
   getNearbyCases: vi.fn(),
+  getFeedCases: vi.fn(),
   getCaseById: vi.fn(),
   updateCase: vi.fn(),
   addCaseUpdate: vi.fn(),
@@ -29,7 +30,8 @@ import app from '../../../app';
 import * as svc from './cases.service';
 import { signAccessToken } from '../../auth/auth.tokens';
 
-const authHeader = `Bearer ${signAccessToken({ sub: 'user-uuid-1', email: 'user@test.com' })}`;
+const authHeader = `Bearer ${signAccessToken({ sub: 'user-uuid-1', email: 'user@test.com', emailVerified: true })}`;
+const unverifiedHeader = `Bearer ${signAccessToken({ sub: 'user-uuid-2', email: 'unverified@test.com', emailVerified: false })}`;
 
 const fakeCase = {
   id: 'case-uuid-1',
@@ -107,6 +109,22 @@ describe('POST /api/v1/cases', () => {
       .send({ animalType: 'perro', description: 'Texto', location: { lat: 0, lng: 0 } });
 
     expect(res.status).toBe(401);
+  });
+
+  it('devuelve 403 con email no verificado', async () => {
+    const res = await request(app)
+      .post('/api/v1/cases')
+      .set('Authorization', unverifiedHeader)
+      .send({
+        animalType: 'perro',
+        description: 'Perro herido en la calle sin collar',
+        location: { lat: -34.6037, lng: -58.3816 },
+        urgencyLevel: 3,
+        condition: 'herido',
+      });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('EMAIL_NOT_VERIFIED');
   });
 });
 
@@ -235,6 +253,98 @@ describe('POST /api/v1/cases/:id/updates', () => {
       .post('/api/v1/cases/case-uuid-1/updates')
       .set('Authorization', authHeader)
       .send({ updateType: 'invalid_type' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+});
+
+const fakeFeedCase = {
+  id: 'feed-case-1',
+  listingType: 'found',
+  animalType: 'perro',
+  locationText: 'Centro',
+  urgencyLevel: 4,
+  createdAt: new Date('2026-04-25T10:00:00Z'),
+  publisherName: 'Maria',
+  volunteerCount: 2,
+};
+
+describe('GET /api/v1/cases/feed', () => {
+  it('devuelve casos del feed con lat/lng', async () => {
+    vi.mocked(svc.getFeedCases).mockResolvedValueOnce([fakeFeedCase]);
+
+    const res = await request(app).get('/api/v1/cases/feed?lat=-34.6&lng=-58.38');
+
+    expect(res.status).toBe(200);
+    expect(res.body.cases).toHaveLength(1);
+    expect(res.body.cases[0].id).toBe('feed-case-1');
+    expect(res.body.cases[0].publisherName).toBe('Maria');
+  });
+
+  it('devuelve 400 sin lat/lng', async () => {
+    const res = await request(app).get('/api/v1/cases/feed');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('devuelve 400 con lat fuera de rango', async () => {
+    const res = await request(app).get('/api/v1/cases/feed?lat=999&lng=-58.38');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('filtra por listingType cuando se proporciona', async () => {
+    vi.mocked(svc.getFeedCases).mockResolvedValueOnce([]);
+
+    const res = await request(app).get('/api/v1/cases/feed?lat=-34.6&lng=-58.38&listingType=lost');
+
+    expect(res.status).toBe(200);
+    expect(svc.getFeedCases).toHaveBeenCalledWith(
+      expect.objectContaining({ listingType: 'lost' }),
+    );
+  });
+
+  it('devuelve 400 con listingType invalido', async () => {
+    const res = await request(app).get('/api/v1/cases/feed?lat=-34.6&lng=-58.38&listingType=adopcion');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+});
+
+describe('GET /api/v1/cases — filtros de animal', () => {
+  it('pasa filtros de sexo, tamaño y color al servicio', async () => {
+    vi.mocked(svc.listCases).mockResolvedValueOnce({ cases: [fakeCase], total: 1 });
+
+    const res = await request(app).get(
+      '/api/v1/cases?animalSex=macho&animalSize=mediano&animalColor=negro',
+    );
+
+    expect(res.status).toBe(200);
+    expect(svc.listCases).toHaveBeenCalledWith(
+      expect.objectContaining({ animalSex: 'macho', animalSize: 'mediano', animalColor: 'negro' }),
+    );
+  });
+
+  it('devuelve 400 con animalSex invalido', async () => {
+    const res = await request(app).get('/api/v1/cases?animalSex=hermafrodita');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('devuelve 400 con animalSize invalido', async () => {
+    const res = await request(app).get('/api/v1/cases?animalSize=enorme');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('devuelve 400 con animalColor invalido', async () => {
+    const res = await request(app).get('/api/v1/cases?animalColor=rosa');
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
