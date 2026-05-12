@@ -13,6 +13,8 @@ interface UserAttributes {
   isVet: boolean;
   vetLicense: string | null;
   bannedAt: Date | null;
+  passwordResetToken: string | null;
+  passwordResetExpiresAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +32,8 @@ type UserCreationAttributes = Optional<
   | 'isVet'
   | 'vetLicense'
   | 'bannedAt'
+  | 'passwordResetToken'
+  | 'passwordResetExpiresAt'
   | 'createdAt'
   | 'updatedAt'
 >;
@@ -50,6 +54,8 @@ export class User
   declare isVet: boolean;
   declare vetLicense: string | null;
   declare bannedAt: Date | null;
+  declare passwordResetToken: string | null;
+  declare passwordResetExpiresAt: Date | null;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
@@ -107,6 +113,14 @@ export class User
           allowNull: true,
         },
         bannedAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        passwordResetToken: {
+          type: DataTypes.STRING(64),
+          allowNull: true,
+        },
+        passwordResetExpiresAt: {
           type: DataTypes.DATE,
           allowNull: true,
         },

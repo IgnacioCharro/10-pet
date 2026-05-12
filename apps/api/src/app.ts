@@ -17,8 +17,9 @@ import { vetAssistancesRouter } from './modules/rescue/vet-assistances/vet-assis
 
 const app: Application = express();
 
-const globalLimiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false });
-const mutationLimiter = rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false });
+const skipInTest = () => process.env['NODE_ENV'] === 'test';
+const globalLimiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false, skip: skipInTest });
+const mutationLimiter = rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false, skip: skipInTest });
 
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN }));

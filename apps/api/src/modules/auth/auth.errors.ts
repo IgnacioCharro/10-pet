@@ -29,3 +29,6 @@ export const invalidVerificationToken = (): AuthError =>
 
 export const googleOAuthError = (): AuthError =>
   new AuthError('GOOGLE_OAUTH_ERROR', 'Error al autenticar con Google', 502);
+
+export const invalidResetToken = (): AuthError =>
+  new AuthError('INVALID_RESET_TOKEN', 'Token de recuperacion invalido o expirado', 400);
