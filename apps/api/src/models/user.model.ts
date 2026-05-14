@@ -15,6 +15,9 @@ interface UserAttributes {
   bannedAt: Date | null;
   passwordResetToken: string | null;
   passwordResetExpiresAt: Date | null;
+  notificationLat: number | null;
+  notificationLng: number | null;
+  notificationRadiusKm: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +37,9 @@ type UserCreationAttributes = Optional<
   | 'bannedAt'
   | 'passwordResetToken'
   | 'passwordResetExpiresAt'
+  | 'notificationLat'
+  | 'notificationLng'
+  | 'notificationRadiusKm'
   | 'createdAt'
   | 'updatedAt'
 >;
@@ -56,6 +62,9 @@ export class User
   declare bannedAt: Date | null;
   declare passwordResetToken: string | null;
   declare passwordResetExpiresAt: Date | null;
+  declare notificationLat: number | null;
+  declare notificationLng: number | null;
+  declare notificationRadiusKm: number | null;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
@@ -122,6 +131,18 @@ export class User
         },
         passwordResetExpiresAt: {
           type: DataTypes.DATE,
+          allowNull: true,
+        },
+        notificationLat: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+        },
+        notificationLng: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+        },
+        notificationRadiusKm: {
+          type: DataTypes.INTEGER,
           allowNull: true,
         },
         createdAt: {

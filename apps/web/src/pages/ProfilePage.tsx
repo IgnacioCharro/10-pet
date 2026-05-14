@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import { getMe, patchMe, getMyCases } from '../services/users.service'
+import { getMe, patchMe, getMyCases, patchNotificationLocation } from '../services/users.service'
 import { toast } from '../stores/toastStore'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
@@ -213,6 +213,8 @@ export default function ProfilePage() {
           )}
         </Card>
 
+        <NotificationZoneCard />
+
         <div>
           <h2 className="text-base font-semibold mb-3">Mis casos</h2>
           {loadingCases ? (
@@ -233,6 +235,139 @@ export default function ProfilePage() {
         </div>
       </div>
     </main>
+  )
+}
+
+const RADIUS_OPTIONS = [5, 10, 20, 50]
+
+function NotificationZoneCard() {
+  const { user, setUser } = useAuthStore()
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [locating, setLocating] = useState(false)
+  const [lat, setLat] = useState<number | null>(user?.notificationLat ?? null)
+  const [lng, setLng] = useState<number | null>(user?.notificationLng ?? null)
+  const [radiusKm, setRadiusKm] = useState<number>(user?.notificationRadiusKm ?? 10)
+
+  const startEdit = () => {
+    setLat(user?.notificationLat ?? null)
+    setLng(user?.notificationLng ?? null)
+    setRadiusKm(user?.notificationRadiusKm ?? 10)
+    setEditing(true)
+  }
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Tu navegador no soporta geolocalización.')
+      return
+    }
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(pos.coords.latitude)
+        setLng(pos.coords.longitude)
+        setLocating(false)
+      },
+      () => {
+        toast.error('No se pudo obtener tu ubicación. Revisá los permisos del navegador.')
+        setLocating(false)
+      },
+      { timeout: 10000 },
+    )
+  }
+
+  const save = async () => {
+    if (lat === null || lng === null) {
+      toast.error('Primero obtené tu ubicación.')
+      return
+    }
+    setSaving(true)
+    try {
+      await patchNotificationLocation({ lat, lng, radiusKm })
+      const updated = await getMe()
+      setUser(updated)
+      setEditing(false)
+      toast.success('Zona de notificaciones guardada.')
+    } catch {
+      toast.error('No se pudo guardar. Intentá de nuevo.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const configured = user?.notificationLat != null
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-base font-semibold">Zona de notificaciones</h2>
+        {!editing && (
+          <button
+            onClick={startEdit}
+            className="text-xs text-gray-400 hover:text-gray-600 underline"
+          >
+            {configured ? 'Editar' : 'Configurar'}
+          </button>
+        )}
+      </div>
+
+      {editing ? (
+        <div className="flex flex-col gap-3">
+          <p className="text-xs text-gray-500">
+            Solo recibirás notificaciones de casos dentro del radio elegido.
+          </p>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={useCurrentLocation}
+            loading={locating}
+          >
+            Usar mi ubicación actual
+          </Button>
+          {lat !== null && (
+            <p className="text-xs text-gray-400">
+              Ubicación capturada: {lat.toFixed(4)}, {lng?.toFixed(4)}
+            </p>
+          )}
+          <div>
+            <p className="text-xs font-medium text-gray-600 mb-1.5">Radio</p>
+            <div className="flex gap-2">
+              {RADIUS_OPTIONS.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRadiusKm(r)}
+                  className={[
+                    'px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors',
+                    radiusKm === r
+                      ? 'bg-primary-600 text-white border-primary-600'
+                      : 'border-gray-200 text-gray-600 hover:border-primary-400',
+                  ].join(' ')}
+                >
+                  {r} km
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={save} loading={saving} disabled={lat === null}>
+              Guardar
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setEditing(false)} disabled={saving}>
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      ) : configured ? (
+        <p className="text-sm text-gray-600">
+          Activa — casos dentro de{' '}
+          <span className="font-medium">{user?.notificationRadiusKm} km</span> de tu ubicación.
+        </p>
+      ) : (
+        <p className="text-sm text-gray-400">
+          Sin configurar — recibís notificaciones de todos los casos nuevos.
+        </p>
+      )}
+    </Card>
   )
 }
 

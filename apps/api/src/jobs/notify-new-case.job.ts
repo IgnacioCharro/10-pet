@@ -20,18 +20,30 @@ interface TargetUser {
   id: string;
   email: string;
   push_token: string | null;
+  notification_lat: number | null;
+  notification_lng: number | null;
+  notification_radius_km: number | null;
 }
 
 async function processNotifyNewCase(job: Bull.Job<NotifyNewCasePayload>): Promise<void> {
-  const { caseId, animalType, description, urgencyLevel, locationText, creatorId } = job.data;
+  const { caseId, animalType, description, urgencyLevel, locationText, lat, lng, creatorId } = job.data;
 
   // For MVP: notify all verified users except the case creator
   // TODO v1.1: filter by user location preferences within a radius
   const users = await sequelize.query<TargetUser>(
-    `SELECT id, email, push_token FROM users
+    `SELECT id, email, push_token, notification_lat, notification_lng, notification_radius_km
+     FROM users
      WHERE email_verified = true
-       AND id != :creatorId`,
-    { replacements: { creatorId }, type: QueryTypes.SELECT },
+       AND id != :creatorId
+       AND (
+         notification_lat IS NULL
+         OR ST_DWithin(
+              ST_MakePoint(notification_lng, notification_lat)::geography,
+              ST_MakePoint(:lng, :lat)::geography,
+              notification_radius_km * 1000
+            )
+       )`,
+    { replacements: { creatorId, lat, lng }, type: QueryTypes.SELECT },
   );
 
   if (users.length === 0) return;

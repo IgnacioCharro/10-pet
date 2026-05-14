@@ -20,3 +20,11 @@ export const getMyCases = async (): Promise<CaseItem[]> => {
   const res = await api.get<{ cases: CaseItem[] }>('/users/me/cases')
   return res.data.cases
 }
+
+export const patchNotificationLocation = async (input: {
+  lat: number
+  lng: number
+  radiusKm: number
+}): Promise<void> => {
+  await api.patch('/users/me/notification-location', input)
+}
