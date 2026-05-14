@@ -34,7 +34,16 @@ const DEFAULT_FILTERS: FilterState = {
 export default function CasesPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const currentUserId = useAuthStore((s) => s.user?.id)
+  const currentUser = useAuthStore((s) => s.user)
+  const currentUserId = currentUser?.id
+
+  const notificationZone =
+    currentUser?.notificationLat != null && currentUser.notificationLng != null && currentUser.notificationRadiusKm != null
+      ? {
+          center: [currentUser.notificationLat, currentUser.notificationLng] as [number, number],
+          radiusMeters: currentUser.notificationRadiusKm * 1000,
+        }
+      : null
 
   const [initialPublished] = useState<PublishedState | null>(() => {
     const s = location.state as PublishedState | null
@@ -208,6 +217,7 @@ export default function CasesPage() {
               onCaseClick={handleCaseClick}
               flyToTrigger={flyTo}
               currentUserId={currentUserId}
+              notificationZone={notificationZone}
             />
           </Suspense>
         )}

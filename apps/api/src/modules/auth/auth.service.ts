@@ -18,6 +18,7 @@ import {
 import {
   sendVerificationEmail,
   sendPasswordResetEmail,
+  sendWelcomeEmail,
 } from '../../services/email.service';
 import type { LoginInput, RegisterInput } from './auth.validators';
 
@@ -81,6 +82,9 @@ export const registerUser = async (input: RegisterInput): Promise<AuthResult> =>
 
   sendVerificationEmail(user.email, verificationToken).catch((err) =>
     console.error('[email] error sending verification email:', err),
+  );
+  sendWelcomeEmail(user.email, user.name).catch((err) =>
+    console.error('[email] error sending welcome email:', err),
   );
 
   const tokens = await issueTokens({ id: user.id, email: user.email, emailVerified: user.emailVerified });

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import { getMe, patchMe, getMyCases, patchNotificationLocation } from '../services/users.service'
+import { getMe, patchMe, getMyCases, patchNotificationLocation, deleteNotificationLocation } from '../services/users.service'
 import { toast } from '../stores/toastStore'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
@@ -244,6 +244,7 @@ function NotificationZoneCard() {
   const { user, setUser } = useAuthStore()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [locating, setLocating] = useState(false)
   const [lat, setLat] = useState<number | null>(user?.notificationLat ?? null)
   const [lng, setLng] = useState<number | null>(user?.notificationLng ?? null)
@@ -295,6 +296,20 @@ function NotificationZoneCard() {
     }
   }
 
+  const clearZone = async () => {
+    setDeleting(true)
+    try {
+      await deleteNotificationLocation()
+      const updated = await getMe()
+      setUser(updated)
+      toast.success('Zona eliminada. Recibirás todos los casos nuevamente.')
+    } catch {
+      toast.error('No se pudo eliminar la zona.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const configured = user?.notificationLat != null
 
   return (
@@ -302,12 +317,23 @@ function NotificationZoneCard() {
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-base font-semibold">Zona de notificaciones</h2>
         {!editing && (
-          <button
-            onClick={startEdit}
-            className="text-xs text-gray-400 hover:text-gray-600 underline"
-          >
-            {configured ? 'Editar' : 'Configurar'}
-          </button>
+          <div className="flex gap-3">
+            {configured && (
+              <button
+                onClick={clearZone}
+                disabled={deleting}
+                className="text-xs text-red-400 hover:text-red-600 underline disabled:opacity-50"
+              >
+                {deleting ? 'Borrando…' : 'Borrar'}
+              </button>
+            )}
+            <button
+              onClick={startEdit}
+              className="text-xs text-gray-400 hover:text-gray-600 underline"
+            >
+              {configured ? 'Editar' : 'Configurar'}
+            </button>
+          </div>
         )}
       </div>
 

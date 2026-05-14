@@ -121,6 +121,22 @@ export const savePushToken = async (
   }
 };
 
+export const deleteNotificationLocation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    await User.update(
+      { notificationLat: null, notificationLng: null, notificationRadiusKm: null },
+      { where: { id: req.user!.id } },
+    );
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const patchNotificationLocation = async (
   req: Request,
   res: Response,
