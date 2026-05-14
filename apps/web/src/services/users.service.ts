@@ -28,3 +28,7 @@ export const patchNotificationLocation = async (input: {
 }): Promise<void> => {
   await api.patch('/users/me/notification-location', input)
 }
+
+export const deleteNotificationLocation = async (): Promise<void> => {
+  await api.delete('/users/me/notification-location')
+}

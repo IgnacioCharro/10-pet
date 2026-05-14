@@ -60,6 +60,31 @@ export const sendVerificationEmail = async (
   });
 };
 
+export const sendWelcomeEmail = async (toEmail: string, name: string | null): Promise<void> => {
+  const casesUrl = `${env.WEB_BASE_URL}/cases`;
+  const greeting = name ? `Hola ${name}` : 'Hola';
+
+  if (!env.SENDGRID_API_KEY) {
+    requireApiKey();
+    console.log(`[email] welcome email for ${toEmail}`);
+    return;
+  }
+
+  await sgMail.send({
+    to: toEmail,
+    from: { email: env.SENDGRID_FROM_EMAIL, name: env.SENDGRID_FROM_NAME },
+    subject: 'Bienvenido/a a 10_Pet',
+    text: `${greeting},\n\nGracias por unirte a 10_Pet. Podés ver casos de animales que necesitan ayuda en tu zona:\n\n${casesUrl}\n\nCada caso reportado puede marcar la diferencia. Gracias por ser parte.`,
+    html: `
+      <p>${greeting},</p>
+      <p>Gracias por unirte a <strong>10_Pet</strong>.</p>
+      <p>Podés ver y reportar casos de animales que necesitan ayuda en tu zona:</p>
+      <p><a href="${casesUrl}" style="background:#16a34a;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;">Ver casos</a></p>
+      <p>Cada caso reportado puede marcar la diferencia. Gracias por ser parte.</p>
+    `,
+  });
+};
+
 export const sendPasswordResetEmail = async (
   toEmail: string,
   token: string,

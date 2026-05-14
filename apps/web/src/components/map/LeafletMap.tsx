@@ -89,6 +89,11 @@ function FlyTo({ center, zoom }: FlyToProps) {
   return null
 }
 
+export interface NotificationZone {
+  center: [number, number]
+  radiusMeters: number
+}
+
 export interface LeafletMapProps {
   center: [number, number]
   zoom?: number
@@ -97,6 +102,7 @@ export interface LeafletMapProps {
   onCaseClick: (c: CaseItem) => void
   flyToTrigger?: { center: [number, number]; zoom: number } | null
   currentUserId?: string
+  notificationZone?: NotificationZone | null
 }
 
 const DEFAULT_ZOOM = 14
@@ -109,6 +115,7 @@ export default function LeafletMap({
   onCaseClick,
   flyToTrigger,
   currentUserId,
+  notificationZone,
 }: LeafletMapProps) {
   return (
     <MapContainer
@@ -124,6 +131,14 @@ export default function LeafletMap({
       />
 
       <MarkerClusterLayer cases={cases} onCaseClick={onCaseClick} currentUserId={currentUserId} />
+
+      {notificationZone && (
+        <Circle
+          center={notificationZone.center}
+          radius={notificationZone.radiusMeters}
+          pathOptions={{ color: '#7c3aed', fillColor: '#7c3aed', fillOpacity: 0.08, weight: 1.5, dashArray: '6 4' }}
+        />
+      )}
 
       {userLocation && (
         <>
