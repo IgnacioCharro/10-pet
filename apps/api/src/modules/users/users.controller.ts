@@ -22,6 +22,12 @@ const patchMeSchema = z.object({
   vetLicense: z.string().trim().max(50).nullable().optional(),
 });
 
+const notificationLocationSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  radiusKm: z.number().int().min(1).max(100),
+});
+
 export const getMe = async (
   req: Request,
   res: Response,
@@ -43,6 +49,9 @@ export const getMe = async (
       isAdmin: isAdminEmail(user.email),
       isVet: user.isVet,
       vetLicense: user.vetLicense,
+      notificationLat: user.notificationLat,
+      notificationLng: user.notificationLng,
+      notificationRadiusKm: user.notificationRadiusKm,
       createdAt: user.createdAt,
     });
   } catch (err) {
@@ -74,6 +83,9 @@ export const patchMe = async (
       isAdmin: isAdminEmail(user.email),
       isVet: user.isVet,
       vetLicense: user.vetLicense,
+      notificationLat: user.notificationLat,
+      notificationLng: user.notificationLng,
+      notificationRadiusKm: user.notificationRadiusKm,
       createdAt: user.createdAt,
     });
   } catch (err) {
@@ -103,6 +115,33 @@ export const savePushToken = async (
   } catch (err) {
     if (err instanceof ZodError) {
       res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Token invalido' } });
+      return;
+    }
+    next(err);
+  }
+};
+
+export const patchNotificationLocation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { lat, lng, radiusKm } = notificationLocationSchema.parse(req.body);
+    await User.update(
+      { notificationLat: lat, notificationLng: lng, notificationRadiusKm: radiusKm },
+      { where: { id: req.user!.id } },
+    );
+    res.status(204).end();
+  } catch (err) {
+    if (err instanceof ZodError) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Datos de entrada invalidos',
+          fields: err.flatten().fieldErrors,
+        },
+      });
       return;
     }
     next(err);

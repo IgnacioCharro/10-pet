@@ -9,6 +9,9 @@ export interface AuthUser {
   isAdmin?: boolean
   isVet?: boolean
   vetLicense?: string | null
+  notificationLat?: number | null
+  notificationLng?: number | null
+  notificationRadiusKm?: number | null
   createdAt?: string
 }
 
