@@ -2,6 +2,7 @@ import Bull from 'bull';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '../db';
 import { sendEmail } from '../services/email.service';
+import { sendPushNotification } from '../services/firebase.service';
 import { notifyNewCaseQueue } from './queue';
 
 export interface NotifyNewCasePayload {
@@ -18,6 +19,7 @@ export interface NotifyNewCasePayload {
 interface TargetUser {
   id: string;
   email: string;
+  push_token: string | null;
 }
 
 async function processNotifyNewCase(job: Bull.Job<NotifyNewCasePayload>): Promise<void> {
@@ -26,7 +28,7 @@ async function processNotifyNewCase(job: Bull.Job<NotifyNewCasePayload>): Promis
   // For MVP: notify all verified users except the case creator
   // TODO v1.1: filter by user location preferences within a radius
   const users = await sequelize.query<TargetUser>(
-    `SELECT id, email FROM users
+    `SELECT id, email, push_token FROM users
      WHERE email_verified = true
        AND id != :creatorId`,
     { replacements: { creatorId }, type: QueryTypes.SELECT },
@@ -55,6 +57,15 @@ async function processNotifyNewCase(job: Bull.Job<NotifyNewCasePayload>): Promis
         <small>Recibís estos emails porque tenés cuenta en 10Pet.</small>
       `,
     });
+
+    if (user.push_token) {
+      await sendPushNotification(
+        user.push_token,
+        `Nuevo caso — ${label} (urgencia ${urgencyLevel}/5)`,
+        locationStr,
+        { caseId, url: caseUrl },
+      ).catch(() => {});
+    }
   }
 }
 

@@ -2,6 +2,7 @@ import Bull from 'bull';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '../db';
 import { sendEmail } from '../services/email.service';
+import { sendPushNotification } from '../services/firebase.service';
 import { contactRequestQueue } from './queue';
 
 export interface ContactRequestPayload {
@@ -13,8 +14,8 @@ export interface ContactRequestPayload {
 async function processContactRequest(job: Bull.Job<ContactRequestPayload>): Promise<void> {
   const { responderId, caseId } = job.data;
 
-  const [responder] = await sequelize.query<{ email: string }>(
-    `SELECT email FROM users WHERE id = :responderId`,
+  const [responder] = await sequelize.query<{ email: string; push_token: string | null }>(
+    `SELECT email, push_token FROM users WHERE id = :responderId`,
     { replacements: { responderId }, type: QueryTypes.SELECT },
   );
 
@@ -34,6 +35,15 @@ async function processContactRequest(job: Bull.Job<ContactRequestPayload>): Prom
       <small>10Pet — Rescate animal.</small>
     `,
   });
+
+  if (responder.push_token) {
+    await sendPushNotification(
+      responder.push_token,
+      'Alguien quiere ayudar con tu caso',
+      'Un voluntario envió una solicitud de contacto.',
+      { caseId, url: caseUrl },
+    ).catch(() => {});
+  }
 }
 
 if (contactRequestQueue) {
