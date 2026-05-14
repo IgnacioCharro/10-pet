@@ -64,6 +64,16 @@ export interface FilterState {
   animalColor: AnimalColor | ''
 }
 
+const DEFAULT_FILTERS: FilterState = {
+  animalType: '',
+  urgencyMin: 0,
+  radius: 10,
+  sort: 'recent',
+  animalSex: '',
+  animalSize: '',
+  animalColor: '',
+}
+
 interface Props {
   filters: FilterState
   view: 'map' | 'list'
@@ -72,6 +82,7 @@ interface Props {
   onLocationFound: (lat: number, lng: number, zoom: number, label?: string) => void
   zoneLabel?: string | null
   onChangeZone?: () => void
+  onReset?: () => void
 }
 
 function chip(active: boolean) {
@@ -83,7 +94,7 @@ function chip(active: boolean) {
   ].join(' ')
 }
 
-export default function FilterBar({ filters, view, onFiltersChange, onViewChange, onLocationFound, zoneLabel, onChangeZone }: Props) {
+export default function FilterBar({ filters, view, onFiltersChange, onViewChange, onLocationFound, zoneLabel, onChangeZone, onReset }: Props) {
   const [search, setSearch] = useState('')
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([])
   const [searching, setSearching] = useState(false)
@@ -93,6 +104,13 @@ export default function FilterBar({ filters, view, onFiltersChange, onViewChange
   const set = (patch: Partial<FilterState>) => onFiltersChange({ ...filters, ...patch })
 
   const hasExtraFilters = filters.animalSex !== '' || filters.animalSize !== '' || filters.animalColor !== ''
+
+  const isFiltered =
+    filters.animalType !== DEFAULT_FILTERS.animalType ||
+    filters.urgencyMin !== DEFAULT_FILTERS.urgencyMin ||
+    filters.radius !== DEFAULT_FILTERS.radius ||
+    filters.sort !== DEFAULT_FILTERS.sort ||
+    hasExtraFilters
 
   const handleSearchChange = (q: string) => {
     setSearch(q)
@@ -280,6 +298,19 @@ export default function FilterBar({ filters, view, onFiltersChange, onViewChange
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
+
+          {isFiltered && onReset && (
+            <>
+              <div className="w-px bg-gray-200 self-stretch" />
+              <button
+                type="button"
+                onClick={onReset}
+                className="px-3 py-1.5 rounded-full text-xs font-medium border border-red-200 text-red-500 hover:bg-red-50 transition-colors whitespace-nowrap"
+              >
+                Limpiar filtros
+              </button>
+            </>
+          )}
         </div>
       </div>
 
