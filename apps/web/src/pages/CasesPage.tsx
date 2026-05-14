@@ -198,6 +198,7 @@ export default function CasesPage() {
         onLocationFound={handleLocationFound}
         zoneLabel={zoneLabel}
         onChangeZone={handleChangeZone}
+        onReset={() => setFilters(DEFAULT_FILTERS)}
       />
 
       <div className="flex-1 relative overflow-hidden z-0">

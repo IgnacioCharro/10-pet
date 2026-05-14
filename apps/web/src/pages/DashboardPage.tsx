@@ -110,18 +110,13 @@ export default function DashboardPage() {
   return (
     <main className="flex-1 px-4 py-8">
       <div className="max-w-3xl mx-auto flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">Mis casos y solicitudes</h1>
-            {user && (
-              <p className="text-sm text-gray-500 mt-0.5">
-                Hola, <span className="font-medium">{user.name ?? 'Anónimo'}</span>
-              </p>
-            )}
-          </div>
-          <Link to="/cases/new">
-            <Button size="sm">+ Reportar</Button>
-          </Link>
+        <div>
+          <h1 className="text-2xl font-semibold">Mis casos y solicitudes</h1>
+          {user && (
+            <p className="text-sm text-gray-500 mt-0.5">
+              Hola, <span className="font-medium">{user.name ?? 'Anónimo'}</span>
+            </p>
+          )}
         </div>
 
         <div className="flex border-b border-gray-200">
@@ -291,30 +286,32 @@ function caseSummary(item: ContactItem): string {
 function SentContactCard({ item, isNew }: { item: ContactItem; isNew: boolean }) {
   const statusClass = CONTACT_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'
   return (
-    <Card className={['p-4', isNew ? 'border-l-4 border-primary-500' : ''].join(' ')}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium">Solicitud enviada</p>
-            {isNew && (
-              <span className="text-[10px] bg-primary-100 text-primary-700 font-semibold px-1.5 py-0.5 rounded-full">
-                Actualizado
-              </span>
+    <Link to={`/cases/${item.caseId}`}>
+      <Card className={['p-4 hover:shadow-md transition-shadow cursor-pointer', isNew ? 'border-l-4 border-primary-500' : ''].join(' ')}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">Solicitud enviada</p>
+              {isNew && (
+                <span className="text-[10px] bg-primary-100 text-primary-700 font-semibold px-1.5 py-0.5 rounded-full">
+                  Actualizado
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
+            {item.message && (
+              <p className="text-xs text-gray-400 mt-0.5 italic truncate">"{item.message}"</p>
             )}
+            <p className="text-xs text-gray-400 mt-0.5">
+              {new Date(item.createdAt).toLocaleDateString('es-AR')}
+            </p>
           </div>
-          <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
-          {item.message && (
-            <p className="text-xs text-gray-400 mt-0.5 italic truncate">"{item.message}"</p>
-          )}
-          <p className="text-xs text-gray-400 mt-0.5">
-            {new Date(item.createdAt).toLocaleDateString('es-AR')}
-          </p>
+          <span className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(' ')}>
+            {CONTACT_STATUS_LABELS[item.status] ?? item.status}
+          </span>
         </div>
-        <span className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(' ')}>
-          {CONTACT_STATUS_LABELS[item.status] ?? item.status}
-        </span>
-      </div>
-    </Card>
+      </Card>
+    </Link>
   )
 }
 
@@ -332,30 +329,32 @@ function ReceivedContactCard({
 
   return (
     <Card className={['p-4', isPending ? 'border-l-4 border-amber-400' : ''].join(' ')}>
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium">
-              {item.initiatorName ?? 'Alguien'} quiere ayudar
-            </p>
-            {isPending && (
-              <span className="text-[10px] bg-amber-100 text-amber-700 font-semibold px-1.5 py-0.5 rounded-full">
-                Nuevo
-              </span>
+      <Link to={`/cases/${item.caseId}`} className="block mb-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">
+                {item.initiatorName ?? 'Alguien'} quiere ayudar
+              </p>
+              {isPending && (
+                <span className="text-[10px] bg-amber-100 text-amber-700 font-semibold px-1.5 py-0.5 rounded-full">
+                  Nuevo
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
+            {item.message && (
+              <p className="text-xs text-gray-600 mt-1 italic">"{item.message}"</p>
             )}
+            <p className="text-xs text-gray-400 mt-0.5">
+              {new Date(item.createdAt).toLocaleDateString('es-AR')}
+            </p>
           </div>
-          <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
-          {item.message && (
-            <p className="text-xs text-gray-600 mt-1 italic">"{item.message}"</p>
-          )}
-          <p className="text-xs text-gray-400 mt-0.5">
-            {new Date(item.createdAt).toLocaleDateString('es-AR')}
-          </p>
+          <span className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(' ')}>
+            {CONTACT_STATUS_LABELS[item.status] ?? item.status}
+          </span>
         </div>
-        <span className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(' ')}>
-          {CONTACT_STATUS_LABELS[item.status] ?? item.status}
-        </span>
-      </div>
+      </Link>
       {isPending && (
         <div className="flex gap-2">
           <button

@@ -63,7 +63,7 @@ export default function NavBar() {
           <NavLink to="/" end className={navLinkClass}>
             Inicio
           </NavLink>
-          <NavLink to="/cases" className={navLinkClass}>
+          <NavLink to="/cases" end className={navLinkClass}>
             Mapa
           </NavLink>
           {isAuthenticated && (
@@ -168,7 +168,7 @@ export default function NavBar() {
             <NavLink to="/" end className={navLinkClass} onClick={() => setOpen(false)}>
               Inicio
             </NavLink>
-            <NavLink to="/cases" className={navLinkClass} onClick={() => setOpen(false)}>
+            <NavLink to="/cases" end className={navLinkClass} onClick={() => setOpen(false)}>
               Mapa
             </NavLink>
             {isAuthenticated && (
