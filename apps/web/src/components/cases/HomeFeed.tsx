@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { api } from '../../lib/api'
+import { listCases } from '../../services/cases.service'
 import LocalidadPicker, {
   loadPickedLocation,
   savePickedLocation,
   type PickedLocation,
 } from './LocalidadPicker'
 import { Button } from '../ui'
-import type { AnimalType, ListingType } from '../../types/case'
+import type { AnimalType, ListingType, CaseItem } from '../../types/case'
 
 interface FeedRow {
   id: string
@@ -19,17 +20,21 @@ interface FeedRow {
   createdAt: string
   publisherName: string | null
   volunteerCount: number
+  heroUrl: string | null
 }
 
 const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', otro: '🐾' }
 const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', otro: 'Otro' }
 
-const URGENCY: Record<number, { label: string; cls: string }> = {
-  1: { label: 'Baja', cls: 'bg-green-100 text-green-700' },
-  2: { label: 'Baja', cls: 'bg-green-100 text-green-700' },
-  3: { label: 'Media', cls: 'bg-amber-100 text-amber-700' },
-  4: { label: 'Alta', cls: 'bg-red-100 text-red-700' },
-  5: { label: 'Critica', cls: 'bg-red-200 text-red-800 font-semibold' },
+const URGENCY_CLS: Record<number, string> = {
+  1: 'bg-green-100 text-green-700',
+  2: 'bg-green-100 text-green-700',
+  3: 'bg-amber-100 text-amber-700',
+  4: 'bg-red-100 text-red-700',
+  5: 'bg-red-200 text-red-800 font-semibold',
+}
+const URGENCY_LABEL: Record<number, string> = {
+  1: 'Baja', 2: 'Baja', 3: 'Media', 4: 'Alta', 5: 'Critica',
 }
 
 type Tab = 'all' | 'found' | 'lost'
@@ -38,6 +43,13 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'all', label: 'Todos' },
   { id: 'found', label: 'Encontrados' },
   { id: 'lost', label: 'Buscados' },
+]
+
+const ANIMAL_CHIPS: { value: AnimalType | ''; label: string }[] = [
+  { value: '', label: 'Todos' },
+  { value: 'perro', label: '🐕 Perro' },
+  { value: 'gato', label: '🐈 Gato' },
+  { value: 'otro', label: '🐾 Otro' },
 ]
 
 function timeAgo(dateStr: string): string {
@@ -50,34 +62,134 @@ function timeAgo(dateStr: string): string {
   return `hace ${Math.floor(hours / 24)}d`
 }
 
-function formatExact(iso: string): string {
-  return new Date(iso).toLocaleString('es-AR', {
-    day: 'numeric', month: 'long', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
+function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
+  const urg = URGENCY_CLS[row.urgencyLevel] ?? URGENCY_CLS[1]
+  const urgLabel = URGENCY_LABEL[row.urgencyLevel] ?? 'Media'
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex-shrink-0 w-44 text-left bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-primary-300 hover:shadow-sm transition-all"
+    >
+      <div className="h-28 bg-gray-100 flex items-center justify-center overflow-hidden">
+        {row.heroUrl ? (
+          <img src={row.heroUrl} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-4xl">{ANIMAL_EMOJI[row.animalType]}</span>
+        )}
+      </div>
+      <div className="p-2.5">
+        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+          <span className="text-xs font-medium text-gray-800">{ANIMAL_LABEL[row.animalType]}</span>
+          <span className={`text-xs px-1.5 py-0.5 rounded ${urg}`}>{urgLabel}</span>
+        </div>
+        {row.locationText && !row.locationText.includes('undefined') && (
+          <p className="text-xs text-gray-500 truncate">{row.locationText}</p>
+        )}
+        <p className="text-xs text-gray-400 mt-0.5">{timeAgo(row.createdAt)}</p>
+      </div>
+    </button>
+  )
+}
+
+function ListRow({ caseItem, onClick }: { caseItem: CaseItem; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left bg-white rounded-xl border border-gray-200 px-4 py-3 shadow-sm hover:border-primary-300 active:bg-gray-50 transition-colors"
+    >
+      <div className="flex items-start gap-3">
+        {caseItem.heroUrl ? (
+          <img src={caseItem.heroUrl} alt="" className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
+        ) : (
+          <span className="text-2xl flex-shrink-0 mt-0.5">{ANIMAL_EMOJI[caseItem.animalType]}</span>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap mb-1">
+            <span className="font-medium text-gray-900 text-sm">{ANIMAL_LABEL[caseItem.animalType]}</span>
+            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+              caseItem.listingType === 'lost' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+            }`}>
+              {caseItem.listingType === 'lost' ? 'Busco' : 'Encontré'}
+            </span>
+          </div>
+          {caseItem.locationText && !caseItem.locationText.includes('undefined') && (
+            <p className="text-xs text-gray-500 truncate">{caseItem.locationText}</p>
+          )}
+          <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+            <span>{timeAgo(caseItem.createdAt)}</span>
+            {caseItem.distanceKm != null && (
+              <span>· {caseItem.distanceKm.toFixed(1)} km</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </button>
+  )
 }
 
 export default function HomeFeed() {
   const navigate = useNavigate()
   const [loc, setLoc] = useState<PickedLocation | null>(() => loadPickedLocation())
   const [showPicker, setShowPicker] = useState(() => !loadPickedLocation())
-  const [tab, setTab] = useState<Tab>('all')
-  const [rows, setRows] = useState<FeedRow[]>([])
-  const [loading, setLoading] = useState(false)
 
+  // Urgentes section
+  const [urgentRows, setUrgentRows] = useState<FeedRow[]>([])
+  const [urgentLoading, setUrgentLoading] = useState(false)
+
+  // Full list section
+  const [tab, setTab] = useState<Tab>('all')
+  const [animalType, setAnimalType] = useState<AnimalType | ''>('')
+  const [listRows, setListRows] = useState<CaseItem[]>([])
+  const [listLoading, setListLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+
+  // Fetch urgentes
   useEffect(() => {
     if (!loc) return
     const controller = new AbortController()
-    setLoading(true)
-    const params: Record<string, unknown> = { lat: loc.center[0], lng: loc.center[1], radius: 10 }
-    if (tab !== 'all') params.listingType = tab
+    setUrgentLoading(true)
     api
-      .get<{ cases: FeedRow[] }>('/cases/feed', { params, signal: controller.signal })
-      .then((res) => setRows(res.data.cases))
-      .catch((err) => { if (!axios.isCancel(err)) setRows([]) })
-      .finally(() => setLoading(false))
+      .get<{ cases: FeedRow[] }>('/cases/feed', {
+        params: { lat: loc.center[0], lng: loc.center[1], radius: 10 },
+        signal: controller.signal,
+      })
+      .then((res) => setUrgentRows(res.data.cases))
+      .catch((err) => { if (!axios.isCancel(err)) setUrgentRows([]) })
+      .finally(() => setUrgentLoading(false))
     return () => controller.abort()
-  }, [loc, tab])
+  }, [loc])
+
+  // Fetch full list
+  useEffect(() => {
+    if (!loc) return
+    const controller = new AbortController()
+    setListLoading(true)
+    listCases({
+      lat: loc.center[0],
+      lng: loc.center[1],
+      radius: 10,
+      status: 'abierto',
+      listingType: tab === 'all' ? undefined : (tab === 'found' ? 'found' : 'lost'),
+      animalType: animalType || undefined,
+      sort: 'recent',
+      page,
+      limit: 20,
+    })
+      .then((res) => {
+        setListRows(res.cases)
+        setTotalPages(res.meta.pages)
+      })
+      .catch((err) => { if (!axios.isCancel(err)) setListRows([]) })
+      .finally(() => setListLoading(false))
+    return () => controller.abort()
+  }, [loc, tab, animalType, page])
+
+  useEffect(() => {
+    setPage(1)
+  }, [tab, animalType, loc])
 
   const handlePick = (picked: PickedLocation) => {
     savePickedLocation(picked)
@@ -85,206 +197,154 @@ export default function HomeFeed() {
     setShowPicker(false)
   }
 
-  const emptyMessage =
-    tab === 'lost'
-      ? 'No hay mascotas buscadas en tu zona.'
-      : tab === 'found'
-        ? 'No hay animales encontrados en tu zona.'
-        : 'No hay casos activos en tu zona.'
+  const urgentFiltered = urgentRows.filter((r) => r.urgencyLevel >= 3)
 
   return (
     <>
       {showPicker && <LocalidadPicker onPick={handlePick} />}
 
-      <div className="max-w-5xl mx-auto px-4 py-6">
-        {/* Header: Reportar + zona */}
-        <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="max-w-2xl mx-auto px-4 py-5">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
-              {tab === 'lost' ? 'Mascotas buscadas' : tab === 'found' ? 'Animales encontrados' : 'Casos en tu zona'}
-            </h1>
+            <h1 className="text-xl font-bold text-gray-900">Casos en tu zona</h1>
             {loc && (
               <p className="text-sm text-gray-500 mt-0.5">
-                Zona: <span className="font-medium text-gray-700">{loc.label}</span>
+                {loc.label}
                 {' · '}
                 <button
                   onClick={() => setShowPicker(true)}
                   className="text-primary-600 hover:underline"
                 >
-                  Cambiar
+                  Cambiar zona
                 </button>
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2">
             <Link to="/cases">
-              <Button variant="secondary" size="sm">Ver en mapa</Button>
+              <Button variant="secondary" size="sm">Ver mapa</Button>
             </Link>
             <Link to="/cases/new">
-              <Button size="sm">Reportar caso</Button>
+              <Button size="sm">Reportar</Button>
             </Link>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-4 bg-gray-100 rounded-lg p-1 w-fit">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                tab === t.id
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {loading && (
-          <div className="text-center py-12 text-gray-400 text-sm">Cargando...</div>
-        )}
-
-        {!loading && rows.length === 0 && loc && (
-          <div className="text-center py-12 text-gray-400 text-sm">
-            {emptyMessage}{' '}
-            <Link to="/cases/new" className="text-primary-600 hover:underline">
-              Publicar uno
-            </Link>
-          </div>
-        )}
-
-        {!loading && rows.length > 0 && (
-          <>
-            {/* Desktop table */}
-            <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200">
-              <table className="w-full text-sm text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
-                    <th className="px-4 py-3 font-medium">Tipo</th>
-                    <th className="px-4 py-3 font-medium">Animal</th>
-                    <th className="px-4 py-3 font-medium">Ubicacion</th>
-                    {tab !== 'lost' && <th className="px-4 py-3 font-medium">Urgencia</th>}
-                    <th className="px-4 py-3 font-medium">Publicado</th>
-                    <th className="px-4 py-3 font-medium">Por</th>
-                    <th className="px-4 py-3 font-medium text-center">Voluntarios</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => {
-                    const urg = URGENCY[row.urgencyLevel] ?? URGENCY[1]
-                    return (
-                      <tr
-                        key={row.id}
-                        onClick={() => navigate(`/cases/${row.id}`)}
-                        className="border-b border-gray-100 last:border-0 hover:bg-gray-50 cursor-pointer transition-colors"
-                      >
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
-                            row.listingType === 'lost'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-orange-100 text-orange-700'
-                          }`}>
-                            {row.listingType === 'lost' ? 'Busco' : 'Encontré'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 font-medium text-gray-900">
-                          <span className="mr-1.5" aria-hidden="true">
-                            {ANIMAL_EMOJI[row.animalType]}
-                          </span>
-                          {ANIMAL_LABEL[row.animalType]}
-                        </td>
-                        <td className="px-4 py-3 text-gray-600 max-w-[180px] truncate">
-                          {row.locationText ?? (
-                            <span className="text-gray-400 italic">Sin direccion</span>
-                          )}
-                        </td>
-                        {tab !== 'lost' && (
-                          <td className="px-4 py-3">
-                            <span className={`inline-flex px-2 py-0.5 rounded text-xs ${urg.cls}`}>
-                              {urg.label}
-                            </span>
-                          </td>
-                        )}
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                          <span title={formatExact(row.createdAt)} className="cursor-help">{timeAgo(row.createdAt)}</span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-600 max-w-[140px] truncate">
-                          {row.publisherName ?? (
-                            <span className="text-gray-400 italic">Anonimo</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {row.volunteerCount > 0 ? (
-                            <span className="font-semibold text-primary-600">
-                              {row.volunteerCount}
-                            </span>
-                          ) : (
-                            <span className="text-gray-300">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+        {/* Urgentes */}
+        {(urgentLoading || urgentFiltered.length > 0) && (
+          <section className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Casos urgentes</h2>
+              {urgentFiltered.length > 0 && (
+                <span className="text-xs text-gray-400">{urgentFiltered.length} en tu zona</span>
+              )}
             </div>
-
-            {/* Mobile cards */}
-            <div className="md:hidden flex flex-col gap-3">
-              {rows.map((row) => {
-                const urg = URGENCY[row.urgencyLevel] ?? URGENCY[1]
-                return (
-                  <button
+            {urgentLoading ? (
+              <div className="h-40 flex items-center justify-center text-gray-400 text-sm">Cargando…</div>
+            ) : (
+              <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+                {urgentFiltered.map((row) => (
+                  <UrgentCard
                     key={row.id}
+                    row={row}
                     onClick={() => navigate(`/cases/${row.id}`)}
-                    className="w-full text-left bg-white rounded-xl border border-gray-200 px-4 py-3 shadow-sm hover:border-primary-300 active:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">
-                          {ANIMAL_EMOJI[row.animalType]} {ANIMAL_LABEL[row.animalType]}
-                        </span>
-                        <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-medium ${
-                          row.listingType === 'lost'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-orange-100 text-orange-700'
-                        }`}>
-                          {row.listingType === 'lost' ? 'Busco' : 'Encontré'}
-                        </span>
-                      </div>
-                      {row.listingType !== 'lost' && (
-                        <span className={`inline-flex px-2 py-0.5 rounded text-xs ${urg.cls}`}>
-                          {urg.label}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 truncate">
-                      {row.locationText && !row.locationText.includes('undefined') ? row.locationText : (
-                        <span className="text-gray-400 italic">Sin direccion</span>
-                      )}
-                    </p>
-                    <div className="mt-1.5 flex items-center gap-2 text-xs text-gray-400 flex-wrap">
-                      <span title={formatExact(row.createdAt)} className="cursor-help">{timeAgo(row.createdAt)}</span>
-                      {row.publisherName && (
-                        <span>· {row.publisherName}</span>
-                      )}
-                      {row.volunteerCount > 0 && (
-                        <span className="text-primary-600 font-medium">
-                          · {row.volunteerCount} voluntario{row.volunteerCount !== 1 ? 's' : ''}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          </>
+                  />
+                ))}
+              </div>
+            )}
+          </section>
         )}
-      </div>
 
+        {/* Lista completa */}
+        <section>
+          <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide mb-3">Todos los casos</h2>
+
+          {/* Tabs */}
+          <div className="flex gap-1 mb-3 bg-gray-100 rounded-lg p-1 w-fit">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  tab === t.id
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Animal type chips */}
+          <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3">
+            {ANIMAL_CHIPS.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => setAnimalType(c.value as AnimalType | '')}
+                className={[
+                  'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap flex-shrink-0',
+                  animalType === c.value
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400',
+                ].join(' ')}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+
+          {listLoading && (
+            <div className="text-center py-10 text-gray-400 text-sm">Cargando...</div>
+          )}
+
+          {!listLoading && listRows.length === 0 && loc && (
+            <div className="text-center py-10 text-gray-400 text-sm">
+              No hay casos en tu zona.{' '}
+              <Link to="/cases/new" className="text-primary-600 hover:underline">
+                Publicar uno
+              </Link>
+            </div>
+          )}
+
+          {!listLoading && listRows.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {listRows.map((c) => (
+                <ListRow
+                  key={c.id}
+                  caseItem={c}
+                  onClick={() => navigate(`/cases/${c.id}`)}
+                />
+              ))}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-3 pt-4">
+              <button
+                type="button"
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+                className="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
+              >
+                Anterior
+              </button>
+              <span className="self-center text-sm text-gray-500">{page} / {totalPages}</span>
+              <button
+                type="button"
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                className="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
+        </section>
+      </div>
     </>
   )
 }

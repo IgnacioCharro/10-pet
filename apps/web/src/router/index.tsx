@@ -23,7 +23,6 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'cases', element: <CasesPage /> },
       { path: 'cases/:id', element: <CasePage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
@@ -32,6 +31,12 @@ export const router = createBrowserRouter([
       { path: 'auth/callback', element: <AuthCallbackPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
+      {
+        element: <ProtectedRoute redirectTo="/register" />,
+        children: [
+          { path: 'cases', element: <CasesPage /> },
+        ],
+      },
       {
         element: <ProtectedRoute />,
         children: [

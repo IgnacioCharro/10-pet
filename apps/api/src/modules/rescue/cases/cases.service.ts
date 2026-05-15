@@ -404,6 +404,7 @@ export interface FeedCaseRow {
   createdAt: Date;
   publisherName: string | null;
   volunteerCount: number;
+  heroUrl: string | null;
 }
 
 export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]> {
@@ -438,14 +439,15 @@ export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]
        c.urgency_level AS "urgencyLevel",
        c.created_at AS "createdAt",
        u.name AS "publisherName",
-       COUNT(co.id) FILTER (WHERE co.status IN ('active', 'completed')) AS "volunteerCount"
+       COUNT(co.id) FILTER (WHERE co.status IN ('active', 'completed')) AS "volunteerCount",
+       ${HERO_URL_SELECT}
      FROM cases c
      LEFT JOIN users u ON c.user_id = u.id
      LEFT JOIN contacts co ON co.case_id = c.id
      WHERE ${conditions.join(' AND ')}
      GROUP BY c.id, u.name
      ORDER BY ${orderBy}
-     LIMIT 10`,
+     LIMIT 15`,
     { replacements, type: QueryTypes.SELECT },
   );
   return rows.map((r) => ({ ...r, volunteerCount: Number(r.volunteerCount) }));
