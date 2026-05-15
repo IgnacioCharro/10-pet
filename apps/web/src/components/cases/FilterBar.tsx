@@ -17,11 +17,6 @@ const URGENCY_OPTIONS: { value: number | 0; label: string }[] = [
   { value: 5, label: 'Critica' },
 ]
 
-const SORT_OPTIONS: { value: SortOrder; label: string }[] = [
-  { value: 'recent', label: 'Reciente' },
-  { value: 'urgency', label: 'Urgencia' },
-  { value: 'distance', label: 'Distancia' },
-]
 
 const SEX_OPTIONS: { value: AnimalSex | ''; label: string }[] = [
   { value: '', label: 'Todos' },
@@ -76,9 +71,7 @@ const DEFAULT_FILTERS: FilterState = {
 
 interface Props {
   filters: FilterState
-  view: 'map' | 'list'
   onFiltersChange: (f: FilterState) => void
-  onViewChange: (v: 'map' | 'list') => void
   onLocationFound: (lat: number, lng: number, zoom: number, label?: string) => void
   zoneLabel?: string | null
   onChangeZone?: () => void
@@ -94,7 +87,7 @@ function chip(active: boolean) {
   ].join(' ')
 }
 
-export default function FilterBar({ filters, view, onFiltersChange, onViewChange, onLocationFound, zoneLabel, onChangeZone, onReset }: Props) {
+export default function FilterBar({ filters, onFiltersChange, onLocationFound, zoneLabel, onChangeZone, onReset }: Props) {
   const [search, setSearch] = useState('')
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([])
   const [searching, setSearching] = useState(false)
@@ -191,22 +184,6 @@ export default function FilterBar({ filters, view, onFiltersChange, onViewChange
           )}
         </div>
 
-        <div className="flex rounded-lg border border-gray-300 overflow-hidden flex-shrink-0">
-          <button
-            type="button"
-            onClick={() => onViewChange('map')}
-            className={`px-3 py-2 text-xs font-medium transition-colors ${view === 'map' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-          >
-            Mapa
-          </button>
-          <button
-            type="button"
-            onClick={() => onViewChange('list')}
-            className={`px-3 py-2 text-xs font-medium transition-colors border-l border-gray-300 ${view === 'list' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-          >
-            Explorar
-          </button>
-        </div>
       </div>
 
       <div className="overflow-x-auto pb-1">
@@ -255,25 +232,6 @@ export default function FilterBar({ filters, view, onFiltersChange, onViewChange
               </button>
             ))}
           </div>
-
-          {view === 'list' && (
-            <>
-              <div className="w-px bg-gray-200 self-stretch" />
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-gray-400 flex-shrink-0">Orden:</span>
-                {SORT_OPTIONS.map((o) => (
-                  <button
-                    key={o.value}
-                    type="button"
-                    onClick={() => set({ sort: o.value })}
-                    className={chip(filters.sort === o.value)}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
 
           <div className="w-px bg-gray-200 self-stretch" />
 

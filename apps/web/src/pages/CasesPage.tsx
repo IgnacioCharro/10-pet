@@ -2,10 +2,9 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import FilterBar, { type FilterState } from '../components/cases/FilterBar'
-import CaseCard from '../components/cases/CaseCard'
 import CaseDetailSheet from '../components/cases/CaseDetailSheet'
 import LocalidadPicker, { loadPickedLocation, savePickedLocation, type PickedLocation } from '../components/cases/LocalidadPicker'
-import { listCases, getNearbyCases } from '../services/cases.service'
+import { getNearbyCases } from '../services/cases.service'
 import { lazyWithRetry } from '../lib/lazyWithRetry'
 import type { CaseItem } from '../types/case'
 
@@ -57,7 +56,6 @@ export default function CasesPage() {
     () => !initialPublished && !loadPickedLocation(),
   )
 
-  const [view, setView] = useState<'map' | 'list'>('map')
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
   const [center, setCenter] = useState<[number, number]>(() => {
     if (initialPublished) return [initialPublished.lat!, initialPublished.lng!]
@@ -76,8 +74,6 @@ export default function CasesPage() {
       ? { center: [initialPublished.lat!, initialPublished.lng!], zoom: PUBLISHED_ZOOM }
       : null,
   )
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => {
     if (initialPublished) {
@@ -122,55 +118,31 @@ export default function CasesPage() {
   const fetchCases = useCallback(async () => {
     setLoading(true)
     try {
-      if (view === 'map') {
-        const [lat, lng] = center
-        const data = await getNearbyCases({
-          lat,
-          lng,
-          radius: filters.radius,
-        })
-        const filtered = data.filter((c) => {
-          if (filters.animalType && c.animalType !== filters.animalType) return false
-          if (filters.urgencyMin && c.urgencyLevel < filters.urgencyMin) return false
-          if (filters.animalSex && c.animalSex !== filters.animalSex) return false
-          if (filters.animalSize && c.animalSize !== filters.animalSize) return false
-          if (filters.animalColor && c.animalColor !== filters.animalColor) return false
-          return true
-        })
-        setCases(filtered)
-      } else {
-        const [lat, lng] = center
-        const res = await listCases({
-          lat,
-          lng,
-          radius: filters.radius,
-          animalType: filters.animalType || undefined,
-          urgencyMin: filters.urgencyMin || undefined,
-          sort: filters.sort,
-          page,
-          limit: 20,
-          status: 'abierto',
-          animalSex: filters.animalSex || undefined,
-          animalSize: filters.animalSize || undefined,
-          animalColor: filters.animalColor || undefined,
-        })
-        setCases(res.cases)
-        setTotalPages(res.meta.pages)
-      }
+      const [lat, lng] = center
+      const data = await getNearbyCases({
+        lat,
+        lng,
+        radius: filters.radius,
+      })
+      const filtered = data.filter((c) => {
+        if (filters.animalType && c.animalType !== filters.animalType) return false
+        if (filters.urgencyMin && c.urgencyLevel < filters.urgencyMin) return false
+        if (filters.animalSex && c.animalSex !== filters.animalSex) return false
+        if (filters.animalSize && c.animalSize !== filters.animalSize) return false
+        if (filters.animalColor && c.animalColor !== filters.animalColor) return false
+        return true
+      })
+      setCases(filtered)
     } catch {
       // ignorar
     } finally {
       setLoading(false)
     }
-  }, [view, center, filters, page])
+  }, [center, filters])
 
   useEffect(() => {
     fetchCases()
   }, [fetchCases])
-
-  useEffect(() => {
-    setPage(1)
-  }, [filters, view, center])
 
   const handleLocationFound = useCallback((lat: number, lng: number, zoom: number, label?: string) => {
     const newCenter: [number, number] = [lat, lng]
@@ -192,9 +164,7 @@ export default function CasesPage() {
 
       <FilterBar
         filters={filters}
-        view={view}
         onFiltersChange={setFilters}
-        onViewChange={setView}
         onLocationFound={handleLocationFound}
         zoneLabel={zoneLabel}
         onChangeZone={handleChangeZone}
@@ -209,21 +179,19 @@ export default function CasesPage() {
           </div>
         )}
 
-        {view === 'map' && (
-          <Suspense fallback={<div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Cargando mapa…</div>}>
-            <LeafletMap
-              center={center}
-              cases={cases}
-              userLocation={userLocation}
-              onCaseClick={handleCaseClick}
-              flyToTrigger={flyTo}
-              currentUserId={currentUserId}
-              notificationZone={notificationZone}
-            />
-          </Suspense>
-        )}
+        <Suspense fallback={<div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Cargando mapa…</div>}>
+          <LeafletMap
+            center={center}
+            cases={cases}
+            userLocation={userLocation}
+            onCaseClick={handleCaseClick}
+            flyToTrigger={flyTo}
+            currentUserId={currentUserId}
+            notificationZone={notificationZone}
+          />
+        </Suspense>
 
-        {view === 'map' && cases.length === 0 && !loading && (
+        {cases.length === 0 && !loading && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 text-sm max-w-xs w-full mx-4">
             <span className="text-2xl">🐾</span>
             <div className="flex-1 min-w-0">
@@ -236,50 +204,6 @@ export default function CasesPage() {
             >
               Publicar
             </Link>
-          </div>
-        )}
-
-        {view === 'list' && (
-          <div className="h-full overflow-y-auto">
-            <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
-              {cases.length === 0 && !loading && (
-                <div className="text-center py-12 text-gray-400">
-                  <p className="text-4xl mb-3">🐾</p>
-                  <p className="text-sm mb-4">Sin casos en esta zona con los filtros actuales.</p>
-                  <Link
-                    to="/cases/new"
-                    className="inline-block bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Publicar un caso
-                  </Link>
-                </div>
-              )}
-              {cases.map((c) => (
-                <CaseCard key={c.id} caseItem={c} onClick={() => setSelectedCaseId(c.id)} />
-              ))}
-
-              {totalPages > 1 && (
-                <div className="flex justify-center gap-3 pt-2">
-                  <button
-                    type="button"
-                    disabled={page === 1}
-                    onClick={() => setPage((p) => p - 1)}
-                    className="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
-                  >
-                    Anterior
-                  </button>
-                  <span className="self-center text-sm text-gray-500">{page} / {totalPages}</span>
-                  <button
-                    type="button"
-                    disabled={page === totalPages}
-                    onClick={() => setPage((p) => p + 1)}
-                    className="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         )}
       </div>
