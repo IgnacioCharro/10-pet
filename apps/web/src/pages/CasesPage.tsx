@@ -191,6 +191,17 @@ export default function CasesPage() {
           />
         </Suspense>
 
+        <div className="absolute bottom-3 right-3 z-20 bg-white/90 backdrop-blur-sm rounded-lg shadow px-2.5 py-2 flex flex-col gap-1 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-blue-500 bg-gray-200 flex-shrink-0" />
+            <span className="text-gray-600">Buscado</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-green-500 bg-gray-200 flex-shrink-0" />
+            <span className="text-gray-600">Encontrado</span>
+          </div>
+        </div>
+
         {cases.length === 0 && !loading && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 text-sm max-w-xs w-full mx-4">
             <span className="text-2xl">🐾</span>

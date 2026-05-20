@@ -82,7 +82,7 @@ export default function CaseCard({ caseItem: c, onClick }: Props) {
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <span className="text-base leading-none">{ANIMAL_EMOJI[c.animalType]}</span>
             <span className="font-medium text-gray-800 text-sm">{ANIMAL_LABEL[c.animalType]}</span>
-            <span className={`text-xs px-2 py-0.5 rounded font-medium ${c.listingType === 'lost' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+            <span className={`text-xs px-2 py-0.5 rounded font-medium ${c.listingType === 'lost' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
               {c.listingType === 'lost' ? 'Busco' : 'Encontré'}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_CLASS[c.status]}`}>

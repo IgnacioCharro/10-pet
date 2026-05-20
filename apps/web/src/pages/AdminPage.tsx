@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { Card } from '../components/ui'
 import Button from '../components/ui/Button'
 import {
@@ -307,23 +308,30 @@ export default function AdminPage() {
                         {r.status === 'pending' ? 'Pendiente' : r.status === 'actioned' ? 'Accionado' : 'Descartado'}
                       </span>
                     </div>
-                    {r.status === 'pending' && (
-                      <div className="flex gap-2 pt-1">
-                        <Button variant="secondary" size="sm" onClick={() => handleDismissReport(r)}>
-                          Descartar
-                        </Button>
-                        {r.targetCaseId && (
-                          <Button variant="secondary" size="sm" onClick={() => handleArchiveCaseFromReport(r)}>
-                            Archivar caso
+                    <div className="flex gap-2 pt-1 flex-wrap">
+                      {r.targetCaseId && (
+                        <Link to={`/cases/${r.targetCaseId}`} target="_blank" rel="noopener noreferrer">
+                          <Button variant="secondary" size="sm">Ver caso</Button>
+                        </Link>
+                      )}
+                      {r.status === 'pending' && (
+                        <>
+                          <Button variant="secondary" size="sm" onClick={() => handleDismissReport(r)}>
+                            Descartar
                           </Button>
-                        )}
-                        {r.targetCaseId && (
-                          <Button variant="danger" size="sm" onClick={() => handleDeleteCase(r)}>
-                            Eliminar caso
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                          {r.targetCaseId && (
+                            <Button variant="secondary" size="sm" onClick={() => handleArchiveCaseFromReport(r)}>
+                              Archivar caso
+                            </Button>
+                          )}
+                          {r.targetCaseId && (
+                            <Button variant="danger" size="sm" onClick={() => handleDeleteCase(r)}>
+                              Eliminar caso
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </Card>
                 ))}
               </div>

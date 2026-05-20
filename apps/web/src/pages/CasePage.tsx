@@ -259,7 +259,7 @@ export default function CasePage() {
             <span className="text-5xl leading-none">{ANIMAL_EMOJI[detail.animalType]}</span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${detail.listingType === 'lost' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                <span className={`text-sm font-bold px-3 py-1 rounded-full ${detail.listingType === 'lost' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-green-100 text-green-700 ring-1 ring-green-300'}`}>
                   {detail.listingType === 'lost' ? 'BUSCADO' : 'ENCONTRADO'}
                 </span>
               </div>
