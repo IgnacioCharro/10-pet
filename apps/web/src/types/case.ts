@@ -52,6 +52,7 @@ export interface CaseDetail extends CaseItem {
   images: CaseImageItem[]
   updates: CaseUpdateItem[]
   phoneContact?: string
+  publisherName?: string | null
 }
 
 export interface ListCasesQuery {

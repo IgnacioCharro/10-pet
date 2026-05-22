@@ -334,7 +334,14 @@ function ReceivedContactCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium">
-                {item.initiatorName ?? 'Alguien'} quiere ayudar
+                <Link
+                  to={`/users/${item.initiatorId}`}
+                  className="text-primary-600 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {item.initiatorName ?? 'Alguien'}
+                </Link>
+                {' '}quiere ayudar
               </p>
               {isPending && (
                 <span className="text-[10px] bg-amber-100 text-amber-700 font-semibold px-1.5 py-0.5 rounded-full">

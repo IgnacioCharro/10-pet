@@ -51,6 +51,7 @@ export interface CaseUpdateRow {
 export interface CaseDetail extends CaseRow {
   images: CaseImageRow[];
   updates: CaseUpdateRow[];
+  publisherName: string | null;
 }
 
 // Extracts lat/lng from PostGIS GEOMETRY; avoids WKB decoding in JS layer
@@ -273,9 +274,11 @@ export async function getNearbyCases(query: NearbyCasesQuery): Promise<CaseRow[]
 }
 
 export async function getCaseById(id: string): Promise<CaseDetail | null> {
-  const rows = await sequelize.query<CaseRow>(
-    `SELECT ${BASE_CASE_SELECT}
+  const rows = await sequelize.query<CaseRow & { publisherName: string | null }>(
+    `SELECT ${BASE_CASE_SELECT},
+       u.name AS "publisherName"
      FROM cases c
+     LEFT JOIN users u ON c.user_id = u.id
      WHERE c.id = :id`,
     { replacements: { id }, type: QueryTypes.SELECT },
   );
