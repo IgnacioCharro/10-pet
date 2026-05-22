@@ -5,7 +5,7 @@ import { getVetAssistances, createVetAssistance } from '../services/vet-assistan
 import type { VetAssistanceItem } from '../services/vet-assistances.service'
 import { useAuthStore } from '../stores/authStore'
 import { toast } from '../stores/toastStore'
-import type { CaseDetail, AnimalType, CaseStatus, CaseUpdateType } from '../types/case'
+import type { CaseDetail, AnimalType, CaseStatus, CaseUpdateType, CaseVolunteer } from '../types/case'
 import { ContactModal } from '../components/cases/ContactModal'
 import { ReportModal } from '../components/cases/ReportModal'
 import {
@@ -15,8 +15,8 @@ import {
   ResolutionModal,
 } from '../components/cases/CaseDetailSheet'
 
-const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', otro: 'Otro' }
-const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', otro: '🐾' }
+const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
+const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', caballo: '🐴', vaca: '🐄', otro: '🐾' }
 
 const STATUS_LABEL: Record<CaseStatus, string> = {
   abierto: 'Abierto',
@@ -333,6 +333,10 @@ export default function CasePage() {
             onSubmit={handleVetSubmit}
           />
 
+          {(detail.volunteers?.length ?? 0) > 0 && (
+            <VolunteersSection volunteers={detail.volunteers!} />
+          )}
+
           <div className="flex items-center justify-between pt-2">
             <p className="text-xs text-gray-400 cursor-help" title={formatExact(detail.createdAt)}>{timeAgo(detail.createdAt)}</p>
             {isAuthenticated && !isOwner && !reported && (
@@ -447,5 +451,29 @@ export default function CasePage() {
         />
       )}
     </>
+  )
+}
+
+function VolunteersSection({ volunteers }: { volunteers: CaseVolunteer[] }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        Voluntarios ({volunteers.length})
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {volunteers.map((v) => (
+          <Link
+            key={v.userId}
+            to={`/users/${v.userId}`}
+            className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 transition-colors"
+          >
+            <span className="text-xs font-medium text-gray-700">{v.userName ?? 'Voluntario'}</span>
+            {v.status === 'completed' && (
+              <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">completado</span>
+            )}
+          </Link>
+        ))}
+      </div>
+    </div>
   )
 }

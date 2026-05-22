@@ -5,6 +5,8 @@ const ANIMAL_OPTIONS: { value: AnimalType | ''; label: string }[] = [
   { value: '', label: 'Todos' },
   { value: 'perro', label: '🐕 Perro' },
   { value: 'gato', label: '🐈 Gato' },
+  { value: 'caballo', label: '🐴 Caballo' },
+  { value: 'vaca', label: '🐄 Vaca' },
   { value: 'otro', label: '🐾 Otro' },
 ]
 

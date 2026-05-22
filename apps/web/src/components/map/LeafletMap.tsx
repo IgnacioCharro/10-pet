@@ -18,6 +18,8 @@ const URGENCY_COLOR: Record<number, string> = {
 const ANIMAL_EMOJI: Record<AnimalType, string> = {
   perro: '🐕',
   gato: '🐈',
+  caballo: '🐴',
+  vaca: '🐄',
   otro: '🐾',
 }
 

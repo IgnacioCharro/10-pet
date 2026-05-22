@@ -30,9 +30,11 @@ interface WizardState {
 }
 
 const ANIMAL_LABELS: Record<AnimalType, string> = {
-  perro: 'Perro',
-  gato: 'Gato',
-  otro: 'Otro',
+  perro: '🐕 Perro',
+  gato: '🐈 Gato',
+  caballo: '🐴 Caballo',
+  vaca: '🐄 Vaca',
+  otro: '🐾 Otro',
 }
 
 const URGENCY_LABELS: Record<number, string> = {
@@ -747,14 +749,14 @@ function StepDescripcion({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium text-gray-700">Tipo de animal *</span>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {(Object.keys(ANIMAL_LABELS) as AnimalType[]).map((type) => (
             <button
               key={type}
               type="button"
               onClick={() => onAnimalTypeChange(type)}
               className={[
-                'flex-1 py-2 rounded-lg border text-sm font-medium transition-colors',
+                'py-2 rounded-lg border text-sm font-medium transition-colors',
                 animalType === type
                   ? 'border-primary-500 bg-primary-50 text-primary-700'
                   : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300',

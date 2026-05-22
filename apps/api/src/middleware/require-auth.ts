@@ -13,6 +13,26 @@ declare global {
   }
 }
 
+export const optionalAuth = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): void => {
+  try {
+    const header = req.headers.authorization;
+    if (header?.startsWith('Bearer ')) {
+      const token = header.slice('Bearer '.length).trim();
+      if (token) {
+        const payload = verifyAccessToken(token);
+        req.user = { id: payload.sub, email: payload.email, emailVerified: payload.emailVerified };
+      }
+    }
+  } catch {
+    // token inválido o ausente — continúa sin user
+  }
+  next();
+};
+
 export const requireAuth = (
   req: Request,
   res: Response,
