@@ -271,7 +271,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
             <>
               <div className="flex items-center gap-3">
                 <span className="text-4xl">{ANIMAL_EMOJI[detail.animalType]}</span>
-                <div>
+                <div className="min-w-0">
                   <p className="font-semibold text-gray-900 text-lg">{ANIMAL_LABEL[detail.animalType]}</p>
                   <div className="flex gap-2 mt-1 flex-wrap">
                     <span className={[
@@ -289,6 +289,23 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                       {URGENCY_LABEL[detail.urgencyLevel] ?? `Urgencia ${detail.urgencyLevel}`}
                     </span>
                   </div>
+                  {detail.publisherName && (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center text-[10px] font-bold text-primary-700 flex-shrink-0">
+                        {detail.publisherName[0].toUpperCase()}
+                      </div>
+                      <Link
+                        to={`/users/${detail.userId}`}
+                        onClick={onClose}
+                        className="text-xs font-semibold text-gray-700 hover:text-primary-600 hover:underline truncate"
+                      >
+                        {detail.publisherName}
+                      </Link>
+                      <span className="text-xs text-gray-400 flex-shrink-0" title={formatExact(detail.createdAt)}>
+                        · {timeAgo(detail.createdAt)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -367,32 +384,21 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 <VolunteersSection volunteers={detail.volunteers!} onClose={onClose} />
               )}
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-gray-400 cursor-help" title={formatExact(detail.createdAt)}>{timeAgo(detail.createdAt)}</p>
-                  {detail.publisherName && (
-                    <Link
-                      to={`/users/${detail.userId}`}
-                      className="text-xs text-primary-600 hover:underline"
-                      onClick={onClose}
+              {isAuthenticated && detail.userId !== currentUserId && (
+                <div className="flex justify-end">
+                  {reported ? (
+                    <span className="text-xs text-gray-400">Reporte enviado</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowReportModal(true)}
+                      className="text-xs text-gray-400 hover:text-red-500 transition-colors underline"
                     >
-                      por {detail.publisherName}
-                    </Link>
+                      Reportar
+                    </button>
                   )}
                 </div>
-                {isAuthenticated && detail.userId !== currentUserId && !reported && (
-                  <button
-                    type="button"
-                    onClick={() => setShowReportModal(true)}
-                    className="text-xs text-gray-400 hover:text-red-500 transition-colors underline"
-                  >
-                    Reportar
-                  </button>
-                )}
-                {reported && (
-                  <span className="text-xs text-gray-400">Reporte enviado</span>
-                )}
-              </div>
+              )}
             </>
           )}
         </div>
