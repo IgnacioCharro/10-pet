@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { AxiosError } from 'axios'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import LocalidadAutocomplete from '../components/cases/LocalidadAutocomplete'
+import CalleAutocomplete from '../components/cases/CalleAutocomplete'
 import { uploadToCloudinary, type UploadedImage } from '../services/images.service'
 import { createCase } from '../services/cases.service'
 import { lazyWithRetry } from '../lib/lazyWithRetry'
@@ -171,8 +173,10 @@ export default function PublishCasePage() {
       navigate(`/cases`, {
         state: { published: newCase.id, lat: state.lat, lng: state.lng },
       })
-    } catch {
-      setErrors((prev) => ({ ...prev, submit: 'Error al publicar el caso. Intentá de nuevo.' }))
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ error: { message: string } }>
+      const apiMessage = axiosErr?.response?.data?.error?.message
+      setErrors((prev) => ({ ...prev, submit: apiMessage ?? 'Error al publicar el caso. Intentá de nuevo.' }))
     } finally {
       setSubmitting(false)
     }
@@ -589,11 +593,12 @@ function StepUbicacion({
         {addressMode === 'numero' ? (
           <div className="flex gap-2">
             <div className="flex-1 min-w-0">
-              <Input
+              <CalleAutocomplete
                 label="Calle"
                 placeholder="Av. San Martin"
                 value={calle}
-                onChange={(e) => setCalle(e.target.value)}
+                onChange={setCalle}
+                localidad={localidad}
               />
             </div>
             <div className="w-24 shrink-0">
@@ -608,20 +613,22 @@ function StepUbicacion({
         ) : (
           <div className="flex gap-2 items-end">
             <div className="flex-1 min-w-0">
-              <Input
+              <CalleAutocomplete
                 label="Calle 1"
                 placeholder="San Martin"
                 value={calle}
-                onChange={(e) => setCalle(e.target.value)}
+                onChange={setCalle}
+                localidad={localidad}
               />
             </div>
             <span className="pb-2.5 text-sm text-gray-400 shrink-0">y</span>
             <div className="flex-1 min-w-0">
-              <Input
+              <CalleAutocomplete
                 label="Calle 2"
                 placeholder="Belgrano"
                 value={calle2}
-                onChange={(e) => setCalle2(e.target.value)}
+                onChange={setCalle2}
+                localidad={localidad}
               />
             </div>
           </div>
