@@ -462,40 +462,78 @@ function StepUbicacion({
   const [geocoding, setGeocoding] = useState(false)
   const [geocodeError, setGeocodeError] = useState<string | null>(null)
   const [reverseGeocoding, setReverseGeocoding] = useState(false)
+  const [localidadCenter, setLocalidadCenter] = useState<[number, number] | null>(null)
   const reverseDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (error) setShowForm(true)
   }, [error])
 
+  useEffect(() => {
+    if (!localidad.trim()) { setLocalidadCenter(null); return }
+    const controller = new AbortController()
+    fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(localidad.trim() + ', Argentina')}&format=json&limit=1&countrycodes=ar`,
+      { headers: { 'Accept-Language': 'es', 'User-Agent': '10pet-web/1.0' }, signal: controller.signal },
+    )
+      .then(r => r.json())
+      .then((data: Array<{ lat: string; lon: string }>) => {
+        if (data.length > 0) setLocalidadCenter([parseFloat(data[0].lat), parseFloat(data[0].lon)])
+      })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [localidad])
+
   const handleGeocode = async () => {
     if (!localidad.trim()) {
       setGeocodeError('Ingresá la localidad.')
       return
     }
-    const callesPart = addressMode === 'numero'
-      ? `${calle.trim()} ${numero.trim()}`
-      : `${calle.trim()} esq. ${calle2.trim()}`
-    const query = `${callesPart}, ${localidad.trim()}, Argentina`
     setGeocoding(true)
     setGeocodeError(null)
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=ar`,
-        { headers: { 'Accept-Language': 'es', 'User-Agent': '10pet-web/1.0' } },
-      )
-      const data: Array<{ lat: string; lon: string; display_name: string }> = await res.json()
-      if (data.length === 0) {
-        setGeocodeError('No encontramos esa dirección. Revisá los datos o usá el mapa.')
-        return
+      if (addressMode === 'interseccion') {
+        if (!calle.trim() || !calle2.trim()) {
+          setGeocodeError('Ingresá ambas calles.')
+          return
+        }
+        const escape = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+        const overpassQuery =
+          `[out:json][timeout:15];` +
+          `area["name"="${escape(localidad.trim())}"]->.a;` +
+          `way["name"="${escape(calle.trim())}"]["highway"](area.a)->.w1;` +
+          `way["name"="${escape(calle2.trim())}"]["highway"](area.a)->.w2;` +
+          `node(w.w1)(w.w2);out;`
+        const res = await fetch('https://overpass-api.de/api/interpreter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `data=${encodeURIComponent(overpassQuery)}`,
+        })
+        const data: { elements: Array<{ lat: number; lon: number }> } = await res.json()
+        if (!data.elements.length) {
+          setGeocodeError('No encontramos esa intersección. Revisá los nombres o tocá el mapa.')
+          return
+        }
+        const node = data.elements[0]
+        onLatChange(node.lat)
+        onLngChange(node.lon)
+        onLocationTextChange(`${calle.trim()} y ${calle2.trim()}, ${localidad.trim()}`)
+      } else {
+        const query = `${calle.trim()} ${numero.trim()}, ${localidad.trim()}, Argentina`
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=ar`,
+          { headers: { 'Accept-Language': 'es', 'User-Agent': '10pet-web/1.0' } },
+        )
+        const data: Array<{ lat: string; lon: string }> = await res.json()
+        if (data.length === 0) {
+          setGeocodeError('No encontramos esa dirección. Revisá los datos o tocá el mapa.')
+          return
+        }
+        const r = data[0]
+        onLatChange(parseFloat(r.lat))
+        onLngChange(parseFloat(r.lon))
+        onLocationTextChange(`${calle.trim()} ${numero.trim()}, ${localidad.trim()}`)
       }
-      const r = data[0]
-      onLatChange(parseFloat(r.lat))
-      onLngChange(parseFloat(r.lon))
-      const label = addressMode === 'numero'
-        ? `${calle.trim()} ${numero.trim()}, ${localidad.trim()}`
-        : `${calle.trim()} y ${calle2.trim()}, ${localidad.trim()}`
-      onLocationTextChange(label)
     } catch {
       setGeocodeError('Error al buscar la dirección. Intentá de nuevo.')
     } finally {
@@ -648,29 +686,39 @@ function StepUbicacion({
       </div>
       )}
 
-      {lat !== null && lng !== null && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400">o ajusta el pin en el mapa</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-
-          <ErrorBoundary fallback={
-            <div className="h-[220px] rounded-xl bg-gray-100 flex flex-col items-center justify-center gap-2 text-gray-400 text-sm">
-              <span>No se pudo cargar el mapa.</span>
-              <button type="button" className="text-primary-600 underline text-xs" onClick={() => window.location.reload()}>Recargar pagina</button>
+      {(() => {
+        const mapLat = lat ?? localidadCenter?.[0] ?? null
+        const mapLng = lng ?? localidadCenter?.[1] ?? null
+        const confirmed = lat !== null
+        if (mapLat === null || mapLng === null) return null
+        return (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400">
+                {confirmed ? 'o ajustá el pin en el mapa' : 'o tocá el mapa para marcar la ubicación'}
+              </span>
+              <div className="flex-1 h-px bg-gray-200" />
             </div>
-          }>
-            <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Cargando mapa...</div>}>
-              <LocationPickerMap lat={lat} lng={lng} onChange={handleMapChange} />
-            </Suspense>
-          </ErrorBoundary>
-          <p className="text-xs text-gray-500 text-center">
-            Toca o arrastra el pin para ajustar la posicion exacta
-          </p>
-        </div>
-      )}
+
+            <ErrorBoundary fallback={
+              <div className="h-[220px] rounded-xl bg-gray-100 flex flex-col items-center justify-center gap-2 text-gray-400 text-sm">
+                <span>No se pudo cargar el mapa.</span>
+                <button type="button" className="text-primary-600 underline text-xs" onClick={() => window.location.reload()}>Recargar pagina</button>
+              </div>
+            }>
+              <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Cargando mapa...</div>}>
+                <LocationPickerMap lat={mapLat} lng={mapLng} onChange={handleMapChange} />
+              </Suspense>
+            </ErrorBoundary>
+            <p className="text-xs text-gray-500 text-center">
+              {confirmed
+                ? 'Toca o arrastra el pin para ajustar la posicion exacta'
+                : 'Toca el mapa para marcar la ubicación del animal'}
+            </p>
+          </div>
+        )
+      })()}
 
       <div className="relative">
         {reverseGeocoding && (
