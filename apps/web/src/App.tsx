@@ -4,6 +4,7 @@ import { InstallBanner } from './components/InstallBanner'
 import { NotificationPermission } from './components/NotificationPermission'
 import ToastContainer from './components/ToastContainer'
 import ErrorBoundary from './components/ErrorBoundary'
+import FeedbackButton from './components/FeedbackButton'
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
       <RouterProvider router={router} />
       <NotificationPermission />
       <InstallBanner />
+      <FeedbackButton />
       <ToastContainer />
     </ErrorBoundary>
   )

@@ -1,7 +1,7 @@
 import type { CaseItem, AnimalType, CaseStatus } from '../../types/case'
 
-const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', otro: 'Otro' }
-const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', otro: '🐾' }
+const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
+const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', caballo: '🐴', vaca: '🐄', otro: '🐾' }
 
 const STATUS_LABEL: Record<CaseStatus, string> = {
   abierto: 'Abierto',

@@ -23,8 +23,8 @@ interface FeedRow {
   heroUrl: string | null
 }
 
-const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', otro: '🐾' }
-const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', otro: 'Otro' }
+const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', caballo: '🐴', vaca: '🐄', otro: '🐾' }
+const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
 
 const URGENCY_CLS: Record<number, string> = {
   1: 'bg-green-100 text-green-700',
@@ -49,6 +49,8 @@ const ANIMAL_CHIPS: { value: AnimalType | ''; label: string }[] = [
   { value: '', label: 'Todos' },
   { value: 'perro', label: '🐕 Perro' },
   { value: 'gato', label: '🐈 Gato' },
+  { value: 'caballo', label: '🐴 Caballo' },
+  { value: 'vaca', label: '🐄 Vaca' },
   { value: 'otro', label: '🐾 Otro' },
 ]
 

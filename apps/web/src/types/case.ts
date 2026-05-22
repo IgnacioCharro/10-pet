@@ -1,4 +1,4 @@
-export type AnimalType = 'perro' | 'gato' | 'otro'
+export type AnimalType = 'perro' | 'gato' | 'caballo' | 'vaca' | 'otro'
 export type AnimalSex = 'macho' | 'hembra' | 'desconocido'
 export type AnimalSize = 'chico' | 'mediano' | 'grande'
 export type AnimalColor = 'negro' | 'blanco' | 'marron' | 'gris' | 'dorado' | 'manchado' | 'tricolor'
@@ -48,11 +48,18 @@ export interface CaseUpdateItem {
   createdAt: string
 }
 
+export interface CaseVolunteer {
+  userId: string
+  userName: string | null
+  status: 'active' | 'completed'
+}
+
 export interface CaseDetail extends CaseItem {
   images: CaseImageItem[]
   updates: CaseUpdateItem[]
   phoneContact?: string
   publisherName?: string | null
+  volunteers?: CaseVolunteer[]
 }
 
 export interface ListCasesQuery {

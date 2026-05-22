@@ -11,7 +11,7 @@ const animalColorSchema = z.enum(['negro', 'blanco', 'marron', 'gris', 'dorado',
 
 export const createCaseSchema = z.object({
   listingType: z.enum(['found', 'lost']).default('found'),
-  animalType: z.enum(['perro', 'gato', 'otro']),
+  animalType: z.enum(['perro', 'gato', 'caballo', 'vaca', 'otro']),
   description: z.string().trim().min(10).max(2000),
   location: locationSchema,
   locationText: z.string().trim().max(255).optional(),
@@ -31,7 +31,7 @@ export const listCasesSchema = z.object({
   status: z
     .enum(['abierto', 'en_rescate', 'resuelto', 'inactivo', 'spam'])
     .optional(), // 'archivado' omitido a propósito — no expuesto en búsqueda pública
-  animalType: z.enum(['perro', 'gato', 'otro']).optional(),
+  animalType: z.enum(['perro', 'gato', 'caballo', 'vaca', 'otro']).optional(),
   listingType: z.enum(['found', 'lost']).optional(),
   urgencyMin: z.coerce.number().int().min(1).max(5).optional(),
   page: z.coerce.number().int().min(1).default(1),
@@ -54,7 +54,7 @@ export const updateCaseSchema = z
     resolutionType: z
       .enum(['adoptado', 'en_transito', 'zoonosis', 'derivado_ong', 'fallecio', 'sin_paradero', 'otro'])
       .optional(),
-    animalType: z.enum(['perro', 'gato', 'otro']).optional(),
+    animalType: z.enum(['perro', 'gato', 'caballo', 'vaca', 'otro']).optional(),
     urgencyLevel: z.number().int().min(1).max(5).optional(),
     description: z.string().trim().min(10).max(2000).optional(),
     condition: z.string().trim().max(100).optional(),

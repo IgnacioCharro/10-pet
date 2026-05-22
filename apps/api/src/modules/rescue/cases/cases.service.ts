@@ -48,10 +48,17 @@ export interface CaseUpdateRow {
   createdAt: Date;
 }
 
+export interface VolunteerRow {
+  userId: string;
+  userName: string | null;
+  status: string;
+}
+
 export interface CaseDetail extends CaseRow {
   images: CaseImageRow[];
   updates: CaseUpdateRow[];
   publisherName: string | null;
+  volunteers: VolunteerRow[];
 }
 
 // Extracts lat/lng from PostGIS GEOMETRY; avoids WKB decoding in JS layer
@@ -298,10 +305,20 @@ export async function getCaseById(id: string): Promise<CaseDetail | null> {
     attributes: ['id', 'userId', 'updateType', 'content', 'createdAt'],
   });
 
+  const volunteers = await sequelize.query<VolunteerRow>(
+    `SELECT co.initiator_id AS "userId", u.name AS "userName", co.status
+     FROM contacts co
+     LEFT JOIN users u ON co.initiator_id = u.id
+     WHERE co.case_id = :id AND co.status IN ('active', 'completed')
+     ORDER BY co.created_at ASC`,
+    { replacements: { id }, type: QueryTypes.SELECT },
+  );
+
   return {
     ...caseRow,
     images: images.map((img) => img.toJSON() as CaseImageRow),
     updates: updates.map((u) => u.toJSON() as CaseUpdateRow),
+    volunteers,
   };
 }
 
