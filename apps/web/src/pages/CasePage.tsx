@@ -272,6 +272,14 @@ export default function CasePage() {
                   {URGENCY_LABEL[detail.urgencyLevel] ?? `Urgencia ${detail.urgencyLevel}`}
                 </span>
               </div>
+              {detail.publisherName && (
+                <p className="text-xs text-gray-400 mt-1.5">
+                  por{' '}
+                  <Link to={`/users/${detail.userId}`} className="text-primary-600 hover:underline">
+                    {detail.publisherName}
+                  </Link>
+                </p>
+              )}
             </div>
           </div>
 
@@ -333,8 +341,8 @@ export default function CasePage() {
             onSubmit={handleVetSubmit}
           />
 
-          {(detail.volunteers?.length ?? 0) > 0 && (
-            <VolunteersSection volunteers={detail.volunteers!} />
+          {detail.volunteers !== undefined && (
+            <VolunteersSection volunteers={detail.volunteers} />
           )}
 
           <div className="flex items-center justify-between pt-2">
@@ -460,20 +468,24 @@ function VolunteersSection({ volunteers }: { volunteers: CaseVolunteer[] }) {
       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
         Voluntarios ({volunteers.length})
       </p>
-      <div className="flex flex-wrap gap-2">
-        {volunteers.map((v) => (
-          <Link
-            key={v.userId}
-            to={`/users/${v.userId}`}
-            className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 transition-colors"
-          >
-            <span className="text-xs font-medium text-gray-700">{v.userName ?? 'Voluntario'}</span>
-            {v.status === 'completed' && (
-              <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">completado</span>
-            )}
-          </Link>
-        ))}
-      </div>
+      {volunteers.length === 0 ? (
+        <p className="text-xs text-gray-400">Todavia no hay voluntarios en este caso.</p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {volunteers.map((v) => (
+            <Link
+              key={v.userId}
+              to={`/users/${v.userId}`}
+              className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 transition-colors"
+            >
+              <span className="text-xs font-medium text-gray-700">{v.userName ?? 'Voluntario'}</span>
+              {v.status === 'completed' && (
+                <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">completado</span>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
