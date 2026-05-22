@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError, z } from 'zod';
-import { User, Case } from '../../db';
+import { Op } from 'sequelize';
+import { User, Case, Contact } from '../../db';
 
 function isAdminEmail(email: string): boolean {
   const adminEmails = new Set(
@@ -176,6 +177,40 @@ export const getMyCases = async (
       limit: 50,
     });
     res.json({ cases });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getUserById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { id } = req.params as { id: string };
+
+    const user = await User.findByPk(id, {
+      attributes: ['id', 'name', 'isVet', 'createdAt'],
+    });
+    if (!user) {
+      res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: 'Usuario no encontrado' } });
+      return;
+    }
+
+    const [casesPublished, casesVolunteered] = await Promise.all([
+      Case.count({ where: { userId: id } }),
+      Contact.count({ where: { initiatorId: id, status: { [Op.in]: ['active', 'completed'] } } }),
+    ]);
+
+    res.json({
+      id: user.id,
+      name: user.name,
+      isVet: user.isVet,
+      createdAt: user.createdAt,
+      casesPublished,
+      casesVolunteered,
+    });
   } catch (err) {
     next(err);
   }

@@ -14,6 +14,7 @@ import AdminPage from '../pages/AdminPage'
 import CasePage from '../pages/CasePage'
 import ForgotPasswordPage from '../pages/ForgotPasswordPage'
 import ResetPasswordPage from '../pages/ResetPasswordPage'
+import PublicProfilePage from '../pages/PublicProfilePage'
 import ProtectedRoute from './ProtectedRoute'
 import AdminRoute from './AdminRoute'
 
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'cases/:id', element: <CasePage /> },
+      { path: 'users/:id', element: <PublicProfilePage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
       { path: 'verify-email', element: <VerifyEmailPage /> },

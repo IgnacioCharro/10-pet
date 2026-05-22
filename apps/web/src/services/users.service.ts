@@ -32,3 +32,17 @@ export const patchNotificationLocation = async (input: {
 export const deleteNotificationLocation = async (): Promise<void> => {
   await api.delete('/users/me/notification-location')
 }
+
+export interface PublicProfile {
+  id: string
+  name: string | null
+  isVet: boolean
+  createdAt: string
+  casesPublished: number
+  casesVolunteered: number
+}
+
+export const getPublicProfile = async (userId: string): Promise<PublicProfile> => {
+  const res = await api.get<PublicProfile>(`/users/${userId}`)
+  return res.data
+}
