@@ -94,7 +94,7 @@ describe('POST /api/v1/cases', () => {
       .post('/api/v1/cases')
       .set('Authorization', authHeader)
       .send({
-        animalType: 'caballo',
+        animalType: 'dinosaurio',
         description: 'Descripcion suficientemente larga para pasar validacion',
         location: { lat: -34.6037, lng: -58.3816 },
       });
