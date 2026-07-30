@@ -31,6 +31,7 @@ export interface CaseRow {
   resolvedAt: Date | null;
   distanceKm?: number;
   heroUrl?: string | null;
+  volunteerCount?: number;
 }
 
 export interface CaseImageRow {
@@ -86,6 +87,12 @@ const BASE_CASE_SELECT = `
 const HERO_URL_SELECT = `
   (SELECT ci.cloudinary_url FROM case_images ci
    WHERE ci.case_id = c.id ORDER BY ci.position ASC LIMIT 1) AS "heroUrl"
+`;
+
+// Subquery correlacionada: los casos sin voluntarios quedan en 0, no se descartan
+const VOLUNTEER_COUNT_SELECT = `
+  (SELECT COUNT(*) FROM contacts co
+   WHERE co.case_id = c.id AND co.status IN ('active','completed')) AS "volunteerCount"
 `;
 
 export async function createCase(
@@ -237,11 +244,12 @@ export async function listCases(
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
   let orderBy = 'c.created_at DESC';
-  if (sort === 'urgency') orderBy = 'c.urgency_level DESC, c.created_at DESC';
+  // a igual urgencia primero el caso con menos voluntarios (menos cubierto)
+  if (sort === 'urgency') orderBy = 'c.urgency_level DESC, "volunteerCount" ASC, c.created_at DESC';
   if (sort === 'distance' && lat !== undefined) orderBy = 'distance_km ASC NULLS LAST';
 
   const rows = await sequelize.query<CaseRow & { distanceKm: number | null }>(
-    `SELECT ${BASE_CASE_SELECT}, ${distanceExpr} AS "distanceKm", ${HERO_URL_SELECT}
+    `SELECT ${BASE_CASE_SELECT}, ${distanceExpr} AS "distanceKm", ${HERO_URL_SELECT}, ${VOLUNTEER_COUNT_SELECT}
      FROM cases c
      ${where}
      ORDER BY ${orderBy}
@@ -254,7 +262,10 @@ export async function listCases(
     { replacements, type: QueryTypes.SELECT },
   );
 
-  return { cases: rows, total: parseInt(countResult.total, 10) };
+  return {
+    cases: rows.map((r) => ({ ...r, volunteerCount: Number(r.volunteerCount) })),
+    total: parseInt(countResult.total, 10),
+  };
 }
 
 export async function getNearbyCases(query: NearbyCasesQuery): Promise<CaseRow[]> {
