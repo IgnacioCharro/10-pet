@@ -8,6 +8,11 @@ import {
   UpdateCaseInput,
   AddUpdateInput,
 } from './cases.validators';
+import {
+  buildListOrderBy,
+  buildFeedOrderBy,
+  FEED_VOLUNTEER_COUNT_EXPR,
+} from './cases.ordering';
 import { notifyNewCaseQueue } from '../../../jobs/queue';
 
 export interface CaseRow {
@@ -236,9 +241,7 @@ export async function listCases(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  let orderBy = 'c.created_at DESC';
-  if (sort === 'urgency') orderBy = 'c.urgency_level DESC, c.created_at DESC';
-  if (sort === 'distance' && lat !== undefined) orderBy = 'distance_km ASC NULLS LAST';
+  const orderBy = buildListOrderBy(sort, lat !== undefined && lng !== undefined);
 
   const rows = await sequelize.query<CaseRow & { distanceKm: number | null }>(
     `SELECT ${BASE_CASE_SELECT}, ${distanceExpr} AS "distanceKm", ${HERO_URL_SELECT}
@@ -445,10 +448,7 @@ export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]
     replacements.listingType = listingType;
   }
 
-  // lost cases: most recent first; found cases (or all): urgency then recency
-  const orderBy = listingType === 'lost'
-    ? 'c.created_at DESC'
-    : 'c.urgency_level DESC, c.created_at DESC';
+  const orderBy = buildFeedOrderBy(listingType);
 
   const rows = await sequelize.query<FeedCaseRow>(
     `SELECT
@@ -459,7 +459,7 @@ export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]
        c.urgency_level AS "urgencyLevel",
        c.created_at AS "createdAt",
        u.name AS "publisherName",
-       COUNT(co.id) FILTER (WHERE co.status IN ('active', 'completed')) AS "volunteerCount",
+       ${FEED_VOLUNTEER_COUNT_EXPR} AS "volunteerCount",
        ${HERO_URL_SELECT}
      FROM cases c
      LEFT JOIN users u ON c.user_id = u.id
