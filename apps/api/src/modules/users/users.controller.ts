@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError, z } from 'zod';
-import { Op } from 'sequelize';
-import { User, Case, Contact } from '../../db';
+import { User, Case } from '../../db';
+import { getOfferStats } from './users.service';
 
 function isAdminEmail(email: string): boolean {
   const adminEmails = new Set(
@@ -198,9 +198,9 @@ export const getUserById = async (
       return;
     }
 
-    const [casesPublished, casesVolunteered] = await Promise.all([
+    const [casesPublished, offers] = await Promise.all([
       Case.count({ where: { userId: id } }),
-      Contact.count({ where: { initiatorId: id, status: { [Op.in]: ['active', 'completed'] } } }),
+      getOfferStats(id),
     ]);
 
     res.json({
@@ -209,7 +209,14 @@ export const getUserById = async (
       isVet: user.isVet,
       createdAt: user.createdAt,
       casesPublished,
-      casesVolunteered,
+      // casesVolunteered es active+completed, el mismo valor que offersAccepted
+      casesVolunteered: offers.offersAccepted,
+      offersAccepted: offers.offersAccepted,
+      offersCompleted: offers.offersCompleted,
+      // offersRejected no se expone: el registro es libre, asi que "cualquier
+      // autenticado" es casi cualquiera, y un contador de rechazos ajeno
+      // estigmatiza sin que nadie lo pida. getOfferStats lo sigue calculando
+      // por si algun dia hay una pantalla propia del usuario que lo justifique.
     });
   } catch (err) {
     next(err);
