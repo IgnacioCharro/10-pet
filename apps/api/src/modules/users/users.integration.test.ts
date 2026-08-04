@@ -18,7 +18,8 @@ vi.mock('../../modules/auth/auth.service', () => ({
 vi.mock('../../db', () => ({
   sequelize: { authenticate: vi.fn().mockResolvedValue(undefined) },
   User: { findByPk: vi.fn(), update: vi.fn() },
-  Case: { findAll: vi.fn() },
+  Case: { findAll: vi.fn(), count: vi.fn() },
+  Contact: { findAll: vi.fn() },
   RefreshToken: {},
 }));
 
@@ -192,5 +193,135 @@ describe('POST /api/v1/users/me/push-token', () => {
       .post('/api/v1/users/me/push-token')
       .send({ token: 'fcm-abc' });
     expect(res.status).toBe(401);
+  });
+});
+
+describe('GET /api/v1/users/:id', () => {
+  const publicUser = {
+    id: 'uuid-target',
+    name: 'Rescatista',
+    isVet: false,
+    createdAt: new Date('2026-04-20'),
+  };
+
+  // Tal y como los devuelve Postgres: COUNT llega como string
+  const aggregateRows = [
+    { status: 'active', count: '2' },
+    { status: 'completed', count: '3' },
+    { status: 'rejected', count: '4' },
+    { status: 'pending', count: '5' },
+  ];
+
+  const mockProfile = (rows: unknown[], casesPublished = 0) => {
+    vi.mocked(db.User.findByPk).mockResolvedValueOnce(publicUser as never);
+    vi.mocked(db.Case.count).mockResolvedValueOnce(casesPublished as never);
+    vi.mocked(db.Contact.findAll).mockResolvedValueOnce(rows as never);
+  };
+
+  it('devuelve todo a cero para un usuario sin contactos', async () => {
+    mockProfile([]);
+
+    const res = await request(app).get('/api/v1/users/uuid-target');
+
+    expect(res.status).toBe(200);
+    expect(res.body.offersAccepted).toBe(0);
+    expect(res.body.offersCompleted).toBe(0);
+    expect(res.body.casesVolunteered).toBe(0);
+  });
+
+  it('suma completed a aceptados y no cuenta los pending', async () => {
+    mockProfile(aggregateRows);
+
+    const res = await request(app).get('/api/v1/users/uuid-target');
+
+    expect(res.status).toBe(200);
+    expect(res.body.offersAccepted).toBe(5);
+    expect(res.body.offersCompleted).toBe(3);
+    expect(res.body.casesVolunteered).toBe(5);
+  });
+
+  it('no cuenta como aceptado un estado que no conoce', async () => {
+    mockProfile([
+      { status: 'active', count: '2' },
+      { status: 'cancelled', count: '9' },
+    ]);
+
+    const res = await request(app).get('/api/v1/users/uuid-target');
+
+    expect(res.body.offersAccepted).toBe(2);
+    expect(res.body.offersCompleted).toBe(0);
+  });
+
+  it('convierte a number los COUNT que Postgres devuelve como string', async () => {
+    mockProfile(aggregateRows);
+
+    const res = await request(app).get('/api/v1/users/uuid-target');
+
+    expect(typeof res.body.offersAccepted).toBe('number');
+    expect(typeof res.body.offersCompleted).toBe('number');
+    expect(typeof res.body.casesVolunteered).toBe('number');
+  });
+
+  it('cuenta cero, y no NaN, si la fila viene sin el alias count', async () => {
+    mockProfile([{ status: 'active' }, { status: 'completed', count: '3' }]);
+
+    const res = await request(app).get('/api/v1/users/uuid-target');
+
+    expect(res.status).toBe(200);
+    expect(res.body.offersAccepted).toBe(3);
+    expect(res.body.offersCompleted).toBe(3);
+    expect(res.body.casesVolunteered).toBe(3);
+  });
+
+  it('nunca expone offersRejected, ni al anonimo ni al autenticado', async () => {
+    mockProfile(aggregateRows);
+    const anonimo = await request(app).get('/api/v1/users/uuid-target');
+
+    mockProfile(aggregateRows);
+    const autenticado = await request(app)
+      .get('/api/v1/users/uuid-target')
+      .set('Authorization', `Bearer ${makeToken()}`);
+
+    expect(anonimo.status).toBe(200);
+    expect(autenticado.status).toBe(200);
+    expect('offersRejected' in anonimo.body).toBe(false);
+    expect('offersRejected' in autenticado.body).toBe(false);
+  });
+
+  it('devuelve 404 sin ejecutar ningun conteo si el usuario no existe', async () => {
+    vi.mocked(db.User.findByPk).mockResolvedValueOnce(null);
+
+    const res = await request(app).get('/api/v1/users/uuid-target');
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('USER_NOT_FOUND');
+    expect(db.Case.count).not.toHaveBeenCalled();
+    expect(db.Contact.findAll).not.toHaveBeenCalled();
+  });
+
+  it('mantiene intacto el contrato previo del perfil publico', async () => {
+    mockProfile(aggregateRows, 7);
+
+    const res = await request(app).get('/api/v1/users/uuid-target');
+
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe('uuid-target');
+    expect(res.body.name).toBe('Rescatista');
+    expect(res.body.isVet).toBe(false);
+    expect(res.body.createdAt).toBeDefined();
+    expect(res.body.casesPublished).toBe(7);
+    expect(res.body.casesVolunteered).toBe(5);
+  });
+
+  it('agrega los contactos en una sola query filtrada por el id de la URL', async () => {
+    mockProfile(aggregateRows);
+
+    const res = await request(app).get('/api/v1/users/uuid-target');
+
+    expect(res.status).toBe(200);
+    expect(db.Contact.findAll).toHaveBeenCalledTimes(1);
+    expect(db.Contact.findAll).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { initiatorId: 'uuid-target' } }),
+    );
   });
 });
