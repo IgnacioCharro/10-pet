@@ -16,9 +16,12 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES: z.string().default('7d'),
   REDIS_URL: z.string().optional(),
   ADMIN_EMAILS: z.string().default(''),
-  SENDGRID_API_KEY: z.string().optional(),
-  SENDGRID_FROM_EMAIL: z.string().email().default('noreply@10pet.ar'),
-  SENDGRID_FROM_NAME: z.string().default('10_Pet'),
+  BREVO_API_KEY: z.string().optional(),
+  // El default es un dominio reservado (.invalid, RFC 2606) que nunca resuelve: si
+  // llega a produccion sin setear, Brevo rechaza el envio con un motivo explicito en
+  // vez de fallar en silencio.
+  MAIL_FROM_EMAIL: z.string().email().default('noreply@10-pet.invalid'),
+  MAIL_FROM_NAME: z.string().default('10_Pet'),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_CALLBACK_URL: z

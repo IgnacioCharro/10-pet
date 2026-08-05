@@ -1,9 +1,6 @@
-import sgMail from '@sendgrid/mail';
 import { env } from '../config/env';
 
-if (env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(env.SENDGRID_API_KEY);
-}
+const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email';
 
 export interface EmailPayload {
   to: string;
@@ -13,24 +10,43 @@ export interface EmailPayload {
 }
 
 const requireApiKey = (): void => {
-  if (!env.SENDGRID_API_KEY && env.NODE_ENV === 'production') {
-    throw new Error('SENDGRID_API_KEY is not configured');
+  if (!env.BREVO_API_KEY && env.NODE_ENV === 'production') {
+    throw new Error('BREVO_API_KEY is not configured');
+  }
+};
+
+const deliver = async (payload: EmailPayload): Promise<void> => {
+  const res = await fetch(BREVO_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'api-key': env.BREVO_API_KEY as string,
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { email: env.MAIL_FROM_EMAIL, name: env.MAIL_FROM_NAME },
+      to: [{ email: payload.to }],
+      subject: payload.subject,
+      textContent: payload.text,
+      htmlContent: payload.html,
+    }),
+  });
+
+  if (!res.ok) {
+    // El cuerpo trae el motivo real (remitente sin verificar, cuota agotada, clave
+    // invalida). Incluirlo evita tener que adivinar desde el status code.
+    const body = await res.text().catch(() => '');
+    throw new Error(`Brevo respondio ${res.status} ${res.statusText}: ${body}`);
   }
 };
 
 export const sendEmail = async (payload: EmailPayload): Promise<void> => {
-  if (!env.SENDGRID_API_KEY) {
+  if (!env.BREVO_API_KEY) {
     requireApiKey();
     console.log(`[email] → ${payload.to}: ${payload.subject}`);
     return;
   }
-  await sgMail.send({
-    to: payload.to,
-    from: { email: env.SENDGRID_FROM_EMAIL, name: env.SENDGRID_FROM_NAME },
-    subject: payload.subject,
-    text: payload.text,
-    html: payload.html,
-  });
+  await deliver(payload);
 };
 
 export const sendVerificationEmail = async (
@@ -39,15 +55,14 @@ export const sendVerificationEmail = async (
 ): Promise<void> => {
   const verifyUrl = `${env.API_BASE_URL}/api/v1/auth/verify-email?token=${token}`;
 
-  if (!env.SENDGRID_API_KEY) {
+  if (!env.BREVO_API_KEY) {
     requireApiKey();
     console.log(`[email] verification link for ${toEmail}: ${verifyUrl}`);
     return;
   }
 
-  await sgMail.send({
+  await deliver({
     to: toEmail,
-    from: { email: env.SENDGRID_FROM_EMAIL, name: env.SENDGRID_FROM_NAME },
     subject: 'Verificá tu cuenta en 10_Pet',
     text: `Hacé clic en el siguiente link para verificar tu cuenta:\n\n${verifyUrl}\n\nEste link expira en 24 horas.`,
     html: `
@@ -64,15 +79,14 @@ export const sendWelcomeEmail = async (toEmail: string, name: string | null): Pr
   const casesUrl = `${env.WEB_BASE_URL}/cases`;
   const greeting = name ? `Hola ${name}` : 'Hola';
 
-  if (!env.SENDGRID_API_KEY) {
+  if (!env.BREVO_API_KEY) {
     requireApiKey();
     console.log(`[email] welcome email for ${toEmail}`);
     return;
   }
 
-  await sgMail.send({
+  await deliver({
     to: toEmail,
-    from: { email: env.SENDGRID_FROM_EMAIL, name: env.SENDGRID_FROM_NAME },
     subject: 'Bienvenido/a a 10_Pet',
     text: `${greeting},\n\nGracias por unirte a 10_Pet. Podés ver casos de animales que necesitan ayuda en tu zona:\n\n${casesUrl}\n\nCada caso reportado puede marcar la diferencia. Gracias por ser parte.`,
     html: `
@@ -91,15 +105,14 @@ export const sendPasswordResetEmail = async (
 ): Promise<void> => {
   const resetUrl = `${env.WEB_BASE_URL}/reset-password?token=${token}`;
 
-  if (!env.SENDGRID_API_KEY) {
+  if (!env.BREVO_API_KEY) {
     requireApiKey();
     console.log(`[email] password reset link for ${toEmail}: ${resetUrl}`);
     return;
   }
 
-  await sgMail.send({
+  await deliver({
     to: toEmail,
-    from: { email: env.SENDGRID_FROM_EMAIL, name: env.SENDGRID_FROM_NAME },
     subject: 'Recuperar contraseña — 10_Pet',
     text: `Recibimos una solicitud para restablecer tu contraseña.\n\nHacé clic en el siguiente link para crear una nueva contraseña:\n\n${resetUrl}\n\nEste link expira en 1 hora. Si no solicitaste esto, podés ignorar este email.`,
     html: `
