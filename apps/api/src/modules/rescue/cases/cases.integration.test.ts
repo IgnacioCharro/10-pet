@@ -282,6 +282,17 @@ describe('GET /api/v1/cases/feed', () => {
     expect(res.body.cases[0].publisherName).toBe('Maria');
   });
 
+  it('expone el nombre de relleno tal cual lo devuelve el servicio', async () => {
+    vi.mocked(svc.getFeedCases).mockResolvedValueOnce([
+      { ...fakeFeedCase, publisherName: 'Usuario sin nombre' },
+    ]);
+
+    const res = await request(app).get('/api/v1/cases/feed?lat=-34.6&lng=-58.38');
+
+    expect(res.status).toBe(200);
+    expect(res.body.cases[0].publisherName).toBe('Usuario sin nombre');
+  });
+
   it('devuelve 400 sin lat/lng', async () => {
     const res = await request(app).get('/api/v1/cases/feed');
 

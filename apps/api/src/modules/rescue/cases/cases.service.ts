@@ -13,6 +13,7 @@ import {
   buildFeedOrderBy,
   FEED_VOLUNTEER_COUNT_EXPR,
 } from './cases.ordering';
+import { resolvePublisherName } from './cases.publisher';
 import { notifyNewCaseQueue } from '../../../jobs/queue';
 
 export interface CaseRow {
@@ -62,7 +63,8 @@ export interface VolunteerRow {
 export interface CaseDetail extends CaseRow {
   images: CaseImageRow[];
   updates: CaseUpdateRow[];
-  publisherName: string | null;
+  // Never null: u.name can be, resolvePublisherName settles it before returning
+  publisherName: string;
   volunteers: VolunteerRow[];
 }
 
@@ -319,6 +321,7 @@ export async function getCaseById(id: string): Promise<CaseDetail | null> {
 
   return {
     ...caseRow,
+    publisherName: resolvePublisherName(caseRow.publisherName),
     images: images.map((img) => img.toJSON() as CaseImageRow),
     updates: updates.map((u) => u.toJSON() as CaseUpdateRow),
     volunteers,
@@ -425,10 +428,15 @@ export interface FeedCaseRow {
   locationText: string | null;
   urgencyLevel: number;
   createdAt: Date;
-  publisherName: string | null;
+  // Never null, same as CaseDetail.publisherName
+  publisherName: string;
   volunteerCount: number;
   heroUrl: string | null;
 }
+
+// The raw feed row before normalization: u.name arrives nullable and the count
+// arrives as a string from Postgres
+type FeedCaseDbRow = Omit<FeedCaseRow, 'publisherName'> & { publisherName: string | null };
 
 export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]> {
   const { lat, lng, radius, listingType } = query;
@@ -450,7 +458,7 @@ export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]
 
   const orderBy = buildFeedOrderBy(listingType);
 
-  const rows = await sequelize.query<FeedCaseRow>(
+  const rows = await sequelize.query<FeedCaseDbRow>(
     `SELECT
        c.id,
        c.listing_type AS "listingType",
@@ -470,7 +478,11 @@ export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]
      LIMIT 15`,
     { replacements, type: QueryTypes.SELECT },
   );
-  return rows.map((r) => ({ ...r, volunteerCount: Number(r.volunteerCount) }));
+  return rows.map((r) => ({
+    ...r,
+    publisherName: resolvePublisherName(r.publisherName),
+    volunteerCount: Number(r.volunteerCount),
+  }));
 }
 
 export async function addCaseUpdate(

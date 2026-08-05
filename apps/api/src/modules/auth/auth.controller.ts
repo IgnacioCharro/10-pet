@@ -158,6 +158,7 @@ export const googleCallbackHandler = async (
       id: string;
       email: string;
       emailVerified: boolean;
+      name?: string | null;
     } | undefined;
 
     if (!profile) {

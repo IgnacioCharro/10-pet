@@ -9,6 +9,8 @@ declare global {
       id: string;
       email: string;
       emailVerified?: boolean;
+      // Solo lo rellena la verify callback de Google; los tokens no lo llevan
+      name?: string | null;
     }
   }
 }
