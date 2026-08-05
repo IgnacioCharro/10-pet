@@ -201,6 +201,7 @@ export const findOrCreateGoogleUser = async (profile: {
   id: string;
   email: string;
   emailVerified: boolean;
+  name?: string | null;
 }): Promise<AuthResult> => {
   let user = await User.findOne({ where: { googleId: profile.id } });
 
@@ -208,6 +209,11 @@ export const findOrCreateGoogleUser = async (profile: {
     user = await User.findOne({ where: { email: profile.email } });
     if (user) {
       user.googleId = profile.id;
+      // La cuenta existia sin nombre: se completa ahora, como parte del alta.
+      // Nunca se pisa un nombre ya guardado.
+      if (profile.name && !user.name?.trim()) {
+        user.name = profile.name;
+      }
       if (profile.emailVerified) {
         user.emailVerified = true;
         user.emailVerificationToken = null;
@@ -218,6 +224,7 @@ export const findOrCreateGoogleUser = async (profile: {
       user = await User.create({
         email: profile.email,
         googleId: profile.id,
+        name: profile.name ?? null,
         emailVerified: profile.emailVerified,
       });
     }

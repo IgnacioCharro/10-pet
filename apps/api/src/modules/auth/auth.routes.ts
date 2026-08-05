@@ -12,6 +12,7 @@ import {
   forgotPasswordHandler,
   resetPasswordHandler,
 } from './auth.controller';
+import { pickGoogleName } from './auth.google-profile';
 
 export const authRouter: Router = Router();
 
@@ -37,7 +38,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           return done(new Error('No email in Google profile'));
         }
         const emailVerified = profile.emails?.[0]?.verified === true;
-        done(null, { id: profile.id, email, emailVerified });
+        done(null, { id: profile.id, email, emailVerified, name: pickGoogleName(profile) });
       },
     ),
   );
