@@ -7,6 +7,7 @@ import {
   logoutSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  resendVerificationSchema,
 } from './auth.validators';
 import {
   registerUser,
@@ -17,6 +18,7 @@ import {
   findOrCreateGoogleUser,
   forgotPassword,
   resetPassword,
+  resendVerification,
 } from './auth.service';
 import { AuthError, googleOAuthError } from './auth.errors';
 import { env } from '../../config/env';
@@ -116,6 +118,23 @@ export const verifyEmailHandler = async (
       return;
     }
     next(err);
+  }
+};
+
+export const resendVerificationHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { email } = resendVerificationSchema.parse(req.body);
+    await resendVerification(email);
+    // Siempre 200 — no revelar si el email existe ni si ya estaba verificado
+    res.status(200).json({
+      message: 'Si el email existe y no está verificado, te enviamos un link nuevo.',
+    });
+  } catch (err) {
+    handleError(err, res, next);
   }
 };
 
