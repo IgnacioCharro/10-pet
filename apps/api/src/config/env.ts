@@ -16,9 +16,10 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES: z.string().default('7d'),
   REDIS_URL: z.string().optional(),
   ADMIN_EMAILS: z.string().default(''),
-  BREVO_API_KEY: z.string().optional(),
+  MAILJET_API_KEY: z.string().optional(),
+  MAILJET_SECRET_KEY: z.string().optional(),
   // El default es un dominio reservado (.invalid, RFC 2606) que nunca resuelve: si
-  // llega a produccion sin setear, Brevo rechaza el envio con un motivo explicito en
+  // llega a produccion sin setear, Mailjet rechaza el envio con un motivo explicito en
   // vez de fallar en silencio.
   MAIL_FROM_EMAIL: z.string().email().default('noreply@10-pet.invalid'),
   MAIL_FROM_NAME: z.string().default('10_Pet'),

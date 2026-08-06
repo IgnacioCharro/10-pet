@@ -1,6 +1,6 @@
 import { env } from '../config/env';
 
-const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email';
+const MAILJET_ENDPOINT = 'https://api.mailjet.com/v3.1/send';
 
 export interface EmailPayload {
   to: string;
@@ -9,40 +9,67 @@ export interface EmailPayload {
   html: string;
 }
 
-const requireApiKey = (): void => {
-  if (!env.BREVO_API_KEY && env.NODE_ENV === 'production') {
-    throw new Error('BREVO_API_KEY is not configured');
+// Mailjet autentica con un par de claves, no con una sola: sin las dos no se puede
+// enviar nada.
+const hasCredentials = (): boolean =>
+  Boolean(env.MAILJET_API_KEY && env.MAILJET_SECRET_KEY);
+
+const requireCredentials = (): void => {
+  if (!hasCredentials() && env.NODE_ENV === 'production') {
+    throw new Error('MAILJET_API_KEY y MAILJET_SECRET_KEY no estan configuradas');
   }
 };
 
 const deliver = async (payload: EmailPayload): Promise<void> => {
-  const res = await fetch(BREVO_ENDPOINT, {
+  const auth = Buffer.from(
+    `${env.MAILJET_API_KEY}:${env.MAILJET_SECRET_KEY}`,
+  ).toString('base64');
+
+  const res = await fetch(MAILJET_ENDPOINT, {
     method: 'POST',
     headers: {
-      'api-key': env.BREVO_API_KEY as string,
+      authorization: `Basic ${auth}`,
       'content-type': 'application/json',
       accept: 'application/json',
     },
     body: JSON.stringify({
-      sender: { email: env.MAIL_FROM_EMAIL, name: env.MAIL_FROM_NAME },
-      to: [{ email: payload.to }],
-      subject: payload.subject,
-      textContent: payload.text,
-      htmlContent: payload.html,
+      Messages: [
+        {
+          From: { Email: env.MAIL_FROM_EMAIL, Name: env.MAIL_FROM_NAME },
+          To: [{ Email: payload.to }],
+          Subject: payload.subject,
+          TextPart: payload.text,
+          HTMLPart: payload.html,
+        },
+      ],
     }),
   });
 
+  // El cuerpo trae el motivo real (remitente sin verificar, cuota agotada, clave
+  // invalida). Incluirlo evita tener que adivinar desde el status code.
+  const body = await res.text().catch(() => '');
+
   if (!res.ok) {
-    // El cuerpo trae el motivo real (remitente sin verificar, cuota agotada, clave
-    // invalida). Incluirlo evita tener que adivinar desde el status code.
-    const body = await res.text().catch(() => '');
-    throw new Error(`Brevo respondio ${res.status} ${res.statusText}: ${body}`);
+    throw new Error(`Mailjet respondio ${res.status} ${res.statusText}: ${body}`);
+  }
+
+  // Mailjet puede responder 200 con el mensaje rechazado adentro. Sin mirar el Status
+  // de cada mensaje, un envio fallido pasaria por exitoso.
+  let parsed: { Messages?: { Status?: string }[] } | null = null;
+  try {
+    parsed = JSON.parse(body) as { Messages?: { Status?: string }[] };
+  } catch {
+    parsed = null;
+  }
+
+  if (parsed?.Messages?.[0]?.Status !== 'success') {
+    throw new Error(`Mailjet no acepto el envio: ${body}`);
   }
 };
 
 export const sendEmail = async (payload: EmailPayload): Promise<void> => {
-  if (!env.BREVO_API_KEY) {
-    requireApiKey();
+  if (!hasCredentials()) {
+    requireCredentials();
     console.log(`[email] → ${payload.to}: ${payload.subject}`);
     return;
   }
@@ -55,8 +82,8 @@ export const sendVerificationEmail = async (
 ): Promise<void> => {
   const verifyUrl = `${env.API_BASE_URL}/api/v1/auth/verify-email?token=${token}`;
 
-  if (!env.BREVO_API_KEY) {
-    requireApiKey();
+  if (!hasCredentials()) {
+    requireCredentials();
     console.log(`[email] verification link for ${toEmail}: ${verifyUrl}`);
     return;
   }
@@ -79,8 +106,8 @@ export const sendWelcomeEmail = async (toEmail: string, name: string | null): Pr
   const casesUrl = `${env.WEB_BASE_URL}/cases`;
   const greeting = name ? `Hola ${name}` : 'Hola';
 
-  if (!env.BREVO_API_KEY) {
-    requireApiKey();
+  if (!hasCredentials()) {
+    requireCredentials();
     console.log(`[email] welcome email for ${toEmail}`);
     return;
   }
@@ -105,8 +132,8 @@ export const sendPasswordResetEmail = async (
 ): Promise<void> => {
   const resetUrl = `${env.WEB_BASE_URL}/reset-password?token=${token}`;
 
-  if (!env.BREVO_API_KEY) {
-    requireApiKey();
+  if (!hasCredentials()) {
+    requireCredentials();
     console.log(`[email] password reset link for ${toEmail}: ${resetUrl}`);
     return;
   }

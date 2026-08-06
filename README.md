@@ -38,7 +38,7 @@ Plataforma de rescate animal colaborativa para Argentina. Un mapa en vivo donde 
 
 - Node.js >= 20
 - pnpm >= 9
-- Cuentas gratuitas: [Supabase](https://supabase.com), [Upstash](https://upstash.com), [Cloudinary](https://cloudinary.com), [Brevo](https://brevo.com), [Firebase](https://firebase.google.com)
+- Cuentas gratuitas: [Supabase](https://supabase.com), [Upstash](https://upstash.com), [Cloudinary](https://cloudinary.com), [Mailjet](https://mailjet.com), [Firebase](https://firebase.google.com)
 
 ## Setup local
 

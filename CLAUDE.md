@@ -20,7 +20,7 @@ Instrucciones para Claude Code cuando trabajes en este repo.
 - Validación: Zod (schemas compartidos en `packages/shared`)
 - Auth: JWT (access 15min + refresh 7d) + OAuth Google
 - Imágenes: Cloudinary signed uploads (upload directo cliente, el API solo firma)
-- Email: Brevo (API transaccional via fetch, sin SDK). Push: Firebase FCM. Errores: Sentry.
+- Email: Mailjet (API transaccional via fetch, sin SDK). Push: Firebase FCM. Errores: Sentry.
 
 ## Convenciones
 
@@ -110,7 +110,7 @@ pnpm typecheck                     # typecheck todo
 | Supabase | Postgres + PostGIS | `DATABASE_URL` |
 | Upstash | Redis (Bull) | `REDIS_URL` |
 | Cloudinary | Imágenes | `CLOUDINARY_*` |
-| Brevo | Emails | `BREVO_API_KEY` |
+| Mailjet | Emails | `MAILJET_API_KEY` + `MAILJET_SECRET_KEY` |
 | Firebase | Push FCM | `FIREBASE_*` |
 | Sentry | Errores | `SENTRY_DSN` |
 
