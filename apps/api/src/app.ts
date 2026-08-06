@@ -18,6 +18,16 @@ import { feedbackRouter } from './routes/feedback.routes';
 
 const app: Application = express();
 
+// Detras del proxy de Render, la conexion TCP viene del proxy y no del visitante, asi
+// que sin esto `req.ip` es la misma para todo el mundo y el rate limit pasa a ser un
+// cupo unico compartido en vez de uno por IP.
+//
+// El valor es 1 ("confiar solo en el primer proxy"), no `true`. Con `true` Express le
+// cree a cualquier X-Forwarded-For, y como ese header lo manda el cliente, alcanza con
+// falsear una IP distinta por request para caer siempre en un bucket nuevo y anular el
+// rate limit por completo.
+app.set('trust proxy', 1);
+
 const skipInTest = () => process.env['NODE_ENV'] === 'test';
 const globalLimiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false, skip: skipInTest });
 const mutationLimiter = rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false, skip: skipInTest });
