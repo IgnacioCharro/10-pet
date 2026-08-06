@@ -11,6 +11,7 @@ import {
   googleCallbackHandler,
   forgotPasswordHandler,
   resetPasswordHandler,
+  resendVerificationHandler,
 } from './auth.controller';
 import { pickGoogleName } from './auth.google-profile';
 
@@ -21,6 +22,7 @@ authRouter.post('/login', login);
 authRouter.post('/refresh', refresh);
 authRouter.post('/logout', logout);
 authRouter.get('/verify-email', verifyEmailHandler);
+authRouter.post('/resend-verification', resendVerificationHandler);
 authRouter.post('/forgot-password', forgotPasswordHandler);
 authRouter.post('/reset-password', resetPasswordHandler);
 

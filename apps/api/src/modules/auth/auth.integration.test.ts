@@ -16,6 +16,7 @@ vi.mock('./auth.service', () => ({
   findOrCreateGoogleUser: vi.fn(),
   forgotPassword: vi.fn(),
   resetPassword: vi.fn(),
+  resendVerification: vi.fn(),
 }));
 
 vi.mock('../../db', () => ({
@@ -148,6 +149,41 @@ describe('POST /api/v1/auth/forgot-password', () => {
   it('devuelve 400 con email invalido', async () => {
     const res = await request(app)
       .post('/api/v1/auth/forgot-password')
+      .send({ email: 'not-an-email' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+});
+
+describe('POST /api/v1/auth/resend-verification', () => {
+  it('devuelve 200 cuando el email existe y no esta verificado', async () => {
+    vi.mocked(svc.resendVerification).mockResolvedValueOnce(undefined);
+    const res = await request(app)
+      .post('/api/v1/auth/resend-verification')
+      .send({ email: 'user@example.com' });
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('message');
+  });
+
+  it('devuelve la misma respuesta con un email inexistente (no revela si existe)', async () => {
+    vi.mocked(svc.resendVerification).mockResolvedValueOnce(undefined);
+    const existente = await request(app)
+      .post('/api/v1/auth/resend-verification')
+      .send({ email: 'user@example.com' });
+
+    vi.mocked(svc.resendVerification).mockResolvedValueOnce(undefined);
+    const inexistente = await request(app)
+      .post('/api/v1/auth/resend-verification')
+      .send({ email: 'no-existe@example.com' });
+
+    // Si difirieran, el endpoint serviria para enumerar que emails estan registrados.
+    expect(inexistente.status).toBe(existente.status);
+    expect(inexistente.body).toEqual(existente.body);
+  });
+
+  it('devuelve 400 con email invalido', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/resend-verification')
       .send({ email: 'not-an-email' });
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');

@@ -157,6 +157,25 @@ export const revokeRefreshToken = async (presentedToken: string): Promise<void> 
   );
 };
 
+export const resendVerification = async (email: string): Promise<void> => {
+  const user = await User.findOne({ where: { email } });
+
+  // Se responde siempre igual, asi que estos cortes no son visibles desde afuera: ni
+  // si el email existe ni si ya estaba verificado.
+  if (!user || user.emailVerified) return;
+
+  // Se emite un token nuevo en vez de reusar el viejo: el anterior pudo vencer (duran
+  // 24hs) y era justamente el caso de los usuarios que quedaron atascados.
+  const token = generateVerificationToken();
+  user.emailVerificationToken = token;
+  user.emailVerificationTokenExpiresAt = verificationExpiresAt();
+  await user.save();
+
+  sendVerificationEmail(email, token).catch((err) =>
+    console.error('[email] error resending verification email:', err),
+  );
+};
+
 export const forgotPassword = async (email: string): Promise<void> => {
   const user = await User.findOne({ where: { email } });
   // No revelar si el email existe o no — responder siempre OK
