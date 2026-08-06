@@ -32,11 +32,13 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      - key: SENDGRID_API_KEY
+      - key: MAILJET_API_KEY
         sync: false
-      - key: SENDGRID_FROM_EMAIL
+      - key: MAILJET_SECRET_KEY
         sync: false
-      - key: SENDGRID_FROM_NAME
+      - key: MAIL_FROM_EMAIL
+        sync: false
+      - key: MAIL_FROM_NAME
         sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
