@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { AxiosError } from 'axios'
 import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
+import ResendVerification from '../components/ResendVerification'
 import LocalidadAutocomplete from '../components/cases/LocalidadAutocomplete'
 import CalleAutocomplete from '../components/cases/CalleAutocomplete'
 import { uploadToCloudinary, type UploadedImage } from '../services/images.service'
 import { createCase } from '../services/cases.service'
+import { getMe } from '../services/users.service'
+import { useAuthStore } from '../stores/authStore'
 import { lazyWithRetry } from '../lib/lazyWithRetry'
 import ErrorBoundary from '../components/ErrorBoundary'
 import type { AnimalType, AnimalSex, AnimalSize, AnimalColor, ListingType } from '../types/case'
@@ -51,6 +55,8 @@ const STEPS = ['Fotos', 'Ubicacion', 'Descripcion', 'Contacto']
 
 export default function PublishCasePage() {
   const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
+  const setUser = useAuthStore((s) => s.setUser)
 
   const [step, setStep] = useState<Step>(0)
   const [state, setState] = useState<WizardState>({
@@ -72,7 +78,26 @@ export default function PublishCasePage() {
   const [geolocating, setGeolocating] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof WizardState | 'submit', string>>>({})
+  const [rechecking, setRechecking] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // El store puede estar desactualizado si el usuario verifico en otra pestaña o
+  // dispositivo. Preguntarle al server antes de bloquearlo por las dudas.
+  const recheckVerified = useCallback(async () => {
+    setRechecking(true)
+    try {
+      setUser(await getMe())
+    } catch {
+      // Si falla, se queda como estaba: el gate sigue mostrandose
+    } finally {
+      setRechecking(false)
+    }
+  }, [setUser])
+
+  // Solo al montar: es un chequeo de entrada, no queremos re-pedirlo en cada render
+  useEffect(() => {
+    if (user && !user.emailVerified) void recheckVerified()
+  }, [])
 
   const update = useCallback(<K extends keyof WizardState>(key: K, value: WizardState[K]) => {
     setState((prev) => ({ ...prev, [key]: value }))
@@ -174,12 +199,55 @@ export default function PublishCasePage() {
         state: { published: newCase.id, lat: state.lat, lng: state.lng },
       })
     } catch (err) {
-      const axiosErr = err as AxiosError<{ error: { message: string } }>
-      const apiMessage = axiosErr?.response?.data?.error?.message
-      setErrors((prev) => ({ ...prev, submit: apiMessage ?? 'Error al publicar el caso. Intentá de nuevo.' }))
+      const axiosErr = err as AxiosError<{ error: { code?: string; message: string } }>
+      const apiError = axiosErr?.response?.data?.error
+      // Red de seguridad: si el gate no lo agarro (store desactualizado al entrar),
+      // refrescamos el usuario y el gate se muestra en el proximo render.
+      if (apiError?.code === 'EMAIL_NOT_VERIFIED') {
+        void recheckVerified()
+      }
+      setErrors((prev) => ({
+        ...prev,
+        submit: apiError?.message ?? 'Error al publicar el caso. Intentá de nuevo.',
+      }))
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // Bloquear antes del paso 0: si lo dejamos avanzar, sube fotos a Cloudinary y
+  // escribe todo para chocarse el 403 recien al final.
+  if (user && !user.emailVerified) {
+    return (
+      <main className="flex items-center justify-center flex-1 px-4 py-10">
+        <Card className="w-full max-w-md">
+          <h1 className="text-2xl font-semibold mb-4">Verificá tu email para publicar</h1>
+          <p className="text-sm text-gray-600 mb-4">
+            Te mandamos un enlace a <strong>{user.email}</strong>. Hacé clic ahí para poder
+            reportar un caso.
+          </p>
+          <p className="text-xs text-gray-400 mb-4">
+            Si no lo ves, revisá la carpeta de spam o promociones.
+          </p>
+
+          <ResendVerification defaultEmail={user.email} />
+
+          <Button
+            variant="secondary"
+            fullWidth
+            loading={rechecking}
+            onClick={() => void recheckVerified()}
+            className="mb-4"
+          >
+            {rechecking ? 'Comprobando…' : 'Ya verifiqué'}
+          </Button>
+
+          <Link to="/" className="text-primary-600 hover:underline text-sm">
+            Volver al inicio
+          </Link>
+        </Card>
+      </main>
+    )
   }
 
   return (

@@ -27,6 +27,7 @@ vi.mock('../../../db', () => ({
 }));
 
 import app from '../../../app';
+import * as db from '../../../db';
 import * as svc from './cases.service';
 import { signAccessToken } from '../../auth/auth.tokens';
 
@@ -112,6 +113,46 @@ describe('POST /api/v1/cases', () => {
   });
 
   it('devuelve 403 con email no verificado', async () => {
+    const res = await request(app)
+      .post('/api/v1/cases')
+      .set('Authorization', unverifiedHeader)
+      .send({
+        animalType: 'perro',
+        description: 'Perro herido en la calle sin collar',
+        location: { lat: -34.6037, lng: -58.3816 },
+        urgencyLevel: 3,
+        condition: 'herido',
+      });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('EMAIL_NOT_VERIFIED');
+  });
+
+  // verifyEmail marca la DB pero no reemite tokens: el access token sigue diciendo
+  // false hasta 15 min despues de verificar. Sin el fallback a la DB, quien acaba de
+  // verificar su email no puede publicar en esa ventana.
+  it('publica con token viejo que dice no verificado si la DB dice que si', async () => {
+    vi.mocked(db.User.findByPk).mockResolvedValueOnce({ emailVerified: true });
+    vi.mocked(svc.createCase).mockResolvedValueOnce(fakeCase);
+    vi.mocked(svc.insertCaseImages).mockResolvedValueOnce();
+
+    const res = await request(app)
+      .post('/api/v1/cases')
+      .set('Authorization', unverifiedHeader)
+      .send({
+        animalType: 'perro',
+        description: 'Perro herido en la calle sin collar',
+        location: { lat: -34.6037, lng: -58.3816 },
+        urgencyLevel: 3,
+        condition: 'herido',
+      });
+
+    expect(res.status).toBe(201);
+  });
+
+  it('sigue devolviendo 403 si la DB tambien dice no verificado', async () => {
+    vi.mocked(db.User.findByPk).mockResolvedValueOnce({ emailVerified: false });
+
     const res = await request(app)
       .post('/api/v1/cases')
       .set('Authorization', unverifiedHeader)
