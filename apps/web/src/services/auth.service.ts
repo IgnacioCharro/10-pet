@@ -32,6 +32,10 @@ export const logoutRequest = async (refreshToken: string): Promise<void> => {
   await api.post('/auth/logout', { refreshToken })
 }
 
+export const resendVerificationRequest = async (email: string): Promise<void> => {
+  await api.post('/auth/resend-verification', { email })
+}
+
 export const forgotPasswordRequest = async (email: string): Promise<void> => {
   await api.post('/auth/forgot-password', { email })
 }
