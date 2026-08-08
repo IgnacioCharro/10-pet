@@ -2,6 +2,9 @@ import type { Config } from 'tailwindcss'
 
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  // El tema lo decide la clase .dark en <html>, que pone el script inline de
+  // index.html: asi el usuario puede fijar uno distinto al del sistema.
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {

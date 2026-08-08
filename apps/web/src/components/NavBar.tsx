@@ -5,6 +5,7 @@ import { useNotificationsStore } from '../stores/notificationsStore'
 import { getPendingContactsCount, getContactUpdatesCount } from '../services/contacts.service'
 import { logoutRequest } from '../services/auth.service'
 import Button from './ui/Button'
+import ThemeToggle from './ThemeToggle'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -91,6 +92,7 @@ export default function NavBar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
+          <ThemeToggle />
           {isAuthenticated ? (
             <>
               <Link to="/cases/new">
@@ -196,7 +198,13 @@ export default function NavBar() {
                 )}
               </>
             )}
-            <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <span className="px-3 text-sm font-medium text-gray-600 dark:text-gray-300">
+                Modo oscuro
+              </span>
+              <ThemeToggle />
+            </div>
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-700 flex flex-col gap-2">
               {isAuthenticated ? (
                 <Button variant="secondary" size="sm" fullWidth onClick={handleLogout}>
                   Salir

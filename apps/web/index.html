@@ -5,7 +5,27 @@
     <link rel="icon" type="image/svg+xml" href="/paw.svg" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#16a34a" />
+    <!--
+      Sincrono y sin type=module a proposito: tiene que correr antes del primer
+      pintado. Si esperara a React, quien fijo el tema oscuro veria un flash
+      blanco en cada carga.
+    -->
+    <script>
+      (function () {
+        var stored = null
+        try { stored = localStorage.getItem('10pet:theme') } catch (e) { /* modo privado */ }
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (dark) {
+          document.documentElement.classList.add('dark')
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute('content', '#111827')
+        }
+      })()
+    </script>
     <meta name="description" content="Plataforma de rescate animal para Argentina" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
