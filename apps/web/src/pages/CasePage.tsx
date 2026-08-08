@@ -476,7 +476,7 @@ function VolunteersSection({ volunteers }: { volunteers: CaseVolunteer[] }) {
             <Link
               key={v.userId}
               to={`/users/${v.userId}`}
-              className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 dark:border-gray-700 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 transition-colors"
+              className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
             >
               <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{v.userName ?? 'Voluntario'}</span>
               {v.status === 'completed' && (

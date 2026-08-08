@@ -58,7 +58,7 @@ interface Props {
 }
 
 export default function CaseCard({ caseItem: c, onClick }: Props) {
-  const urgencyClass = URGENCY_CLASS[c.urgencyLevel] ?? 'bg-gray-50 text-gray-600 dark:text-gray-300'
+  const urgencyClass = URGENCY_CLASS[c.urgencyLevel] ?? 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
   const urgencyLabel = URGENCY_LABEL[c.urgencyLevel] ?? `Urgencia ${c.urgencyLevel}`
 
   return (

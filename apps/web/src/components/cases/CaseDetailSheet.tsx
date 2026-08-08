@@ -752,9 +752,9 @@ const UPDATE_META: Record<CaseUpdateType, { label: string; color: string; icon: 
   avistamiento:  { label: 'Avistamiento',         color: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300',   icon: '👁' },
   medicacion:    { label: 'Medicacion aplicada',   color: 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300', icon: '💊' },
   veterinario:   { label: 'Atencion veterinaria',  color: 'bg-teal-50 border-teal-200 text-teal-700',   icon: '🩺' },
-  comentario:    { label: 'Novedad',               color: 'bg-gray-50 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '📝' },
+  comentario:    { label: 'Novedad',               color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '📝' },
   status_change: { label: 'Cambio de estado',      color: 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300',icon: '🔄' },
-  comment:       { label: 'Comentario',            color: 'bg-gray-50 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '💬' },
+  comment:       { label: 'Comentario',            color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '💬' },
   photo_added:   { label: 'Foto agregada',         color: 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300',icon: '📷' },
   reactivated:   { label: 'Reactivado',            color: 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300', icon: '🔔' },
 }
@@ -809,7 +809,7 @@ export function CaseTimeline({
       </div>
 
       {showAddUpdate && isOwner && (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex flex-col gap-3 bg-gray-50">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex flex-col gap-3 bg-gray-50 dark:bg-gray-700">
           <div className="flex flex-wrap gap-1.5">
             {OWNER_UPDATE_TYPES.map((t) => (
               <button
@@ -987,7 +987,7 @@ function VolunteersSection({ volunteers, onClose }: { volunteers: CaseVolunteer[
             key={v.userId}
             to={`/users/${v.userId}`}
             onClick={onClose}
-            className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 dark:border-gray-700 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 transition-colors"
+            className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
           >
             <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{v.userName ?? 'Voluntario'}</span>
             {v.status === 'completed' && (

@@ -82,7 +82,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-gray-50 border-y border-gray-200 dark:border-gray-700">
+      <section className="bg-gray-50 dark:bg-gray-700 border-y border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-4 py-16">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">Cómo funciona</h2>
           <ol className="grid gap-6 md:grid-cols-4">
