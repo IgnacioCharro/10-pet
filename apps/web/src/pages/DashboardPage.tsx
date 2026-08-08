@@ -362,9 +362,10 @@ function ReceivedContactCard({
                 </Link>
                 {' '}quiere ayudar
               </p>
-              {/* "Nuevo" es no visto, no "pendiente": lo accionable ya lo dice
-                  el chip de estado y el borde izquierdo. */}
-              {isNew && (
+              {/* No visto Y sin responder. Solo "pendiente" marcaba como nueva
+                  una solicitud vista diez veces; solo "no visto" marcaria una
+                  que ya aceptaste, y si la aceptaste es que la viste. */}
+              {isNew && isPending && (
                 <span className="text-[10px] bg-amber-100 text-amber-700 font-semibold px-1.5 py-0.5 rounded-full">
                   Nuevo
                 </span>
