@@ -27,11 +27,11 @@ const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', 
 const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
 
 const URGENCY_CLS: Record<number, string> = {
-  1: 'bg-green-100 text-green-700',
-  2: 'bg-green-100 text-green-700',
-  3: 'bg-amber-100 text-amber-700',
-  4: 'bg-red-100 text-red-700',
-  5: 'bg-red-200 text-red-800 font-semibold',
+  1: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+  2: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+  3: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+  4: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300',
+  5: 'bg-red-200 text-red-800 dark:text-red-200 font-semibold',
 }
 const URGENCY_LABEL: Record<number, string> = {
   1: 'Baja', 2: 'Baja', 3: 'Media', 4: 'Alta', 5: 'Critica',
@@ -71,9 +71,9 @@ function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex-shrink-0 w-44 text-left bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-primary-300 hover:shadow-sm transition-all"
+      className="flex-shrink-0 w-44 text-left bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-primary-300 hover:shadow-sm transition-all"
     >
-      <div className="h-28 bg-gray-100 flex items-center justify-center overflow-hidden">
+      <div className="h-28 bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
         {row.heroUrl ? (
           <img src={row.heroUrl} alt="" className="w-full h-full object-cover" />
         ) : (
@@ -82,11 +82,11 @@ function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
       </div>
       <div className="p-2.5">
         <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-          <span className="text-xs font-medium text-gray-800">{ANIMAL_LABEL[row.animalType]}</span>
+          <span className="text-xs font-medium text-gray-800 dark:text-gray-100">{ANIMAL_LABEL[row.animalType]}</span>
           <span className={`text-xs px-1.5 py-0.5 rounded ${urg}`}>{urgLabel}</span>
         </div>
         {row.locationText && !row.locationText.includes('undefined') && (
-          <p className="text-xs text-gray-500 truncate">{row.locationText}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{row.locationText}</p>
         )}
         <p className="text-xs text-gray-400 mt-0.5">{timeAgo(row.createdAt)}</p>
       </div>
@@ -99,7 +99,7 @@ function ListRow({ caseItem, onClick }: { caseItem: CaseItem; onClick: () => voi
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left bg-white rounded-xl border border-gray-200 px-4 py-3 shadow-sm hover:border-primary-300 active:bg-gray-50 transition-colors"
+      className="w-full text-left bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3 shadow-sm hover:border-primary-300 active:bg-gray-50 transition-colors"
     >
       <div className="flex items-start gap-3">
         {caseItem.heroUrl ? (
@@ -109,15 +109,15 @@ function ListRow({ caseItem, onClick }: { caseItem: CaseItem; onClick: () => voi
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap mb-1">
-            <span className="font-medium text-gray-900 text-sm">{ANIMAL_LABEL[caseItem.animalType]}</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100 text-sm">{ANIMAL_LABEL[caseItem.animalType]}</span>
             <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-              caseItem.listingType === 'lost' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+              caseItem.listingType === 'lost' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'
             }`}>
               {caseItem.listingType === 'lost' ? 'Busco' : 'Encontré'}
             </span>
           </div>
           {caseItem.locationText && !caseItem.locationText.includes('undefined') && (
-            <p className="text-xs text-gray-500 truncate">{caseItem.locationText}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{caseItem.locationText}</p>
           )}
           <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
             <span>{timeAgo(caseItem.createdAt)}</span>
@@ -209,14 +209,14 @@ export default function HomeFeed() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Casos en tu zona</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Casos en tu zona</h1>
             {loc && (
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 {loc.label}
                 {' · '}
                 <button
                   onClick={() => setShowPicker(true)}
-                  className="text-primary-600 hover:underline"
+                  className="text-primary-600 dark:text-primary-300 hover:underline"
                 >
                   Cambiar zona
                 </button>
@@ -238,7 +238,7 @@ export default function HomeFeed() {
           <section className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Casos urgentes</h2>
+              <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wide">Casos urgentes</h2>
               {urgentFiltered.length > 0 && (
                 <span className="text-xs text-gray-400">{urgentFiltered.length} en tu zona</span>
               )}
@@ -261,18 +261,18 @@ export default function HomeFeed() {
 
         {/* Lista completa */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide mb-3">Todos los casos</h2>
+          <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wide mb-3">Todos los casos</h2>
 
           {/* Tabs */}
-          <div className="flex gap-1 mb-3 bg-gray-100 rounded-lg p-1 w-fit">
+          <div className="flex gap-1 mb-3 bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-fit">
             {TABS.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   tab === t.id
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                 }`}
               >
                 {t.label}
@@ -291,7 +291,7 @@ export default function HomeFeed() {
                   'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap flex-shrink-0',
                   animalType === c.value
                     ? 'bg-primary-600 text-white border-primary-600'
-                    : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400',
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-primary-400',
                 ].join(' ')}
               >
                 {c.label}
@@ -306,7 +306,7 @@ export default function HomeFeed() {
           {!listLoading && listRows.length === 0 && loc && (
             <div className="text-center py-10 text-gray-400 text-sm">
               No hay casos en tu zona.{' '}
-              <Link to="/cases/new" className="text-primary-600 hover:underline">
+              <Link to="/cases/new" className="text-primary-600 dark:text-primary-300 hover:underline">
                 Publicar uno
               </Link>
             </div>
@@ -330,16 +330,16 @@ export default function HomeFeed() {
                 type="button"
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
+                className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Anterior
               </button>
-              <span className="self-center text-sm text-gray-500">{page} / {totalPages}</span>
+              <span className="self-center text-sm text-gray-500 dark:text-gray-400">{page} / {totalPages}</span>
               <button
                 type="button"
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
+                className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Siguiente
               </button>

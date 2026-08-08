@@ -27,11 +27,11 @@ const STATUS_LABEL: Record<CaseStatus, string> = {
 }
 
 const STATUS_CLASS: Record<CaseStatus, string> = {
-  abierto: 'bg-green-100 text-green-700',
-  en_rescate: 'bg-blue-100 text-blue-700',
-  resuelto: 'bg-gray-100 text-gray-500',
-  inactivo: 'bg-gray-100 text-gray-400',
-  spam: 'bg-red-100 text-red-500',
+  abierto: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+  en_rescate: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
+  resuelto: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
+  inactivo: 'bg-gray-100 dark:bg-gray-700 text-gray-400',
+  spam: 'bg-red-100 dark:bg-red-900/40 text-red-500',
 }
 
 const URGENCY_LABEL: Record<number, string> = {
@@ -43,11 +43,11 @@ const URGENCY_LABEL: Record<number, string> = {
 }
 
 const URGENCY_COLOR: Record<number, string> = {
-  1: 'bg-green-100 text-green-700',
-  2: 'bg-green-100 text-green-700',
-  3: 'bg-amber-100 text-amber-700',
-  4: 'bg-orange-100 text-orange-700',
-  5: 'bg-red-100 text-red-700',
+  1: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+  2: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+  3: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+  4: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
+  5: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300',
 }
 
 function contactedKey(userId: string) { return `10pet:contacted:${userId}` }
@@ -215,8 +215,8 @@ export default function CasePage() {
   if (notFound) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <p className="text-gray-500 text-sm mb-4">Este caso no existe o fue eliminado.</p>
-        <Link to="/cases" className="text-primary-600 hover:underline text-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Este caso no existe o fue eliminado.</p>
+        <Link to="/cases" className="text-primary-600 dark:text-primary-300 hover:underline text-sm">
           Ver casos en el mapa
         </Link>
       </div>
@@ -237,7 +237,7 @@ export default function CasePage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -259,23 +259,23 @@ export default function CasePage() {
             <span className="text-5xl leading-none">{ANIMAL_EMOJI[detail.animalType]}</span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className={`text-sm font-bold px-3 py-1 rounded-full ${detail.listingType === 'lost' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-green-100 text-green-700 ring-1 ring-green-300'}`}>
+                <span className={`text-sm font-bold px-3 py-1 rounded-full ${detail.listingType === 'lost' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 ring-1 ring-blue-300' : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 ring-1 ring-green-300'}`}>
                   {detail.listingType === 'lost' ? 'BUSCADO' : 'ENCONTRADO'}
                 </span>
               </div>
-              <h1 className="font-bold text-gray-900 text-xl">{ANIMAL_LABEL[detail.animalType]}</h1>
+              <h1 className="font-bold text-gray-900 dark:text-gray-100 text-xl">{ANIMAL_LABEL[detail.animalType]}</h1>
               <div className="flex gap-2 mt-1.5 flex-wrap">
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_CLASS[detail.status]}`}>
                   {STATUS_LABEL[detail.status]}
                 </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${URGENCY_COLOR[detail.urgencyLevel] ?? 'bg-gray-100 text-gray-600'}`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${URGENCY_COLOR[detail.urgencyLevel] ?? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>
                   {URGENCY_LABEL[detail.urgencyLevel] ?? `Urgencia ${detail.urgencyLevel}`}
                 </span>
               </div>
               {detail.publisherName && (
                 <p className="text-xs text-gray-400 mt-1.5">
                   por{' '}
-                  <Link to={`/users/${detail.userId}`} className="text-primary-600 hover:underline">
+                  <Link to={`/users/${detail.userId}`} className="text-primary-600 dark:text-primary-300 hover:underline">
                     {detail.publisherName}
                   </Link>
                 </p>
@@ -283,17 +283,17 @@ export default function CasePage() {
             </div>
           </div>
 
-          <p className="text-sm text-gray-700 leading-relaxed">{detail.description}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{detail.description}</p>
 
           {detail.condition && (
-            <div className="bg-gray-50 rounded-lg px-3 py-2">
-              <p className="text-xs font-medium text-gray-500 mb-0.5">Condicion</p>
-              <p className="text-sm text-gray-700">{detail.condition}</p>
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condicion</p>
+              <p className="text-sm text-gray-700 dark:text-gray-200">{detail.condition}</p>
             </div>
           )}
 
           {detail.locationText && (
-            <div className="flex items-start gap-2 text-sm text-gray-600">
+            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
               <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -362,19 +362,19 @@ export default function CasePage() {
       </div>
 
       {isOwner && (detail.status === 'abierto' || detail.status === 'en_rescate') && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 z-20">
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3 z-20">
           <div className="max-w-2xl mx-auto flex gap-2">
             <button
               type="button"
               onClick={() => setShowEditModal(true)}
-              className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-2.5 rounded-xl transition-colors text-sm"
+              className="flex-1 border border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-700 dark:text-gray-200 font-medium py-2.5 rounded-xl transition-colors text-sm"
             >
               Editar
             </button>
             <button
               type="button"
               onClick={() => setShowResolutionModal(true)}
-              className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-2.5 rounded-xl transition-colors text-sm"
+              className="flex-1 border border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-700 dark:text-gray-200 font-medium py-2.5 rounded-xl transition-colors text-sm"
             >
               Marcar como resuelto
             </button>
@@ -383,7 +383,7 @@ export default function CasePage() {
       )}
 
       {canHelp && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 z-20">
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3 z-20">
           <div className="max-w-2xl mx-auto flex flex-col gap-2">
             {contacted && whatsappLink && (
               <a
@@ -399,7 +399,7 @@ export default function CasePage() {
               </a>
             )}
             {contacted && !whatsappLink && (
-              <p className="text-center text-sm text-green-600 font-medium py-2">
+              <p className="text-center text-sm text-green-600 dark:text-green-300 font-medium py-2">
                 Solicitud enviada. El reportador te contactara pronto.
               </p>
             )}
@@ -465,7 +465,7 @@ export default function CasePage() {
 function VolunteersSection({ volunteers }: { volunteers: CaseVolunteer[] }) {
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
         Voluntarios ({volunteers.length})
       </p>
       {volunteers.length === 0 ? (
@@ -476,11 +476,11 @@ function VolunteersSection({ volunteers }: { volunteers: CaseVolunteer[] }) {
             <Link
               key={v.userId}
               to={`/users/${v.userId}`}
-              className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 transition-colors"
+              className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 dark:border-gray-700 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 transition-colors"
             >
-              <span className="text-xs font-medium text-gray-700">{v.userName ?? 'Voluntario'}</span>
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{v.userName ?? 'Voluntario'}</span>
               {v.status === 'completed' && (
-                <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">completado</span>
+                <span className="text-[10px] bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full font-medium">completado</span>
               )}
             </Link>
           ))}

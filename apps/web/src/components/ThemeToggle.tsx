@@ -17,8 +17,7 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
       title={goingDark ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}
       aria-label={goingDark ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}
       className={[
-        'p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors',
-        'dark:text-gray-300 dark:hover:bg-gray-700',
+        'p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors',
         className,
       ]
         .filter(Boolean)

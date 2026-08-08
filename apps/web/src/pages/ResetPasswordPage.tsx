@@ -18,8 +18,8 @@ export default function ResetPasswordPage() {
     return (
       <main className="flex items-center justify-center flex-1 px-4 py-10">
         <Card className="w-full max-w-md text-center">
-          <p className="text-red-600 mb-4">Link inválido o expirado.</p>
-          <Link to="/forgot-password" className="text-primary-600 hover:underline text-sm">
+          <p className="text-red-600 dark:text-red-300 mb-4">Link inválido o expirado.</p>
+          <Link to="/forgot-password" className="text-primary-600 dark:text-primary-300 hover:underline text-sm">
             Solicitar un nuevo link
           </Link>
         </Card>
@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
         <Card className="w-full max-w-md text-center">
           <div className="text-4xl mb-4">✅</div>
           <h1 className="text-xl font-semibold mb-2">Contraseña actualizada</h1>
-          <p className="text-gray-600 text-sm mb-6">
+          <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
             Ya podés iniciar sesión con tu nueva contraseña.
           </p>
           <Button fullWidth onClick={() => navigate('/login')}>
@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
     <main className="flex items-center justify-center flex-1 px-4 py-10">
       <Card className="w-full max-w-md">
         <h1 className="text-2xl font-semibold mb-2 text-center">Nueva contraseña</h1>
-        <p className="text-gray-500 text-sm text-center mb-6">
+        <p className="text-gray-500 dark:text-gray-400 text-sm text-center mb-6">
           Ingresá tu nueva contraseña. Debe tener al menos 8 caracteres.
         </p>
 

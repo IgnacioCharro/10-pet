@@ -35,8 +35,8 @@ export default function PublicProfilePage() {
   if (notFound || !profile) {
     return (
       <div className="max-w-sm mx-auto px-4 py-16 text-center">
-        <p className="text-gray-500 text-sm">Usuario no encontrado.</p>
-        <Link to="/" className="text-primary-600 text-sm hover:underline mt-2 inline-block">Volver al inicio</Link>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Usuario no encontrado.</p>
+        <Link to="/" className="text-primary-600 dark:text-primary-300 text-sm hover:underline mt-2 inline-block">Volver al inicio</Link>
       </div>
     )
   }
@@ -44,11 +44,11 @@ export default function PublicProfilePage() {
   return (
     <div className="max-w-sm mx-auto px-4 py-8 space-y-4">
       <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center text-2xl font-bold text-primary-600 shrink-0">
+        <div className="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-2xl font-bold text-primary-600 dark:text-primary-300 shrink-0">
           {(profile.name ?? '?')[0].toUpperCase()}
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">{profile.name ?? 'Usuario'}</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{profile.name ?? 'Usuario'}</h1>
           <p className="text-xs text-gray-400">Miembro desde {memberSince(profile.createdAt)}</p>
         </div>
       </div>
@@ -62,12 +62,12 @@ export default function PublicProfilePage() {
 
       <div className="grid grid-cols-2 gap-3">
         <Card className="p-4 text-center">
-          <p className="text-3xl font-bold text-primary-600">{profile.casesPublished}</p>
-          <p className="text-xs text-gray-500 mt-1">Casos publicados</p>
+          <p className="text-3xl font-bold text-primary-600 dark:text-primary-300">{profile.casesPublished}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Casos publicados</p>
         </Card>
         <Card className="p-4 text-center">
-          <p className="text-3xl font-bold text-green-600">{profile.casesVolunteered}</p>
-          <p className="text-xs text-gray-500 mt-1">Casos ayudados</p>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-300">{profile.casesVolunteered}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Casos ayudados</p>
         </Card>
       </div>
     </div>

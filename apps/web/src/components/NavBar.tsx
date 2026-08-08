@@ -10,7 +10,7 @@ import ThemeToggle from './ThemeToggle'
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
     'px-3 py-2 rounded-md text-sm font-medium',
-    isActive ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:text-gray-900',
+    isActive ? 'text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100',
   ].join(' ')
 
 export default function NavBar() {
@@ -53,9 +53,9 @@ export default function NavBar() {
   }
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-40" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 text-primary-600 font-bold text-lg">
+        <Link to="/" className="flex items-center gap-2 text-primary-600 dark:text-primary-300 font-bold text-lg">
           <span aria-hidden="true">🐾</span>
           10_Pet
         </Link>
@@ -102,10 +102,10 @@ export default function NavBar() {
               </Link>
               {user && (
                 <div className="flex items-center gap-2">
-                  <div className="h-7 w-7 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  <div className="h-7 w-7 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {(user.name ?? 'A').charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm text-gray-700 max-w-[120px] truncate">{user.name ?? 'Anonimo'}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-200 max-w-[120px] truncate">{user.name ?? 'Anonimo'}</span>
                 </div>
               )}
               <Button variant="secondary" size="sm" onClick={handleLogout}>
@@ -139,7 +139,7 @@ export default function NavBar() {
 
         <button
           type="button"
-          className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100"
+          className="md:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
           aria-label="Abrir menú"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
@@ -165,7 +165,7 @@ export default function NavBar() {
       </div>
 
       {open && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="px-4 py-3 flex flex-col gap-2">
             <NavLink to="/" end className={navLinkClass} onClick={() => setOpen(false)}>
               Inicio
@@ -198,13 +198,13 @@ export default function NavBar() {
                 )}
               </>
             )}
-            <div className="pt-2 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-              <span className="px-3 text-sm font-medium text-gray-600 dark:text-gray-300">
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-700 dark:border-gray-700 flex items-center justify-between">
+              <span className="px-3 text-sm font-medium text-gray-600 dark:text-gray-300 dark:text-gray-300">
                 Modo oscuro
               </span>
               <ThemeToggle />
             </div>
-            <div className="pt-2 border-t border-gray-100 dark:border-gray-700 flex flex-col gap-2">
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-700 dark:border-gray-700 flex flex-col gap-2">
               {isAuthenticated ? (
                 <Button variant="secondary" size="sm" fullWidth onClick={handleLogout}>
                   Salir

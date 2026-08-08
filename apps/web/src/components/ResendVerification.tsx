@@ -31,7 +31,7 @@ export default function ResendVerification({ defaultEmail }: ResendVerificationP
   // en loop solo cambia el token, no acelera nada.
   if (sent) {
     return (
-      <p className="text-sm text-gray-600 border-t border-gray-100 pt-4 mb-4">
+      <p className="text-sm text-gray-600 dark:text-gray-300 border-t border-gray-100 dark:border-gray-700 pt-4 mb-4">
         Listo, te mandamos un enlace nuevo. Puede tardar un par de minutos en llegar —
         acordate de mirar spam.
       </p>
@@ -39,9 +39,9 @@ export default function ResendVerification({ defaultEmail }: ResendVerificationP
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-gray-100 pt-4 mb-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-gray-100 dark:border-gray-700 pt-4 mb-4">
       {defaultEmail ? (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
           ¿No te llegó? Te lo reenviamos a <strong>{defaultEmail}</strong>.
         </p>
       ) : (
@@ -63,7 +63,7 @@ export default function ResendVerification({ defaultEmail }: ResendVerificationP
         {loading ? 'Enviando…' : 'Reenviar email de verificación'}
       </Button>
 
-      {defaultEmail && error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {defaultEmail && error ? <p className="text-sm text-red-600 dark:text-red-300">{error}</p> : null}
     </form>
   )
 }

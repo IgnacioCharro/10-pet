@@ -22,11 +22,11 @@ export default function VerifyEmailPage() {
     if (errorCode) {
       return (
         <AuthCard title="No pudimos verificar tu email">
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
             {errorMessages[errorCode] ?? 'Ocurrió un error al verificar tu email.'}
           </p>
           <ResendVerification defaultEmail={user?.email} />
-          <Link to="/login" className="text-primary-600 hover:underline text-sm">
+          <Link to="/login" className="text-primary-600 dark:text-primary-300 hover:underline text-sm">
             Volver al login
           </Link>
         </AuthCard>
@@ -34,7 +34,7 @@ export default function VerifyEmailPage() {
     }
     return (
       <AuthCard title="Email verificado">
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
           Tu email fue verificado correctamente. Ya podés publicar casos.
         </p>
         <Link to="/dashboard">
@@ -47,7 +47,7 @@ export default function VerifyEmailPage() {
   return (
     <AuthCard title="Verificá tu email">
       {justRegistered ? (
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
           Tu cuenta fue creada. Te enviamos un email
           {user?.email ? (
             <>
@@ -57,7 +57,7 @@ export default function VerifyEmailPage() {
           con un enlace para activar tu cuenta.
         </p>
       ) : (
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
           Revisá tu casilla y hacé clic en el enlace para activar tu cuenta antes de publicar casos.
         </p>
       )}

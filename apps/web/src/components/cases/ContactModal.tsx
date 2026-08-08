@@ -42,9 +42,9 @@ export function ContactModal({ caseId, onClose, onSuccess }: Props) {
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 mx-4">
-        <h3 className="text-base font-semibold text-gray-900 mb-1">Ofrecer ayuda</h3>
-        <p className="text-xs text-gray-500 mb-4">
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 mx-4">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">Ofrecer ayuda</h3>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
           El reportador recibira tu solicitud y podra compartirte su numero de WhatsApp.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -54,14 +54,14 @@ export function ContactModal({ caseId, onClose, onSuccess }: Props) {
             placeholder="Mensaje opcional (ej: Puedo trasladar al animal...)"
             rows={3}
             maxLength={300}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-          {error && <p className="text-xs text-red-600">{error}</p>}
+          {error && <p className="text-xs text-red-600 dark:text-red-300">{error}</p>}
           <div className="flex gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               Cancelar
             </button>

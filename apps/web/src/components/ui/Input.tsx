@@ -17,7 +17,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={inputId} className="text-sm font-medium text-gray-700">
+        <label htmlFor={inputId} className="text-sm font-medium text-gray-700 dark:text-gray-200">
           {label}
         </label>
       )}
@@ -27,11 +27,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         aria-invalid={error ? true : undefined}
         aria-describedby={describedById}
         className={[
-          'w-full rounded-md border px-3 py-2 text-base md:text-sm placeholder-gray-400',
+          'w-full rounded-md border px-3 py-2 text-base md:text-sm placeholder-gray-400 dark:placeholder-gray-500',
           'focus:outline-none focus:ring-2 focus:ring-offset-0',
           error
             ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-200',
+            : 'border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-primary-200',
           className,
         ]
           .filter(Boolean)
@@ -39,11 +39,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         {...rest}
       />
       {error ? (
-        <p id={`${inputId}-error`} className="text-xs text-red-600">
+        <p id={`${inputId}-error`} className="text-xs text-red-600 dark:text-red-300">
           {error}
         </p>
       ) : hint ? (
-        <p id={`${inputId}-hint`} className="text-xs text-gray-500">
+        <p id={`${inputId}-hint`} className="text-xs text-gray-500 dark:text-gray-400">
           {hint}
         </p>
       ) : null}

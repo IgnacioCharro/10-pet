@@ -222,7 +222,7 @@ export default function PublishCasePage() {
       <main className="flex items-center justify-center flex-1 px-4 py-10">
         <Card className="w-full max-w-md">
           <h1 className="text-2xl font-semibold mb-4">Verificá tu email para publicar</h1>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
             Te mandamos un enlace a <strong>{user.email}</strong>. Hacé clic ahí para poder
             reportar un caso.
           </p>
@@ -242,7 +242,7 @@ export default function PublishCasePage() {
             {rechecking ? 'Comprobando…' : 'Ya verifiqué'}
           </Button>
 
-          <Link to="/" className="text-primary-600 hover:underline text-sm">
+          <Link to="/" className="text-primary-600 dark:text-primary-300 hover:underline text-sm">
             Volver al inicio
           </Link>
         </Card>
@@ -264,7 +264,7 @@ export default function PublishCasePage() {
               <h1 className="text-2xl font-semibold">
                 {state.listingType === 'lost' ? 'Buscar mi mascota' : 'Reportar animal encontrado'}
               </h1>
-              <p className="text-sm text-gray-500 mt-1">Paso {step} de 4 — {STEPS[step - 1]}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Paso {step} de 4 — {STEPS[step - 1]}</p>
             </div>
 
             <StepIndicator current={step} />
@@ -324,7 +324,7 @@ export default function PublishCasePage() {
             )}
 
             {errors.submit && (
-              <p className="text-sm text-red-600 text-center">{errors.submit}</p>
+              <p className="text-sm text-red-600 dark:text-red-300 text-center">{errors.submit}</p>
             )}
 
             <div className="flex gap-3">
@@ -354,20 +354,20 @@ function StepTipo({ onSelect }: { onSelect: (type: ListingType) => void }) {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold">Reportar caso</h1>
-        <p className="text-sm text-gray-500 mt-1">¿Qué querés publicar?</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">¿Qué querés publicar?</p>
       </div>
 
       <div className="flex flex-col gap-3">
         <button
           onClick={() => onSelect('found')}
-          className="flex items-start gap-4 p-5 rounded-xl border-2 border-gray-200 bg-white hover:border-orange-400 hover:bg-orange-50 active:bg-orange-100 transition-colors text-left group"
+          className="flex items-start gap-4 p-5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-orange-400 hover:bg-orange-50 active:bg-orange-100 transition-colors text-left group"
         >
           <span className="text-3xl mt-0.5">🐾</span>
           <div>
-            <p className="font-semibold text-gray-900 group-hover:text-orange-700">
+            <p className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-orange-700">
               Encontré un animal
             </p>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Encontraste un animal perdido, herido o en situación de calle y necesitás ayuda.
             </p>
           </div>
@@ -375,14 +375,14 @@ function StepTipo({ onSelect }: { onSelect: (type: ListingType) => void }) {
 
         <button
           onClick={() => onSelect('lost')}
-          className="flex items-start gap-4 p-5 rounded-xl border-2 border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50 active:bg-blue-100 transition-colors text-left group"
+          className="flex items-start gap-4 p-5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-400 hover:bg-blue-50 active:bg-blue-100 transition-colors text-left group"
         >
           <span className="text-3xl mt-0.5">🔍</span>
           <div>
-            <p className="font-semibold text-gray-900 group-hover:text-blue-700">
+            <p className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-700">
               Busco mi mascota
             </p>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Se te perdió o escapó tu animal y estás buscando que alguien te avise si lo ve.
             </p>
           </div>
@@ -403,12 +403,12 @@ function StepIndicator({ current }: { current: Step }) {
           <div key={label} className="flex items-center flex-1">
             <div className={[
               'flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold shrink-0',
-              done ? 'bg-primary-600 text-white' : active ? 'bg-primary-100 text-primary-700 ring-2 ring-primary-500' : 'bg-gray-100 text-gray-400',
+              done ? 'bg-primary-600 text-white' : active ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 ring-2 ring-primary-500' : 'bg-gray-100 dark:bg-gray-700 text-gray-400',
             ].join(' ')}>
               {done ? '✓' : n}
             </div>
             {i < STEPS.length - 1 && (
-              <div className={['flex-1 h-0.5 mx-1', done ? 'bg-primary-600' : 'bg-gray-200'].join(' ')} />
+              <div className={['flex-1 h-0.5 mx-1', done ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'].join(' ')} />
             )}
           </div>
         )
@@ -434,13 +434,13 @@ function StepFotos({ images, uploading, error, fileInputRef, onFiles, onRemove }
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-gray-600 dark:text-gray-300">
         Agregá fotos del animal (hasta 5). Una buena foto aumenta las chances de que alguien ayude.
       </p>
 
       {images.length === 0 ? (
         <div
-          className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center gap-3 cursor-pointer hover:border-primary-400 transition-colors"
+          className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 flex flex-col items-center gap-3 cursor-pointer hover:border-primary-400 transition-colors"
           onClick={() => fileInputRef.current?.click()}
           onDrop={onDrop}
           onDragOver={(e) => e.preventDefault()}
@@ -450,14 +450,14 @@ function StepFotos({ images, uploading, error, fileInputRef, onFiles, onRemove }
           ) : (
             <>
               <span className="text-3xl">📷</span>
-              <span className="text-sm text-gray-500 text-center">Hacé clic o arrastrá fotos aquí</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 text-center">Hacé clic o arrastrá fotos aquí</span>
             </>
           )}
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-2">
           {images.map((img, i) => (
-            <div key={img.publicId} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+            <div key={img.publicId} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
               <img src={img.secureUrl} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
               <button
                 onClick={() => onRemove(i)}
@@ -474,7 +474,7 @@ function StepFotos({ images, uploading, error, fileInputRef, onFiles, onRemove }
               onClick={() => fileInputRef.current?.click()}
               onDrop={onDrop}
               onDragOver={(e) => e.preventDefault()}
-              className="aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-primary-400 flex flex-col items-center justify-center gap-1 transition-colors"
+              className="aspect-square rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-primary-400 flex flex-col items-center justify-center gap-1 transition-colors"
             >
               {uploading ? (
                 <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
@@ -498,7 +498,7 @@ function StepFotos({ images, uploading, error, fileInputRef, onFiles, onRemove }
         onChange={(e) => onFiles(e.target.files)}
       />
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-300">{error}</p>}
     </div>
   )
 }
@@ -644,7 +644,7 @@ function StepUbicacion({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-gray-600 dark:text-gray-300">
         ¿Dónde está el animal? Usá tu ubicación, ingresá la dirección o tocá el mapa.
       </p>
 
@@ -657,13 +657,13 @@ function StepUbicacion({
         {lat !== null ? 'Ubicacion GPS obtenida ✓' : 'Usar mi ubicacion actual'}
       </Button>
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-300">{error}</p>}
 
       {!showForm && (
         <button
           type="button"
           onClick={() => setShowForm(true)}
-          className="text-sm text-primary-600 hover:underline text-center"
+          className="text-sm text-primary-600 dark:text-primary-300 hover:underline text-center"
         >
           Ingresar dirección manualmente
         </button>
@@ -672,25 +672,25 @@ function StepUbicacion({
       {showForm && (
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">Localidad *</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Localidad *</label>
           <LocalidadAutocomplete
             value={localidad}
             onChange={setLocalidad}
           />
         </div>
 
-        <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+        <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <button
             type="button"
             onClick={() => setAddressMode('numero')}
-            className={`flex-1 py-2 text-xs font-medium transition-colors ${addressMode === 'numero' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`flex-1 py-2 text-xs font-medium transition-colors ${addressMode === 'numero' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
           >
             Calle y numero
           </button>
           <button
             type="button"
             onClick={() => setAddressMode('interseccion')}
-            className={`flex-1 py-2 text-xs font-medium transition-colors border-l border-gray-200 ${addressMode === 'interseccion' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`flex-1 py-2 text-xs font-medium transition-colors border-l border-gray-200 dark:border-gray-700 ${addressMode === 'interseccion' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
           >
             Interseccion
           </button>
@@ -740,7 +740,7 @@ function StepUbicacion({
           </div>
         )}
 
-        {geocodeError && <p className="text-xs text-red-600">{geocodeError}</p>}
+        {geocodeError && <p className="text-xs text-red-600 dark:text-red-300">{geocodeError}</p>}
 
         <Button
           variant="secondary"
@@ -762,24 +762,24 @@ function StepUbicacion({
         return (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
               <span className="text-xs text-gray-400">
                 {confirmed ? 'o ajustá el pin en el mapa' : 'o tocá el mapa para marcar la ubicación'}
               </span>
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
             </div>
 
             <ErrorBoundary fallback={
-              <div className="h-[220px] rounded-xl bg-gray-100 flex flex-col items-center justify-center gap-2 text-gray-400 text-sm">
+              <div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex flex-col items-center justify-center gap-2 text-gray-400 text-sm">
                 <span>No se pudo cargar el mapa.</span>
-                <button type="button" className="text-primary-600 underline text-xs" onClick={() => window.location.reload()}>Recargar pagina</button>
+                <button type="button" className="text-primary-600 dark:text-primary-300 underline text-xs" onClick={() => window.location.reload()}>Recargar pagina</button>
               </div>
             }>
-              <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Cargando mapa...</div>}>
+              <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 text-sm">Cargando mapa...</div>}>
                 <LocationPickerMap lat={mapLat} lng={mapLng} onChange={handleMapChange} />
               </Suspense>
             </ErrorBoundary>
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
               {confirmed
                 ? 'Toca o arrastra el pin para ajustar la posicion exacta'
                 : 'Toca el mapa para marcar la ubicación del animal'}
@@ -791,7 +791,7 @@ function StepUbicacion({
       <div className="relative">
         {reverseGeocoding && (
           <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-            <span className="inline-block w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin" />
+            <span className="inline-block w-3 h-3 border border-gray-400 dark:border-gray-500 border-t-transparent rounded-full animate-spin" />
             Buscando dirección...
           </p>
         )}
@@ -864,14 +864,14 @@ function StepDescripcion({
   const detailChip = (active: boolean) => [
     'px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors',
     active
-      ? 'border-primary-500 bg-primary-50 text-primary-700'
-      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300',
+      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
   ].join(' ')
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-gray-700">Tipo de animal *</span>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Tipo de animal *</span>
         <div className="grid grid-cols-3 gap-2">
           {(Object.keys(ANIMAL_LABELS) as AnimalType[]).map((type) => (
             <button
@@ -881,33 +881,33 @@ function StepDescripcion({
               className={[
                 'py-2 rounded-lg border text-sm font-medium transition-colors',
                 animalType === type
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300',
+                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
               ].join(' ')}
             >
               {ANIMAL_LABELS[type]}
             </button>
           ))}
         </div>
-        {errors.animalType && <p className="text-xs text-red-600">{errors.animalType}</p>}
+        {errors.animalType && <p className="text-xs text-red-600 dark:text-red-300">{errors.animalType}</p>}
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-700">Descripción *</label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Descripción *</label>
         <textarea
           rows={4}
           placeholder={descPlaceholder}
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
           className={[
-            'rounded-md border px-3 py-2 text-sm placeholder-gray-400 resize-none',
+            'rounded-md border px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none',
             'focus:outline-none focus:ring-2 focus:ring-offset-0',
             errors.description
               ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-              : 'border-gray-300 focus:border-primary-500 focus:ring-primary-200',
+              : 'border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-primary-200',
           ].join(' ')}
         />
-        {errors.description && <p className="text-xs text-red-600">{errors.description}</p>}
+        {errors.description && <p className="text-xs text-red-600 dark:text-red-300">{errors.description}</p>}
       </div>
 
       <Input
@@ -918,8 +918,8 @@ function StepDescripcion({
       />
 
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-700">
-          Urgencia: <span className="text-primary-600">{urgencyLevel}/5 — {URGENCY_LABELS[urgencyLevel]}</span>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          Urgencia: <span className="text-primary-600 dark:text-primary-300">{urgencyLevel}/5 — {URGENCY_LABELS[urgencyLevel]}</span>
         </label>
         <input
           type="range"
@@ -931,11 +931,11 @@ function StepDescripcion({
         />
       </div>
 
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         <button
           type="button"
           onClick={() => setShowDetails((v) => !v)}
-          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors"
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           <span className="flex items-center gap-2">
             Mas detalles del animal (opcional)
@@ -952,9 +952,9 @@ function StepDescripcion({
         </button>
 
         {(showDetails || hasDetails) && (
-          <div className="px-4 py-4 flex flex-col gap-4 border-t border-gray-100">
+          <div className="px-4 py-4 flex flex-col gap-4 border-t border-gray-100 dark:border-gray-700">
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-medium text-gray-600">Sexo</span>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Sexo</span>
               <div className="flex gap-2">
                 {SEX_OPTIONS.map((o) => (
                   <button
@@ -970,7 +970,7 @@ function StepDescripcion({
             </div>
 
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-medium text-gray-600">Tamaño</span>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Tamaño</span>
               <div className="flex gap-2">
                 {SIZE_OPTIONS.map((o) => (
                   <button
@@ -986,7 +986,7 @@ function StepDescripcion({
             </div>
 
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-medium text-gray-600">Color predominante</span>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Color predominante</span>
               <div className="flex flex-wrap gap-2">
                 {COLOR_OPTIONS.map((o) => (
                   <button
@@ -997,7 +997,7 @@ function StepDescripcion({
                   >
                     <span className="flex items-center gap-1.5">
                       <span
-                        className={['w-3 h-3 rounded-full inline-block flex-shrink-0', o.border ? 'border border-gray-300' : ''].join(' ')}
+                        className={['w-3 h-3 rounded-full inline-block flex-shrink-0', o.border ? 'border border-gray-300 dark:border-gray-600' : ''].join(' ')}
                         style={{ background: o.hex }}
                       />
                       {o.label}
@@ -1022,7 +1022,7 @@ interface StepContactoProps {
 function StepContacto({ phoneContact, onPhoneChange, summary }: StepContactoProps) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="bg-gray-50 rounded-xl p-4 text-sm flex flex-col gap-1">
+      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 text-sm flex flex-col gap-1">
         <p><span className="font-medium">Tipo:</span> {summary.listingType === 'lost' ? 'Busco mi mascota' : 'Animal encontrado'}</p>
         <p><span className="font-medium">Animal:</span> {summary.animalType ? ANIMAL_LABELS[summary.animalType as AnimalType] : '—'}</p>
         <p><span className="font-medium">Ubicación:</span> {summary.locationText || 'Sin dirección exacta'}</p>
@@ -1039,7 +1039,7 @@ function StepContacto({ phoneContact, onPhoneChange, summary }: StepContactoProp
         hint="Solo visible para voluntarios que se ofrezcan a ayudar."
       />
 
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
         Al publicar aceptás nuestros términos de uso. El caso será visible en el mapa para toda la comunidad.
       </p>
     </div>
