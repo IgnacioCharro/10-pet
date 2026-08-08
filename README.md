@@ -14,9 +14,9 @@ Plataforma de rescate animal colaborativa para Argentina. Un mapa en vivo donde 
 - **Frontend web**: React 18 + Vite + TypeScript + Tailwind + Leaflet/OSM
 - **Mobile**: PWA en MVP; React Native en v1.1
 - **Imágenes**: Cloudinary (signed uploads)
-- **Email**: SendGrid
+- **Email**: Mailjet
 - **Push**: Firebase FCM
-- **Hosting**: Railway (API) + Vercel (web)
+- **Hosting**: Render (API) + Vercel (web)
 - **Monorepo**: pnpm workspaces
 
 ## Estructura
