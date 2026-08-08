@@ -262,6 +262,19 @@ export async function listCases(
   return { cases: rows, total: parseInt(countResult.total, 10) };
 }
 
+// Los casos propios del dashboard: sin filtro de estado (el dueno ve tambien
+// los resueltos e inactivos) y sin filtro geografico
+export async function listCasesByUser(userId: string): Promise<CaseRow[]> {
+  return sequelize.query<CaseRow>(
+    `SELECT ${BASE_CASE_SELECT}, ${HERO_URL_SELECT}
+     FROM cases c
+     WHERE c.user_id = :userId
+     ORDER BY c.created_at DESC
+     LIMIT 50`,
+    { replacements: { userId }, type: QueryTypes.SELECT },
+  );
+}
+
 export async function getNearbyCases(query: NearbyCasesQuery): Promise<CaseRow[]> {
   const { lat, lng, radius } = query;
 

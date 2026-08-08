@@ -13,12 +13,15 @@ vi.mock('../../../jobs/queue', () => ({
 }));
 
 import { sequelize } from '../../../db';
-import { listCases, getFeedCases } from './cases.service';
+import { listCases, getFeedCases, listCasesByUser } from './cases.service';
 import { VOLUNTEER_COUNT_SUBQUERY, FEED_VOLUNTEER_COUNT_EXPR } from './cases.ordering';
 import { ListCasesQuery, FeedCasesQuery } from './cases.validators';
 
 const queryMock = vi.mocked(
-  sequelize.query as unknown as (sql: string) => Promise<unknown[]>,
+  sequelize.query as unknown as (
+    sql: string,
+    options?: { replacements?: Record<string, unknown> },
+  ) => Promise<unknown[]>,
 );
 
 // SQL emitido en la llamada n-esima a sequelize.query
@@ -57,6 +60,38 @@ describe('listCases — ORDER BY', () => {
     const sql = sqlOf(0);
     const selectClause = sql.slice(0, sql.indexOf('FROM cases c'));
     expect(selectClause).not.toContain('contacts');
+  });
+});
+
+describe('listCasesByUser', () => {
+  it('trae la foto de portada para que el dashboard la muestre', async () => {
+    await listCasesByUser('user-1');
+
+    expect(sqlOf(0)).toContain('"heroUrl"');
+  });
+
+  it('filtra por el dueno del caso', async () => {
+    await listCasesByUser('user-1');
+
+    expect(sqlOf(0)).toContain('c.user_id = :userId');
+    expect(queryMock.mock.calls[0]?.[1]).toMatchObject({
+      replacements: { userId: 'user-1' },
+    });
+  });
+
+  it('no filtra por estado: el dueno ve tambien resueltos e inactivos', async () => {
+    await listCasesByUser('user-1');
+
+    // c.status aparece en el SELECT, asi que la unica lectura valida es el WHERE
+    const sql = sqlOf(0);
+    const whereClause = sql.slice(sql.indexOf('WHERE'), sql.indexOf('ORDER BY'));
+    expect(whereClause).not.toContain('c.status');
+  });
+
+  it('no expone el telefono de contacto', async () => {
+    await listCasesByUser('user-1');
+
+    expect(sqlOf(0)).not.toContain('phone_contact');
   });
 });
 

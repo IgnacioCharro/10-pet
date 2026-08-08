@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ZodError, z } from 'zod';
 import { User, Case } from '../../db';
 import { getOfferStats } from './users.service';
+import { listCasesByUser } from '../rescue/cases/cases.service';
 
 function isAdminEmail(email: string): boolean {
   const adminEmails = new Set(
@@ -171,11 +172,7 @@ export const getMyCases = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const cases = await Case.findAll({
-      where: { userId: req.user!.id },
-      order: [['createdAt', 'DESC']],
-      limit: 50,
-    });
+    const cases = await listCasesByUser(req.user!.id);
     res.json({ cases });
   } catch (err) {
     next(err);

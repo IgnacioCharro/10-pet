@@ -16,7 +16,7 @@ vi.mock('../../modules/auth/auth.service', () => ({
 }));
 
 vi.mock('../../db', () => ({
-  sequelize: { authenticate: vi.fn().mockResolvedValue(undefined) },
+  sequelize: { authenticate: vi.fn().mockResolvedValue(undefined), query: vi.fn() },
   User: { findByPk: vi.fn(), update: vi.fn() },
   Case: { findAll: vi.fn(), count: vi.fn() },
   Contact: { findAll: vi.fn() },
@@ -132,8 +132,8 @@ describe('PATCH /api/v1/users/me', () => {
 
 describe('GET /api/v1/users/me/cases', () => {
   it('devuelve los casos del usuario autenticado', async () => {
-    vi.mocked(db.Case.findAll).mockResolvedValueOnce([
-      { id: 'c-1', animalType: 'perro' },
+    vi.mocked(db.sequelize.query).mockResolvedValueOnce([
+      { id: 'c-1', animalType: 'perro', heroUrl: 'https://cdn/foto.jpg' },
     ] as never);
 
     const res = await request(app)
@@ -143,10 +143,11 @@ describe('GET /api/v1/users/me/cases', () => {
     expect(res.status).toBe(200);
     expect(res.body.cases).toHaveLength(1);
     expect(res.body.cases[0].id).toBe('c-1');
+    expect(res.body.cases[0].heroUrl).toBe('https://cdn/foto.jpg');
   });
 
   it('devuelve lista vacia si el usuario no tiene casos', async () => {
-    vi.mocked(db.Case.findAll).mockResolvedValueOnce([] as never);
+    vi.mocked(db.sequelize.query).mockResolvedValueOnce([] as never);
 
     const res = await request(app)
       .get('/api/v1/users/me/cases')

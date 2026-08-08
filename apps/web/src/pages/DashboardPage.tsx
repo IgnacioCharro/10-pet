@@ -19,6 +19,14 @@ const STATUS_LABELS: Record<string, string> = {
   inactivo: 'Inactivo',
 }
 
+const ANIMAL_EMOJI: Record<string, string> = {
+  perro: '🐕',
+  gato: '🐈',
+  caballo: '🐴',
+  vaca: '🐄',
+  otro: '🐾',
+}
+
 const RESOLUTION_LABELS: Record<string, string> = {
   adoptado:     'Adoptado',
   en_transito:  'En transito',
@@ -231,7 +239,18 @@ function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
       className={['p-4', onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''].join(' ')}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-3">
+        {item.heroUrl ? (
+          <img
+            src={item.heroUrl}
+            alt=""
+            className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+          />
+        ) : (
+          <span className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-2xl flex-shrink-0">
+            {ANIMAL_EMOJI[item.animalType] ?? '🐾'}
+          </span>
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium capitalize">{item.animalType}</p>
           <p className="text-xs text-gray-500 truncate mt-0.5">
