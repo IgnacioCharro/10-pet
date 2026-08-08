@@ -51,10 +51,10 @@ const CONTACT_STATUS_LABELS: Record<string, string> = {
 }
 
 const CONTACT_STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-700',
-  active: 'bg-green-100 text-green-700',
-  completed: 'bg-gray-100 text-gray-600',
-  rejected: 'bg-red-100 text-red-600',
+  pending: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300',
+  active: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+  completed: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',
+  rejected: 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-300',
 }
 
 export default function DashboardPage() {
@@ -135,13 +135,13 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl font-semibold">Mis casos y solicitudes</h1>
           {user && (
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Hola, <span className="font-medium">{user.name ?? 'Anónimo'}</span>
             </p>
           )}
         </div>
 
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 dark:border-gray-700">
           {(['casos', 'enviados', 'recibidos'] as Tab[]).map((t) => (
             <button
               key={t}
@@ -149,8 +149,8 @@ export default function DashboardPage() {
               className={[
                 'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
                 tab === t
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700',
+                  ? 'border-primary-600 text-primary-600 dark:text-primary-300'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
               ].join(' ')}
             >
               {t === 'casos' ? 'Mis casos' : t === 'enviados' ? 'Enviados' : (
@@ -173,7 +173,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400">Cargando casos...</p>
             ) : cases.length === 0 ? (
               <Card>
-                <p className="text-sm text-gray-500 mb-3">Todavía no publicaste ningún caso.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Todavía no publicaste ningún caso.</p>
                 <Link to="/cases/new">
                   <Button size="sm">Publicar mi primer caso</Button>
                 </Link>
@@ -194,7 +194,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400">Cargando...</p>
             ) : sent.length === 0 ? (
               <Card>
-                <p className="text-sm text-gray-500 mb-3">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                   Todavía no te ofreciste a ayudar en ningún caso.
                 </p>
                 <Link to="/cases">
@@ -221,7 +221,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400">Cargando...</p>
             ) : received.length === 0 ? (
               <Card>
-                <p className="text-sm text-gray-500 mb-3">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                   Nadie se ofreció a ayudar en tus casos aún.
                 </p>
                 <Link to="/cases/new">
@@ -264,13 +264,13 @@ function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
             className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
           />
         ) : (
-          <span className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-2xl flex-shrink-0">
+          <span className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-2xl flex-shrink-0">
             {ANIMAL_EMOJI[item.animalType] ?? '🐾'}
           </span>
         )}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium capitalize">{item.animalType}</p>
-          <p className="text-xs text-gray-500 truncate mt-0.5">
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
             {item.locationText && !item.locationText.includes('undefined')
               ? item.locationText
               : item.lat != null && item.lng != null
@@ -286,12 +286,12 @@ function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
             className={[
               'text-xs px-2 py-0.5 rounded-full font-medium',
               item.status === 'abierto'
-                ? 'bg-green-100 text-green-700'
+                ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'
                 : item.status === 'en_rescate'
-                ? 'bg-blue-100 text-blue-700'
+                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
                 : item.status === 'resuelto'
-                ? 'bg-gray-100 text-gray-600'
-                : 'bg-yellow-100 text-yellow-700',
+                ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                : 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300',
             ].join(' ')}
           >
             {STATUS_LABELS[item.status] ?? item.status}
@@ -320,7 +320,7 @@ function caseSummary(item: ContactItem): string {
 }
 
 function SentContactCard({ item, isNew }: { item: ContactItem; isNew: boolean }) {
-  const statusClass = CONTACT_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'
+  const statusClass = CONTACT_STATUS_COLORS[item.status] ?? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
   return (
     <Link to={`/cases/${item.caseId}`}>
       <Card className={['p-4 hover:shadow-md transition-shadow cursor-pointer', isNew ? 'border-l-4 border-primary-500' : ''].join(' ')}>
@@ -329,12 +329,12 @@ function SentContactCard({ item, isNew }: { item: ContactItem; isNew: boolean })
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium">Solicitud enviada</p>
               {isNew && (
-                <span className="text-[10px] bg-primary-100 text-primary-700 font-semibold px-1.5 py-0.5 rounded-full">
+                <span className="text-[10px] bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 font-semibold px-1.5 py-0.5 rounded-full">
                   Actualizado
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{caseSummary(item)}</p>
             {item.message && (
               <p className="text-xs text-gray-400 mt-0.5 italic truncate">"{item.message}"</p>
             )}
@@ -362,7 +362,7 @@ function ReceivedContactCard({
   onAccept: () => void
   onReject: () => void
 }) {
-  const statusClass = CONTACT_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'
+  const statusClass = CONTACT_STATUS_COLORS[item.status] ?? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
   const isPending = item.status === 'pending'
 
   return (
@@ -374,7 +374,7 @@ function ReceivedContactCard({
               <p className="text-sm font-medium">
                 <Link
                   to={`/users/${item.initiatorId}`}
-                  className="text-primary-600 hover:underline"
+                  className="text-primary-600 dark:text-primary-300 hover:underline"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {item.initiatorName ?? 'Alguien'}
@@ -385,14 +385,14 @@ function ReceivedContactCard({
                   una solicitud vista diez veces; solo "no visto" marcaria una
                   que ya aceptaste, y si la aceptaste es que la viste. */}
               {isNew && isPending && (
-                <span className="text-[10px] bg-amber-100 text-amber-700 font-semibold px-1.5 py-0.5 rounded-full">
+                <span className="text-[10px] bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-semibold px-1.5 py-0.5 rounded-full">
                   Nuevo
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-0.5 truncate">{caseSummary(item)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{caseSummary(item)}</p>
             {item.message && (
-              <p className="text-xs text-gray-600 mt-1 italic">"{item.message}"</p>
+              <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 italic">"{item.message}"</p>
             )}
             <p className="text-xs text-gray-400 mt-0.5">
               {new Date(item.createdAt).toLocaleDateString('es-AR')}
@@ -407,7 +407,7 @@ function ReceivedContactCard({
         <div className="flex gap-2">
           <button
             onClick={onReject}
-            className="flex-1 border border-gray-200 text-gray-600 text-xs font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             Rechazar
           </button>
