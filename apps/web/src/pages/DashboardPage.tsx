@@ -8,9 +8,15 @@ import { toast } from '../stores/toastStore'
 import { Card } from '../components/ui'
 import Button from '../components/ui/Button'
 import CaseDetailSheet from '../components/cases/CaseDetailSheet'
+import { useLastSeen } from '../hooks/useLastSeen'
 import type { CaseItem } from '../types/case'
 
 type Tab = 'casos' | 'enviados' | 'recibidos'
+
+// Sin marcador previo (primera visita a la pestaña) no se marca nada: resaltar
+// la lista entera no distingue nada.
+const isNewerThan = (iso: string, lastSeen: string | null): boolean =>
+  lastSeen ? new Date(iso) > new Date(lastSeen) : false
 
 const STATUS_LABELS: Record<string, string> = {
   abierto: 'Abierto',
@@ -76,12 +82,20 @@ export default function DashboardPage() {
       .finally(() => setLoadingContacts(false))
   }, [tab])
 
+  // La clave de enviados la comparte el NavBar: es el "since" con el que pide
+  // el contador de actualizaciones.
+  const sentLastSeen = useLastSeen(
+    user?.id ? `10pet:contacts:lastCheck:${user.id}` : null,
+    tab === 'enviados',
+  )
+  const receivedLastSeen = useLastSeen(
+    user?.id ? `10pet:contacts:lastSeen:received:${user.id}` : null,
+    tab === 'recibidos',
+  )
+
   useEffect(() => {
-    if (tab === 'enviados' && user?.id) {
-      localStorage.setItem(`10pet:contacts:lastCheck:${user.id}`, new Date().toISOString())
-      clearVolunteerUpdates()
-    }
-  }, [tab, user?.id, clearVolunteerUpdates])
+    if (tab === 'enviados') clearVolunteerUpdates()
+  }, [tab, clearVolunteerUpdates])
 
   useEffect(() => {
     loadContacts()
@@ -181,11 +195,13 @@ export default function DashboardPage() {
               </Card>
             ) : (
               <div className="flex flex-col gap-2">
-                {sent.map((c) => {
-                  const lc = user?.id ? localStorage.getItem(`10pet:contacts:lastCheck:${user.id}`) : null
-                  const isNew = lc ? new Date(c.updatedAt) > new Date(lc) : false
-                  return <SentContactCard key={c.id} item={c} isNew={isNew} />
-                })}
+                {sent.map((c) => (
+                  <SentContactCard
+                    key={c.id}
+                    item={c}
+                    isNew={isNewerThan(c.updatedAt, sentLastSeen)}
+                  />
+                ))}
               </div>
             )}
           </>
@@ -210,6 +226,7 @@ export default function DashboardPage() {
                   <ReceivedContactCard
                     key={c.id}
                     item={c}
+                    isNew={isNewerThan(c.createdAt, receivedLastSeen)}
                     onAccept={() => handleUpdateStatus(c.id, 'active')}
                     onReject={() => handleUpdateStatus(c.id, 'rejected')}
                   />
@@ -317,10 +334,12 @@ function SentContactCard({ item, isNew }: { item: ContactItem; isNew: boolean })
 
 function ReceivedContactCard({
   item,
+  isNew,
   onAccept,
   onReject,
 }: {
   item: ContactItem
+  isNew: boolean
   onAccept: () => void
   onReject: () => void
 }) {
@@ -343,7 +362,9 @@ function ReceivedContactCard({
                 </Link>
                 {' '}quiere ayudar
               </p>
-              {isPending && (
+              {/* "Nuevo" es no visto, no "pendiente": lo accionable ya lo dice
+                  el chip de estado y el borde izquierdo. */}
+              {isNew && (
                 <span className="text-[10px] bg-amber-100 text-amber-700 font-semibold px-1.5 py-0.5 rounded-full">
                   Nuevo
                 </span>
