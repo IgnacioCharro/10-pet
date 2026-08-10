@@ -5,6 +5,7 @@ import { NotificationPermission } from './components/NotificationPermission'
 import ToastContainer from './components/ToastContainer'
 import ErrorBoundary from './components/ErrorBoundary'
 import FeedbackButton from './components/FeedbackButton'
+import ImprovementButton from './components/ImprovementButton'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <NotificationPermission />
       <InstallBanner />
       <FeedbackButton />
+      <ImprovementButton />
       <ToastContainer />
     </ErrorBoundary>
   )
