@@ -17,11 +17,11 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  abierto: 'bg-green-100 text-green-700',
-  en_rescate: 'bg-blue-100 text-blue-700',
-  resuelto: 'bg-gray-100 text-gray-600',
-  inactivo: 'bg-yellow-100 text-yellow-700',
-  spam: 'bg-red-100 text-red-600',
+  abierto: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+  en_rescate: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
+  resuelto: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',
+  inactivo: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300',
+  spam: 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-300',
 }
 
 export default function ProfilePage() {
@@ -96,7 +96,7 @@ export default function ProfilePage() {
       <div className="max-w-2xl mx-auto flex flex-col gap-6">
         <Card>
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center text-2xl font-semibold text-primary-600 shrink-0">
+            <div className="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-2xl font-semibold text-primary-600 dark:text-primary-300 shrink-0">
               {(user?.name ?? user?.email ?? '?')[0].toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -108,7 +108,7 @@ export default function ProfilePage() {
                     onChange={(e) => setNameInput(e.target.value)}
                     autoFocus
                   />
-                  {saveError && <p className="text-xs text-red-600">{saveError}</p>}
+                  {saveError && <p className="text-xs text-red-600 dark:text-red-300">{saveError}</p>}
                   <div className="flex gap-2">
                     <Button size="sm" onClick={saveEdit} loading={saving}>
                       Guardar
@@ -131,7 +131,7 @@ export default function ProfilePage() {
                       Editar
                     </button>
                   </div>
-                  <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
                   {user?.createdAt && (
                     <p className="text-xs text-gray-400 mt-0.5">
                       Miembro desde {new Date(user.createdAt).toLocaleDateString('es-AR', { year: 'numeric', month: 'long' })}
@@ -175,7 +175,7 @@ export default function ProfilePage() {
                   onChange={(e) => setIsVetInput(e.target.checked)}
                   className="w-4 h-4 accent-primary-600"
                 />
-                <span className="text-sm text-gray-700">Soy veterinario/a</span>
+                <span className="text-sm text-gray-700 dark:text-gray-200">Soy veterinario/a</span>
               </label>
               {isVetInput && (
                 <Input
@@ -201,11 +201,11 @@ export default function ProfilePage() {
             </div>
           ) : user?.isVet ? (
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 text-xs font-medium rounded-full border border-teal-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-xs font-medium rounded-full border border-teal-200 dark:border-teal-800">
                 Veterinario/a verificado/a
               </span>
               {user.vetLicense && (
-                <span className="text-xs text-gray-500">Mat. {user.vetLicense}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Mat. {user.vetLicense}</span>
               )}
             </div>
           ) : (
@@ -221,7 +221,7 @@ export default function ProfilePage() {
             <p className="text-sm text-gray-400">Cargando...</p>
           ) : cases.length === 0 ? (
             <Card>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Todavía no publicaste ningún caso.
               </p>
             </Card>
@@ -339,7 +339,7 @@ function NotificationZoneCard() {
 
       {editing ? (
         <div className="flex flex-col gap-3">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Solo recibirás notificaciones de casos dentro del radio elegido.
           </p>
           <Button
@@ -356,7 +356,7 @@ function NotificationZoneCard() {
             </p>
           )}
           <div>
-            <p className="text-xs font-medium text-gray-600 mb-1.5">Radio</p>
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Radio</p>
             <div className="flex gap-2">
               {RADIUS_OPTIONS.map((r) => (
                 <button
@@ -366,7 +366,7 @@ function NotificationZoneCard() {
                     'px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors',
                     radiusKm === r
                       ? 'bg-primary-600 text-white border-primary-600'
-                      : 'border-gray-200 text-gray-600 hover:border-primary-400',
+                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-primary-400',
                   ].join(' ')}
                 >
                   {r} km
@@ -384,7 +384,7 @@ function NotificationZoneCard() {
           </div>
         </div>
       ) : configured ? (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
           Activa — casos dentro de{' '}
           <span className="font-medium">{user?.notificationRadiusKm} km</span> de tu ubicación.
         </p>
@@ -400,21 +400,21 @@ function NotificationZoneCard() {
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <Card>
-      <p className="text-2xl font-bold text-primary-600">{value}</p>
-      <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+      <p className="text-2xl font-bold text-primary-600 dark:text-primary-300">{value}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{label}</p>
     </Card>
   )
 }
 
 function CaseRow({ item }: { item: CaseItem }) {
-  const statusClass = STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'
+  const statusClass = STATUS_COLORS[item.status] ?? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
   return (
     <Link to={`/cases/${item.id}`} className="block">
       <Card className="hover:shadow-md transition-shadow cursor-pointer">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium capitalize">{item.animalType}</p>
-            <p className="text-xs text-gray-500 truncate">
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
               {item.locationText && !item.locationText.includes('undefined')
                 ? item.locationText
                 : item.lat != null && item.lng != null

@@ -5,4 +5,20 @@
 html {
   overflow-x: hidden; /* fallback */
   overflow-x: clip;   /* no crea BFC, no afecta position:fixed en iOS */
+
+  /* Emparejado con la clase .dark, no con el sistema: si dijeramos
+     "light dark" el chrome nativo (scrollbars, inputs, date pickers) seguiria
+     al sistema mientras las clases dark: siguen a la clase, y se separan en
+     cuanto el usuario fija un tema distinto al de su SO. */
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* El canvas: sin esto el fondo detras del root queda blanco en dark y se ve
+   al hacer overscroll. */
+body {
+  @apply bg-gray-50 dark:bg-gray-900;
 }

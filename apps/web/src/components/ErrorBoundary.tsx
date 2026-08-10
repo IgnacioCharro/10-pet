@@ -25,10 +25,10 @@ export default class ErrorBoundary extends Component<Props, State> {
       return (
         this.props.fallback ?? (
           <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 px-4">
-            <p className="text-gray-500 text-sm">Algo salio mal. Recarga la pagina para continuar.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Algo salio mal. Recarga la pagina para continuar.</p>
             <button
               type="button"
-              className="text-sm text-primary-600 underline"
+              className="text-sm text-primary-600 dark:text-primary-300 underline"
               onClick={() => window.location.reload()}
             >
               Recargar

@@ -50,7 +50,7 @@ export function ReportModal({ caseId, onClose, onSuccess }: Props) {
     <Modal open title="Reportar caso" onClose={onClose}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-700">Motivo</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Motivo</label>
           {REASONS.map((r) => (
             <label key={r.value} className="flex items-center gap-3 cursor-pointer group">
               <input
@@ -61,17 +61,17 @@ export function ReportModal({ caseId, onClose, onSuccess }: Props) {
                 onChange={() => setReason(r.value)}
                 className="accent-primary-600"
               />
-              <span className="text-sm text-gray-700 group-hover:text-gray-900">{r.label}</span>
+              <span className="text-sm text-gray-700 dark:text-gray-200 group-hover:text-gray-900">{r.label}</span>
             </label>
           ))}
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
             Descripcion <span className="text-gray-400 font-normal">(opcional)</span>
           </label>
           <textarea
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
             rows={3}
             maxLength={1000}
             placeholder="Contanos mas sobre el problema..."

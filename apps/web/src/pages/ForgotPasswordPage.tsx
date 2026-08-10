@@ -29,10 +29,10 @@ export default function ForgotPasswordPage() {
         <Card className="w-full max-w-md text-center">
           <div className="text-4xl mb-4">📧</div>
           <h1 className="text-xl font-semibold mb-2">Revisá tu email</h1>
-          <p className="text-gray-600 text-sm mb-6">
+          <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
             Si tu email está registrado, vas a recibir un link para restablecer tu contraseña. El link expira en 1 hora.
           </p>
-          <Link to="/login" className="text-primary-600 hover:underline text-sm">
+          <Link to="/login" className="text-primary-600 dark:text-primary-300 hover:underline text-sm">
             Volver al inicio de sesión
           </Link>
         </Card>
@@ -44,7 +44,7 @@ export default function ForgotPasswordPage() {
     <main className="flex items-center justify-center flex-1 px-4 py-10">
       <Card className="w-full max-w-md">
         <h1 className="text-2xl font-semibold mb-2 text-center">Recuperar contraseña</h1>
-        <p className="text-gray-500 text-sm text-center mb-6">
+        <p className="text-gray-500 dark:text-gray-400 text-sm text-center mb-6">
           Ingresá tu email y te mandamos un link para crear una nueva contraseña.
         </p>
 
@@ -67,8 +67,8 @@ export default function ForgotPasswordPage() {
           </Button>
         </form>
 
-        <p className="text-sm text-gray-500 text-center mt-6">
-          <Link to="/login" className="text-primary-600 hover:underline">
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-6">
+          <Link to="/login" className="text-primary-600 dark:text-primary-300 hover:underline">
             Volver al inicio de sesión
           </Link>
         </p>

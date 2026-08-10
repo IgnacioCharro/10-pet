@@ -103,7 +103,7 @@ export default function RegisterPage() {
             error={error}
           />
 
-          <div className="border border-gray-200 rounded-lg p-3 flex flex-col gap-2">
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 flex flex-col gap-2">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -111,7 +111,7 @@ export default function RegisterPage() {
                 onChange={(e) => setIsVet(e.target.checked)}
                 className="w-4 h-4 accent-primary-600"
               />
-              <span className="text-sm text-gray-700">Soy veterinario/a</span>
+              <span className="text-sm text-gray-700 dark:text-gray-200">Soy veterinario/a</span>
             </label>
             {isVet && (
               <Input
@@ -129,9 +129,9 @@ export default function RegisterPage() {
         </form>
 
         <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
-          <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
           <span>o</span>
-          <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
         </div>
 
         <a href={`${import.meta.env.VITE_API_BASE_URL}/auth/google`} className="block">
@@ -140,9 +140,9 @@ export default function RegisterPage() {
           </Button>
         </a>
 
-        <p className="text-sm text-gray-500 text-center mt-6">
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-6">
           ¿Ya tenés cuenta?{' '}
-          <Link to="/login" className="text-primary-600 hover:underline">
+          <Link to="/login" className="text-primary-600 dark:text-primary-300 hover:underline">
             Iniciá sesión
           </Link>
         </p>

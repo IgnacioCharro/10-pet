@@ -42,13 +42,13 @@ export default function HomePage() {
     <main className="flex-1">
       <section className="bg-gradient-to-b from-primary-50 to-white">
         <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 text-center">
-          <p className="text-sm uppercase tracking-wider text-primary-600 font-semibold mb-3">
+          <p className="text-sm uppercase tracking-wider text-primary-600 dark:text-primary-300 font-semibold mb-3">
             Rescate animal · Argentina
           </p>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 leading-tight max-w-3xl mx-auto">
             Conectá animales en problemas con quienes pueden ayudar
           </h1>
-          <p className="mt-5 text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="mt-5 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             10_Pet es la plataforma que junta a rescatistas, voluntarios y vecinos cerca tuyo.
             Geolocalización, notificaciones y contacto directo, sin perderte mensajes en grupos.
           </p>
@@ -62,7 +62,7 @@ export default function HomePage() {
               </Button>
             </Link>
           </div>
-          <p className="mt-6 text-xs text-gray-500">
+          <p className="mt-6 text-xs text-gray-500 dark:text-gray-400">
             Plataforma en desarrollo activo · Argentina
           </p>
         </div>
@@ -76,13 +76,13 @@ export default function HomePage() {
                 {f.icon}
               </div>
               <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
-              <p className="text-sm text-gray-600">{f.body}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{f.body}</p>
             </Card>
           ))}
         </div>
       </section>
 
-      <section className="bg-gray-50 border-y border-gray-200">
+      <section className="bg-gray-50 dark:bg-gray-700 border-y border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-4 py-16">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">Cómo funciona</h2>
           <ol className="grid gap-6 md:grid-cols-4">
@@ -92,7 +92,7 @@ export default function HomePage() {
                   {s.n}
                 </div>
                 <h3 className="font-semibold mb-1">{s.title}</h3>
-                <p className="text-sm text-gray-600">{s.body}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{s.body}</p>
               </li>
             ))}
           </ol>
@@ -101,7 +101,7 @@ export default function HomePage() {
 
       <section className="max-w-4xl mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl md:text-3xl font-bold mb-3">Empezá ahora</h2>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 dark:text-gray-300 mb-6">
           La plataforma está abierta. Registrate, publicá tu primer caso y conectate con
           voluntarios de tu zona en minutos.
         </p>
@@ -110,7 +110,7 @@ export default function HomePage() {
         </Link>
       </section>
 
-      <footer className="border-t border-gray-200 py-6 text-center text-xs text-gray-500">
+      <footer className="border-t border-gray-200 dark:border-gray-700 py-6 text-center text-xs text-gray-500 dark:text-gray-400">
         10_Pet · Plataforma de rescate animal · Hecho con cariño en Argentina
       </footer>
     </main>

@@ -76,7 +76,7 @@ export default function LoginPage() {
               error={error}
             />
             <div className="text-right">
-              <Link to="/forgot-password" className="text-xs text-primary-600 hover:underline">
+              <Link to="/forgot-password" className="text-xs text-primary-600 dark:text-primary-300 hover:underline">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
@@ -88,9 +88,9 @@ export default function LoginPage() {
         </form>
 
         <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
-          <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
           <span>o</span>
-          <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
         </div>
 
         <a href={`${import.meta.env.VITE_API_BASE_URL}/auth/google`} className="block">
@@ -99,9 +99,9 @@ export default function LoginPage() {
           </Button>
         </a>
 
-        <p className="text-sm text-gray-500 text-center mt-6">
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-6">
           ¿No tenés cuenta?{' '}
-          <Link to="/register" className="text-primary-600 hover:underline">
+          <Link to="/register" className="text-primary-600 dark:text-primary-300 hover:underline">
             Registrate
           </Link>
         </p>

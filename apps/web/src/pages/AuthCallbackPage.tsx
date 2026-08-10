@@ -54,13 +54,13 @@ export default function AuthCallbackPage() {
         {error ? (
           <>
             <h1 className="text-xl font-semibold mb-3">No pudimos iniciar sesión</h1>
-            <p className="text-sm text-gray-600 mb-4">{error}</p>
-            <Link to="/login" className="text-primary-600 hover:underline text-sm">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+            <Link to="/login" className="text-primary-600 dark:text-primary-300 hover:underline text-sm">
               Volver al login
             </Link>
           </>
         ) : (
-          <p className="text-gray-500">Iniciando sesión…</p>
+          <p className="text-gray-500 dark:text-gray-400">Iniciando sesión…</p>
         )}
       </Card>
     </main>

@@ -4,7 +4,7 @@ import BetaBanner from '../components/BetaBanner'
 
 export default function RootLayout() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <BetaBanner />
       <NavBar />
       <div className="flex-1 flex flex-col">

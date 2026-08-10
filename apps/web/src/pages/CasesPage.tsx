@@ -173,13 +173,13 @@ export default function CasesPage() {
 
       <div className="flex-1 relative overflow-hidden z-0">
         {loading && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 bg-white rounded-full px-3 py-1.5 shadow-md flex items-center gap-2 text-sm text-gray-600">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 bg-white dark:bg-gray-800 rounded-full px-3 py-1.5 shadow-md flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
             <div className="w-3 h-3 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
             Cargando casos…
           </div>
         )}
 
-        <Suspense fallback={<div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Cargando mapa…</div>}>
+        <Suspense fallback={<div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 text-sm">Cargando mapa…</div>}>
           <LeafletMap
             center={center}
             cases={cases}
@@ -191,22 +191,22 @@ export default function CasesPage() {
           />
         </Suspense>
 
-        <div className="absolute bottom-3 right-3 z-20 bg-white/90 backdrop-blur-sm rounded-lg shadow px-2.5 py-2 flex flex-col gap-1 text-xs">
+        <div className="absolute bottom-3 right-3 z-20 bg-white dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow px-2.5 py-2 flex flex-col gap-1 text-xs">
           <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 rounded-full border-2 border-blue-500 bg-gray-200 flex-shrink-0" />
-            <span className="text-gray-600">Buscado</span>
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-blue-500 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+            <span className="text-gray-600 dark:text-gray-300">Buscado</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 rounded-full border-2 border-green-500 bg-gray-200 flex-shrink-0" />
-            <span className="text-gray-600">Encontrado</span>
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-green-500 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+            <span className="text-gray-600 dark:text-gray-300">Encontrado</span>
           </div>
         </div>
 
         {cases.length === 0 && !loading && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 text-sm max-w-xs w-full mx-4">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-white dark:bg-gray-800 rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 text-sm max-w-xs w-full mx-4">
             <span className="text-2xl">🐾</span>
             <div className="flex-1 min-w-0">
-              <p className="text-gray-700 font-medium text-xs leading-tight">Sin casos en esta zona</p>
+              <p className="text-gray-700 dark:text-gray-200 font-medium text-xs leading-tight">Sin casos en esta zona</p>
               <p className="text-gray-400 text-xs mt-0.5">¿Viste un animal en problema?</p>
             </div>
             <Link

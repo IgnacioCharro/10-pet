@@ -33,11 +33,11 @@ const STATUS_LABEL: Record<CaseStatus, string> = {
 }
 
 const STATUS_CLASS: Record<CaseStatus, string> = {
-  abierto: 'bg-green-100 text-green-700',
-  en_rescate: 'bg-blue-100 text-blue-700',
-  resuelto: 'bg-gray-100 text-gray-500',
-  inactivo: 'bg-gray-100 text-gray-400',
-  spam: 'bg-red-100 text-red-500',
+  abierto: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+  en_rescate: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
+  resuelto: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
+  inactivo: 'bg-gray-100 dark:bg-gray-700 text-gray-400',
+  spam: 'bg-red-100 dark:bg-red-900/40 text-red-500',
 }
 
 const URGENCY_LABEL: Record<number, string> = {
@@ -49,11 +49,11 @@ const URGENCY_LABEL: Record<number, string> = {
 }
 
 const URGENCY_COLOR: Record<number, string> = {
-  1: 'bg-green-100 text-green-700',
-  2: 'bg-green-100 text-green-700',
-  3: 'bg-amber-100 text-amber-700',
-  4: 'bg-orange-100 text-orange-700',
-  5: 'bg-red-100 text-red-700',
+  1: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+  2: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+  3: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+  4: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
+  5: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300',
 }
 
 function timeAgo(iso: string): string {
@@ -225,11 +225,11 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
         aria-hidden="true"
       />
 
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col md:max-w-lg md:left-auto md:right-4 md:bottom-4 md:rounded-2xl">
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100">
-          <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto md:hidden absolute left-1/2 -translate-x-1/2 top-2" />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col md:max-w-lg md:left-auto md:right-4 md:bottom-4 md:rounded-2xl">
+        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100 dark:border-gray-700">
+          <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto md:hidden absolute left-1/2 -translate-x-1/2 top-2" />
           <div className="flex flex-col gap-0.5 min-w-0">
-            <h2 className="font-semibold text-gray-800 text-base">
+            <h2 className="font-semibold text-gray-800 dark:text-gray-100 text-base">
               {detail
                 ? `${ANIMAL_EMOJI[detail.animalType]} ${ANIMAL_LABEL[detail.animalType]} · ${URGENCY_LABEL[detail.urgencyLevel] ?? `Urgencia ${detail.urgencyLevel}`}`
                 : 'Detalle del caso'}
@@ -238,7 +238,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
               <Link
                 to={`/cases/${caseId}`}
                 onClick={onClose}
-                className="text-xs text-primary-600 hover:underline"
+                className="text-xs text-primary-600 dark:text-primary-300 hover:underline"
               >
                 Ver caso completo →
               </Link>
@@ -247,7 +247,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500"
+            className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
             aria-label="Cerrar"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,7 +264,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
           )}
 
           {!loading && !detail && (
-            <p className="text-center text-gray-500 py-8 text-sm">No se pudo cargar el caso.</p>
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8 text-sm">No se pudo cargar el caso.</p>
           )}
 
           {detail && (
@@ -272,32 +272,32 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
               <div className="flex items-center gap-3">
                 <span className="text-4xl">{ANIMAL_EMOJI[detail.animalType]}</span>
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 text-lg">{ANIMAL_LABEL[detail.animalType]}</p>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 text-lg">{ANIMAL_LABEL[detail.animalType]}</p>
                   <div className="flex gap-2 mt-1 flex-wrap">
                     <span className={[
                       'text-xs px-2 py-0.5 rounded-full font-semibold ring-1',
                       detail.listingType === 'lost'
-                        ? 'bg-blue-50 text-blue-700 ring-blue-300'
-                        : 'bg-green-50 text-green-700 ring-green-300',
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 ring-blue-300'
+                        : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 ring-green-300',
                     ].join(' ')}>
                       {detail.listingType === 'lost' ? 'Buscado' : 'Encontrado'}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_CLASS[detail.status]}`}>
                       {STATUS_LABEL[detail.status]}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${URGENCY_COLOR[detail.urgencyLevel] ?? 'bg-gray-100 text-gray-600'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${URGENCY_COLOR[detail.urgencyLevel] ?? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>
                       {URGENCY_LABEL[detail.urgencyLevel] ?? `Urgencia ${detail.urgencyLevel}`}
                     </span>
                   </div>
                   {detail.publisherName && (
                     <div className="flex items-center gap-1.5 mt-2">
-                      <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center text-[10px] font-bold text-primary-700 flex-shrink-0">
+                      <div className="w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-[10px] font-bold text-primary-700 dark:text-primary-300 flex-shrink-0">
                         {detail.publisherName[0].toUpperCase()}
                       </div>
                       <Link
                         to={`/users/${detail.userId}`}
                         onClick={onClose}
-                        className="text-xs font-semibold text-gray-700 hover:text-primary-600 hover:underline truncate"
+                        className="text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-primary-600 hover:underline truncate"
                       >
                         {detail.publisherName}
                       </Link>
@@ -309,17 +309,17 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 </div>
               </div>
 
-              <p className="text-sm text-gray-700 leading-relaxed">{detail.description}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{detail.description}</p>
 
               {detail.condition && (
-                <div className="bg-gray-50 rounded-lg px-3 py-2">
-                  <p className="text-xs font-medium text-gray-500 mb-0.5">Condicion</p>
-                  <p className="text-sm text-gray-700">{detail.condition}</p>
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condicion</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-200">{detail.condition}</p>
                 </div>
               )}
 
               {detail.locationText && (
-                <div className="flex items-start gap-2 text-sm text-gray-600">
+                <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
                   <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -405,18 +405,18 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
 
         {detail && isAuthenticated && detail.userId === currentUserId &&
           (detail.status === 'abierto' || detail.status === 'en_rescate') && (
-          <div className="px-4 pb-2 pt-3 border-t border-gray-100 flex gap-2">
+          <div className="px-4 pb-2 pt-3 border-t border-gray-100 dark:border-gray-700 flex gap-2">
             <button
               type="button"
               onClick={() => setShowEditModal(true)}
-              className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-2.5 rounded-xl transition-colors text-sm"
+              className="flex-1 border border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-700 dark:text-gray-200 font-medium py-2.5 rounded-xl transition-colors text-sm"
             >
               Editar
             </button>
             <button
               type="button"
               onClick={() => setShowResolutionModal(true)}
-              className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-2.5 rounded-xl transition-colors text-sm"
+              className="flex-1 border border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-700 dark:text-gray-200 font-medium py-2.5 rounded-xl transition-colors text-sm"
             >
               Marcar como resuelto
             </button>
@@ -424,7 +424,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
         )}
 
         {detail && detail.status === 'abierto' && detail.userId !== currentUserId && (
-          <div className="px-4 pb-4 pt-3 border-t border-gray-100 flex flex-col gap-2">
+          <div className="px-4 pb-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-col gap-2">
             {contacted && whatsappLink && (
               <a
                 href={whatsappLink}
@@ -439,7 +439,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
               </a>
             )}
             {contacted && !whatsappLink && (
-              <p className="text-center text-sm text-green-600 font-medium py-2">
+              <p className="text-center text-sm text-green-600 dark:text-green-300 font-medium py-2">
                 Solicitud enviada. El reportador te contactara pronto.
               </p>
             )}
@@ -563,10 +563,10 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} aria-hidden="true" />
-      <div className="fixed z-[70] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900 text-base">Editar caso</h3>
-          <button type="button" onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500">
+      <div className="fixed z-[70] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 dark:border-gray-700">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base">Editar caso</h3>
+          <button type="button" onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -575,7 +575,7 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
 
         <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-gray-700">Tipo de animal</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Tipo de animal</span>
             <div className="flex gap-2">
               {ANIMAL_OPTIONS.map((opt) => (
                 <button
@@ -585,8 +585,8 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
                   className={[
                     'flex-1 py-2 rounded-lg border text-sm font-medium transition-colors',
                     animalType === opt.value
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300',
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
                   ].join(' ')}
                 >
                   {opt.emoji} {opt.label}
@@ -596,29 +596,29 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700">Descripción</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Descripción</label>
             <textarea
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base md:text-sm placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-base md:text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700">Condición</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Condición</label>
             <input
               type="text"
               value={condition}
               onChange={(e) => setCondition(e.target.value)}
               placeholder="Ej: herida en pata, con collar"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base md:text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-base md:text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700">
-              Urgencia: <span className="text-primary-600">{urgencyLevel}/5 — {URGENCY_LABELS_EDIT[urgencyLevel]}</span>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              Urgencia: <span className="text-primary-600 dark:text-primary-300">{urgencyLevel}/5 — {URGENCY_LABELS_EDIT[urgencyLevel]}</span>
             </label>
             <input
               type="range"
@@ -631,35 +631,35 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700">Teléfono de contacto</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Teléfono de contacto</label>
             <input
               type="tel"
               value={phoneContact}
               onChange={(e) => setPhoneContact(e.target.value)}
               placeholder="+54 9 11 1234-5678"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base md:text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-base md:text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700">Referencia de ubicación</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Referencia de ubicación</label>
             <input
               type="text"
               value={locationText}
               onChange={(e) => setLocationText(e.target.value)}
               placeholder="Ej: San Martín 200, Capitán Sarmiento"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base md:text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-base md:text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
-          {error && <p className="text-xs text-red-600">{error}</p>}
+          {error && <p className="text-xs text-red-600 dark:text-red-300">{error}</p>}
         </div>
 
-        <div className="flex gap-2 px-5 py-4 border-t border-gray-100">
+        <div className="flex gap-2 px-5 py-4 border-t border-gray-100 dark:border-gray-700">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+            className="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             Cancelar
           </button>
@@ -707,8 +707,8 @@ export function ResolutionModal({
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} aria-hidden="true" />
-      <div className="fixed z-[70] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white rounded-2xl shadow-2xl p-5 flex flex-col gap-4">
-        <h3 className="font-semibold text-gray-900 text-base">Como se resolvio?</h3>
+      <div className="fixed z-[70] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-5 flex flex-col gap-4">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base">Como se resolvio?</h3>
         <div className="flex flex-col gap-2">
           {RESOLUTION_OPTIONS.map((opt) => (
             <button
@@ -718,8 +718,8 @@ export function ResolutionModal({
               className={[
                 'w-full text-left px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors',
                 selected === opt.value
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-gray-200 text-gray-700 hover:border-gray-300',
+                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                  : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600',
               ].join(' ')}
             >
               {opt.label}
@@ -730,7 +730,7 @@ export function ResolutionModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+            className="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             Cancelar
           </button>
@@ -749,14 +749,14 @@ export function ResolutionModal({
 }
 
 const UPDATE_META: Record<CaseUpdateType, { label: string; color: string; icon: string }> = {
-  avistamiento:  { label: 'Avistamiento',         color: 'bg-blue-50 border-blue-200 text-blue-700',   icon: '👁' },
-  medicacion:    { label: 'Medicacion aplicada',   color: 'bg-purple-50 border-purple-200 text-purple-700', icon: '💊' },
-  veterinario:   { label: 'Atencion veterinaria',  color: 'bg-teal-50 border-teal-200 text-teal-700',   icon: '🩺' },
-  comentario:    { label: 'Novedad',               color: 'bg-gray-50 border-gray-200 text-gray-700',   icon: '📝' },
-  status_change: { label: 'Cambio de estado',      color: 'bg-amber-50 border-amber-200 text-amber-700',icon: '🔄' },
-  comment:       { label: 'Comentario',            color: 'bg-gray-50 border-gray-200 text-gray-700',   icon: '💬' },
-  photo_added:   { label: 'Foto agregada',         color: 'bg-green-50 border-green-200 text-green-700',icon: '📷' },
-  reactivated:   { label: 'Reactivado',            color: 'bg-orange-50 border-orange-200 text-orange-700', icon: '🔔' },
+  avistamiento:  { label: 'Avistamiento',         color: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300',   icon: '👁' },
+  medicacion:    { label: 'Medicacion aplicada',   color: 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300', icon: '💊' },
+  veterinario:   { label: 'Atencion veterinaria',  color: 'bg-teal-50 dark:bg-teal-900/30 border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300',   icon: '🩺' },
+  comentario:    { label: 'Novedad',               color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '📝' },
+  status_change: { label: 'Cambio de estado',      color: 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300',icon: '🔄' },
+  comment:       { label: 'Comentario',            color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '💬' },
+  photo_added:   { label: 'Foto agregada',         color: 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300',icon: '📷' },
+  reactivated:   { label: 'Reactivado',            color: 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300', icon: '🔔' },
 }
 
 const OWNER_UPDATE_TYPES: CaseUpdateType[] = ['avistamiento', 'medicacion', 'veterinario', 'comentario']
@@ -794,14 +794,14 @@ export function CaseTimeline({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           Historial del caso
         </p>
         {isOwner && (
           <button
             type="button"
             onClick={onToggleForm}
-            className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+            className="text-xs text-primary-600 dark:text-primary-300 hover:text-primary-700 font-medium"
           >
             {showAddUpdate ? 'Cancelar' : '+ Agregar novedad'}
           </button>
@@ -809,7 +809,7 @@ export function CaseTimeline({
       </div>
 
       {showAddUpdate && isOwner && (
-        <div className="border border-gray-200 rounded-xl p-3 flex flex-col gap-3 bg-gray-50">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex flex-col gap-3 bg-gray-50 dark:bg-gray-700">
           <div className="flex flex-wrap gap-1.5">
             {OWNER_UPDATE_TYPES.map((t) => (
               <button
@@ -820,7 +820,7 @@ export function CaseTimeline({
                   'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
                   addUpdateType === t
                     ? 'bg-primary-600 text-white border-primary-600'
-                    : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400',
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-primary-400',
                 ].join(' ')}
               >
                 {UPDATE_META[t].icon} {OWNER_TYPE_LABELS[t]}
@@ -837,7 +837,7 @@ export function CaseTimeline({
             }
             value={addUpdateContent}
             onChange={(e) => onContentChange(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
           <button
             type="button"
@@ -894,14 +894,14 @@ export function VetAssistancesSection({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           Atencion veterinaria
         </p>
         {isAuthenticated && (
           <button
             type="button"
             onClick={onToggleForm}
-            className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+            className="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
           >
             {showForm ? 'Cancelar' : '+ Registrar atencion'}
           </button>
@@ -909,25 +909,25 @@ export function VetAssistancesSection({
       </div>
 
       {showForm && (
-        <div className="border border-teal-200 rounded-xl p-3 flex flex-col gap-3 bg-teal-50">
+        <div className="border border-teal-200 dark:border-teal-800 rounded-xl p-3 flex flex-col gap-3 bg-teal-50 dark:bg-teal-900/30">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Procedimiento</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Procedimiento</label>
             <textarea
               rows={2}
               placeholder="Examen, diagnóstico, tratamiento aplicado..."
               value={procedure}
               onChange={(e) => onProcedureChange(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Medicacion</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Medicacion</label>
             <textarea
               rows={2}
               placeholder="Nombre, dosis, frecuencia..."
               value={medication}
               onChange={(e) => onMedicationChange(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
           <p className="text-xs text-gray-400">Completá al menos uno de los dos campos.</p>
@@ -947,12 +947,12 @@ export function VetAssistancesSection({
       )}
 
       {assistances.map((a) => (
-        <div key={a.id} className="border border-teal-100 rounded-xl px-3 py-2.5 bg-white">
+        <div key={a.id} className="border border-teal-100 dark:border-teal-900 rounded-xl px-3 py-2.5 bg-white dark:bg-gray-800">
           <div className="flex items-center justify-between gap-2 mb-1.5">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-teal-700">{a.userName ?? 'Usuario'}</span>
+              <span className="text-xs font-semibold text-teal-700 dark:text-teal-300">{a.userName ?? 'Usuario'}</span>
               {a.isVet && (
-                <span className="inline-flex items-center px-1.5 py-0.5 bg-teal-50 text-teal-700 text-[10px] font-medium rounded-full border border-teal-200">
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-[10px] font-medium rounded-full border border-teal-200 dark:border-teal-800">
                   Profesional verificado
                 </span>
               )}
@@ -960,13 +960,13 @@ export function VetAssistancesSection({
             <span className="text-xs text-gray-400 flex-shrink-0">{formatDate(a.createdAt)}</span>
           </div>
           {a.procedure && (
-            <p className="text-xs text-gray-700 mb-0.5">
-              <span className="font-medium text-gray-500">Procedimiento: </span>{a.procedure}
+            <p className="text-xs text-gray-700 dark:text-gray-200 mb-0.5">
+              <span className="font-medium text-gray-500 dark:text-gray-400">Procedimiento: </span>{a.procedure}
             </p>
           )}
           {a.medication && (
-            <p className="text-xs text-gray-700">
-              <span className="font-medium text-gray-500">Medicacion: </span>{a.medication}
+            <p className="text-xs text-gray-700 dark:text-gray-200">
+              <span className="font-medium text-gray-500 dark:text-gray-400">Medicacion: </span>{a.medication}
             </p>
           )}
         </div>
@@ -978,7 +978,7 @@ export function VetAssistancesSection({
 function VolunteersSection({ volunteers, onClose }: { volunteers: CaseVolunteer[]; onClose: () => void }) {
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
         Voluntarios ({volunteers.length})
       </p>
       <div className="flex flex-wrap gap-2">
@@ -987,11 +987,11 @@ function VolunteersSection({ volunteers, onClose }: { volunteers: CaseVolunteer[
             key={v.userId}
             to={`/users/${v.userId}`}
             onClick={onClose}
-            className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 transition-colors"
+            className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-full px-3 py-1 hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
           >
-            <span className="text-xs font-medium text-gray-700">{v.userName ?? 'Voluntario'}</span>
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{v.userName ?? 'Voluntario'}</span>
             {v.status === 'completed' && (
-              <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">completado</span>
+              <span className="text-[10px] bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full font-medium">completado</span>
             )}
           </Link>
         ))}

@@ -43,20 +43,20 @@ export default function FeedbackButton() {
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="fixed z-50 bottom-4 right-4 w-80 bg-white rounded-2xl shadow-2xl p-5 flex flex-col gap-4">
+          <div className="fixed z-50 bottom-4 right-4 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 text-base">Enviar feedback</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base">Enviar feedback</h3>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="p-1 rounded-full hover:bg-gray-100 text-gray-400"
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Contanos un bug que encontraste, algo que no funciona bien o cualquier sugerencia.
             </p>
             <textarea
@@ -64,7 +64,7 @@ export default function FeedbackButton() {
               placeholder="Ej: en el mapa al filtrar por vaca no aparecen resultados..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               autoFocus
             />
             <button
