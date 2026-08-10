@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['paw.svg', 'icons/*.png'],
+      includeAssets: ['favicon.svg', 'icons/*.png', 'brand/*'],
       manifest: {
         name: '10Pet — Rescate Animal',
         short_name: '10Pet',
@@ -20,7 +20,9 @@ export default defineConfig({
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          // El escudo llega casi al borde del viewBox: apuntar el maskable al arte sin
+          // padding hacia que Android le recortara la punta al aplicar su mascara.
+          { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
