@@ -751,7 +751,7 @@ export function ResolutionModal({
 const UPDATE_META: Record<CaseUpdateType, { label: string; color: string; icon: string }> = {
   avistamiento:  { label: 'Avistamiento',         color: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300',   icon: '👁' },
   medicacion:    { label: 'Medicacion aplicada',   color: 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300', icon: '💊' },
-  veterinario:   { label: 'Atencion veterinaria',  color: 'bg-teal-50 border-teal-200 text-teal-700',   icon: '🩺' },
+  veterinario:   { label: 'Atencion veterinaria',  color: 'bg-teal-50 dark:bg-teal-900/30 border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300',   icon: '🩺' },
   comentario:    { label: 'Novedad',               color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '📝' },
   status_change: { label: 'Cambio de estado',      color: 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300',icon: '🔄' },
   comment:       { label: 'Comentario',            color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '💬' },
@@ -901,7 +901,7 @@ export function VetAssistancesSection({
           <button
             type="button"
             onClick={onToggleForm}
-            className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+            className="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
           >
             {showForm ? 'Cancelar' : '+ Registrar atencion'}
           </button>
@@ -909,7 +909,7 @@ export function VetAssistancesSection({
       </div>
 
       {showForm && (
-        <div className="border border-teal-200 rounded-xl p-3 flex flex-col gap-3 bg-teal-50">
+        <div className="border border-teal-200 dark:border-teal-800 rounded-xl p-3 flex flex-col gap-3 bg-teal-50 dark:bg-teal-900/30">
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Procedimiento</label>
             <textarea
@@ -947,12 +947,12 @@ export function VetAssistancesSection({
       )}
 
       {assistances.map((a) => (
-        <div key={a.id} className="border border-teal-100 rounded-xl px-3 py-2.5 bg-white dark:bg-gray-800">
+        <div key={a.id} className="border border-teal-100 dark:border-teal-900 rounded-xl px-3 py-2.5 bg-white dark:bg-gray-800">
           <div className="flex items-center justify-between gap-2 mb-1.5">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-teal-700">{a.userName ?? 'Usuario'}</span>
+              <span className="text-xs font-semibold text-teal-700 dark:text-teal-300">{a.userName ?? 'Usuario'}</span>
               {a.isVet && (
-                <span className="inline-flex items-center px-1.5 py-0.5 bg-teal-50 text-teal-700 text-[10px] font-medium rounded-full border border-teal-200">
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-[10px] font-medium rounded-full border border-teal-200 dark:border-teal-800">
                   Profesional verificado
                 </span>
               )}

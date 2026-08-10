@@ -54,9 +54,9 @@ export default function PublicProfilePage() {
       </div>
 
       {profile.isVet && (
-        <div className="flex items-center gap-2 bg-teal-50 border border-teal-200 rounded-xl px-4 py-2.5">
-          <span className="text-teal-600 text-base">🩺</span>
-          <span className="text-sm font-medium text-teal-700">Veterinario verificado</span>
+        <div className="flex items-center gap-2 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 rounded-xl px-4 py-2.5">
+          <span className="text-teal-600 dark:text-teal-400 text-base">🩺</span>
+          <span className="text-sm font-medium text-teal-700 dark:text-teal-300">Veterinario verificado</span>
         </div>
       )}
 

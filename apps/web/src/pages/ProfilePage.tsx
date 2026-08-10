@@ -201,7 +201,7 @@ export default function ProfilePage() {
             </div>
           ) : user?.isVet ? (
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 text-xs font-medium rounded-full border border-teal-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-xs font-medium rounded-full border border-teal-200 dark:border-teal-800">
                 Veterinario/a verificado/a
               </span>
               {user.vetLicense && (
