@@ -15,6 +15,7 @@ import { adminRouter } from './modules/moderation/admin/admin.routes';
 import { imagesRouter } from './modules/images/images.routes';
 import { vetAssistancesRouter } from './modules/rescue/vet-assistances/vet-assistances.routes';
 import { feedbackRouter } from './routes/feedback.routes';
+import { improvementsRouter } from './modules/improvements/improvements.routes';
 
 const app: Application = express();
 
@@ -50,6 +51,7 @@ app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/images', mutationLimiter, imagesRouter);
 app.use('/api/v1/cases/:caseId/vet-assistances', vetAssistancesRouter);
 app.use('/api/v1/feedback', mutationLimiter, feedbackRouter);
+app.use('/api/v1/improvements', mutationLimiter, improvementsRouter);
 
 Sentry.setupExpressErrorHandler(app);
 
