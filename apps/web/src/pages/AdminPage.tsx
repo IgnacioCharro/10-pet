@@ -33,6 +33,7 @@ const STATUS_LABELS: Record<string, string> = {
   resuelto: 'Resuelto',
   inactivo: 'Inactivo',
   spam: 'Spam',
+  archivado: 'Archivado',
   eliminado: 'Eliminado',
 }
 

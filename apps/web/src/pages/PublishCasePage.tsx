@@ -113,6 +113,7 @@ export default function PublishCasePage() {
     try {
       const uploaded = await Promise.all(toUpload.map((f) => uploadToCloudinary(f, 'cases')))
       setState((prev) => ({ ...prev, images: [...prev.images, ...uploaded] }))
+      setErrors((prev) => ({ ...prev, images: undefined }))
     } catch {
       setErrors((prev) => ({ ...prev, images: 'Error al subir imagen. Intentá de nuevo.' }))
     } finally {
@@ -654,7 +655,7 @@ function StepUbicacion({
         loading={geolocating}
         fullWidth
       >
-        {lat !== null ? 'Ubicacion GPS obtenida ✓' : 'Usar mi ubicacion actual'}
+        {lat !== null ? 'Ubicación marcada ✓' : 'Usar mi ubicación actual'}
       </Button>
 
       {error && <p className="text-xs text-red-600 dark:text-red-300">{error}</p>}
