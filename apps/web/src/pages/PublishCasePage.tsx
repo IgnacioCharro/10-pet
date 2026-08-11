@@ -25,6 +25,7 @@ interface WizardState {
   lat: number | null
   lng: number | null
   locationText: string
+  referenceNote: string
   animalType: AnimalType | ''
   description: string
   condition: string
@@ -65,6 +66,7 @@ export default function PublishCasePage() {
     lat: null,
     lng: null,
     locationText: '',
+    referenceNote: '',
     animalType: '',
     description: '',
     condition: '',
@@ -188,6 +190,7 @@ export default function PublishCasePage() {
         description: state.description.trim(),
         location: { lat: state.lat, lng: state.lng },
         locationText: state.locationText.trim() || undefined,
+        referenceNote: state.referenceNote.trim() || undefined,
         condition: state.condition.trim() || undefined,
         urgencyLevel: state.urgencyLevel,
         phoneContact: state.phoneContact.trim() || undefined,
@@ -286,12 +289,14 @@ export default function PublishCasePage() {
                 lat={state.lat}
                 lng={state.lng}
                 locationText={state.locationText}
+                referenceNote={state.referenceNote}
                 geolocating={geolocating}
                 error={errors.lat}
                 onGeolocate={geolocate}
                 onLatChange={(v) => update('lat', v)}
                 onLngChange={(v) => update('lng', v)}
                 onLocationTextChange={(v) => update('locationText', v)}
+                onReferenceNoteChange={(v) => update('referenceNote', v)}
               />
             )}
 
@@ -508,19 +513,21 @@ interface StepUbicacionProps {
   lat: number | null
   lng: number | null
   locationText: string
+  referenceNote: string
   geolocating: boolean
   error?: string
   onGeolocate: () => void
   onLatChange: (v: number | null) => void
   onLngChange: (v: number | null) => void
   onLocationTextChange: (v: string) => void
+  onReferenceNoteChange: (v: string) => void
 }
 
 type AddressMode = 'numero' | 'interseccion'
 
 function StepUbicacion({
-  lat, lng, locationText, geolocating, error,
-  onGeolocate, onLatChange, onLngChange, onLocationTextChange,
+  lat, lng, locationText, referenceNote, geolocating, error,
+  onGeolocate, onLatChange, onLngChange, onLocationTextChange, onReferenceNoteChange,
 }: StepUbicacionProps) {
   const [showForm, setShowForm] = useState(false)
   const [localidad, setLocalidad] = useState('')
@@ -796,12 +803,17 @@ function StepUbicacion({
             Buscando dirección...
           </p>
         )}
+        {!reverseGeocoding && locationText && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+            Dirección detectada: <span className="font-medium">{locationText}</span>
+          </p>
+        )}
         <Input
           label="Referencia (opcional)"
           placeholder="Ej: cerca de la plaza, frente al supermercado"
-          value={locationText}
-          onChange={(e) => onLocationTextChange(e.target.value)}
-          hint="Se muestra en la ficha del caso."
+          value={referenceNote}
+          onChange={(e) => onReferenceNoteChange(e.target.value)}
+          hint="Una pista para encontrarlo. Se muestra en la ficha, junto a la dirección."
         />
       </div>
     </div>
@@ -1027,6 +1039,9 @@ function StepContacto({ phoneContact, onPhoneChange, summary }: StepContactoProp
         <p><span className="font-medium">Tipo:</span> {summary.listingType === 'lost' ? 'Busco mi mascota' : 'Animal encontrado'}</p>
         <p><span className="font-medium">Animal:</span> {summary.animalType ? ANIMAL_LABELS[summary.animalType as AnimalType] : '—'}</p>
         <p><span className="font-medium">Ubicación:</span> {summary.locationText || 'Sin dirección exacta'}</p>
+        {summary.referenceNote.trim() && (
+          <p><span className="font-medium">Referencia:</span> {summary.referenceNote.trim()}</p>
+        )}
         <p><span className="font-medium">Fotos:</span> {summary.images.length}</p>
         <p><span className="font-medium">Urgencia:</span> {summary.urgencyLevel}/5</p>
       </div>

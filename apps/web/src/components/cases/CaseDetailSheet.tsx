@@ -196,7 +196,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
 
   const handleEdit = async (data: {
     animalType: string; description: string; condition: string;
-    urgencyLevel: number; phoneContact: string; locationText: string
+    urgencyLevel: number; phoneContact: string; locationText: string; referenceNote: string
   }) => {
     if (!caseId) return
     const updated = await updateCase(caseId, data)
@@ -318,13 +318,18 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 </div>
               )}
 
-              {detail.locationText && (
+              {(detail.locationText || detail.referenceNote) && (
                 <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
                   <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  {detail.locationText}
+                  <div className="min-w-0">
+                    {detail.locationText && <p>{detail.locationText}</p>}
+                    {detail.referenceNote && (
+                      <p className="text-gray-500 dark:text-gray-400">{detail.referenceNote}</p>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -493,6 +498,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
             urgencyLevel: detail.urgencyLevel,
             phoneContact: detail.phoneContact ?? '',
             locationText: detail.locationText ?? '',
+            referenceNote: detail.referenceNote ?? '',
           }}
           onClose={() => setShowEditModal(false)}
           onSave={handleEdit}
@@ -526,11 +532,12 @@ export interface EditModalProps {
     urgencyLevel: number
     phoneContact: string
     locationText: string
+    referenceNote: string
   }
   onClose: () => void
   onSave: (data: {
     animalType: string; description: string; condition: string;
-    urgencyLevel: number; phoneContact: string; locationText: string
+    urgencyLevel: number; phoneContact: string; locationText: string; referenceNote: string
   }) => Promise<void>
 }
 
@@ -541,6 +548,7 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
   const [urgencyLevel, setUrgencyLevel] = useState(initial.urgencyLevel)
   const [phoneContact, setPhoneContact] = useState(initial.phoneContact)
   const [locationText, setLocationText] = useState(initial.locationText)
+  const [referenceNote, setReferenceNote] = useState(initial.referenceNote)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -552,7 +560,7 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
     setLoading(true)
     setError(null)
     try {
-      await onSave({ animalType, description: description.trim(), condition: condition.trim(), urgencyLevel, phoneContact: phoneContact.trim(), locationText: locationText.trim() })
+      await onSave({ animalType, description: description.trim(), condition: condition.trim(), urgencyLevel, phoneContact: phoneContact.trim(), locationText: locationText.trim(), referenceNote: referenceNote.trim() })
     } catch {
       setError('No se pudo guardar. Intentá de nuevo.')
     } finally {
@@ -642,12 +650,23 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Referencia de ubicación</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Dirección</label>
             <input
               type="text"
               value={locationText}
               onChange={(e) => setLocationText(e.target.value)}
               placeholder="Ej: San Martín 200, Capitán Sarmiento"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-base md:text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Referencia</label>
+            <input
+              type="text"
+              value={referenceNote}
+              onChange={(e) => setReferenceNote(e.target.value)}
+              placeholder="Ej: frente al kiosco, a media cuadra de la plaza"
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-base md:text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>

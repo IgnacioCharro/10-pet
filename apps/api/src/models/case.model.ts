@@ -19,6 +19,7 @@ interface CaseAttributes {
   urgencyLevel: number;
   location: CaseLocation;
   locationText: string | null;
+  referenceNote: string | null;
   condition: string | null;
   phoneContact: string | null;
   createdAt: Date;
@@ -33,6 +34,7 @@ type CaseCreationAttributes = Optional<
   | 'resolutionType'
   | 'urgencyLevel'
   | 'locationText'
+  | 'referenceNote'
   | 'condition'
   | 'phoneContact'
   | 'createdAt'
@@ -53,6 +55,7 @@ export class Case
   declare urgencyLevel: number;
   declare location: CaseLocation;
   declare locationText: string | null;
+  declare referenceNote: string | null;
   declare condition: string | null;
   declare phoneContact: string | null;
   declare readonly createdAt: Date;
@@ -101,6 +104,10 @@ export class Case
         },
         locationText: {
           type: DataTypes.STRING(255),
+          allowNull: true,
+        },
+        referenceNote: {
+          type: DataTypes.TEXT,
           allowNull: true,
         },
         condition: {

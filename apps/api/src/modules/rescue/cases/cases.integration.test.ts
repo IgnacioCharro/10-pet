@@ -45,6 +45,7 @@ const fakeCase = {
   lat: -34.6037,
   lng: -58.3816,
   locationText: 'Av. Corrientes 1234',
+  referenceNote: null,
   condition: 'herido',
   createdAt: new Date('2026-04-21T10:00:00Z'),
   updatedAt: new Date('2026-04-21T10:00:00Z'),
@@ -74,6 +75,46 @@ describe('POST /api/v1/cases', () => {
     expect(res.status).toBe(201);
     expect(res.body.case.id).toBe('case-uuid-1');
     expect(res.body.case.animalType).toBe('perro');
+  });
+
+  it('pasa referenceNote y locationText al servicio como campos separados', async () => {
+    vi.mocked(svc.createCase).mockResolvedValueOnce(fakeCase);
+    vi.mocked(svc.insertCaseImages).mockResolvedValueOnce();
+
+    const res = await request(app)
+      .post('/api/v1/cases')
+      .set('Authorization', authHeader)
+      .send({
+        animalType: 'perro',
+        description: 'Perro herido en la calle sin collar',
+        location: { lat: -34.6037, lng: -58.3816 },
+        locationText: 'Av. Corrientes 1234',
+        referenceNote: 'frente al kiosco',
+      });
+
+    expect(res.status).toBe(201);
+    expect(vi.mocked(svc.createCase)).toHaveBeenCalledWith(
+      'user-uuid-1',
+      expect.objectContaining({
+        locationText: 'Av. Corrientes 1234',
+        referenceNote: 'frente al kiosco',
+      }),
+    );
+  });
+
+  it('devuelve 400 con referenceNote de mas de 255 caracteres', async () => {
+    const res = await request(app)
+      .post('/api/v1/cases')
+      .set('Authorization', authHeader)
+      .send({
+        animalType: 'perro',
+        description: 'Perro herido en la calle sin collar',
+        location: { lat: -34.6037, lng: -58.3816 },
+        referenceNote: 'x'.repeat(256),
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 
   it('devuelve 400 con descripcion muy corta', async () => {
@@ -249,6 +290,26 @@ describe('PATCH /api/v1/cases/:id', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.case.status).toBe('en_rescate');
+  });
+
+  it('actualiza la referencia sin tocar la direccion', async () => {
+    vi.mocked(svc.updateCase).mockResolvedValueOnce({
+      ...fakeCase,
+      referenceNote: 'frente al kiosco',
+    });
+
+    const res = await request(app)
+      .patch('/api/v1/cases/case-uuid-1')
+      .set('Authorization', authHeader)
+      .send({ referenceNote: 'frente al kiosco' });
+
+    expect(res.status).toBe(200);
+    expect(vi.mocked(svc.updateCase)).toHaveBeenCalledWith(
+      'case-uuid-1',
+      'user-uuid-1',
+      false,
+      { referenceNote: 'frente al kiosco' },
+    );
   });
 
   it('devuelve 400 con body vacio', async () => {
