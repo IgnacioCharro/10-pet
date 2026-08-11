@@ -18,6 +18,7 @@ export interface CaseItem {
   lat: number
   lng: number
   locationText: string | null
+  referenceNote: string | null
   condition: string | null
   animalSex: AnimalSex | null
   animalSize: AnimalSize | null
@@ -84,6 +85,7 @@ export interface CreateCaseInput {
   description: string
   location: { lat: number; lng: number }
   locationText?: string
+  referenceNote?: string
   condition?: string
   urgencyLevel?: number
   phoneContact?: string

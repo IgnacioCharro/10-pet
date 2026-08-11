@@ -28,6 +28,7 @@ export interface CaseRow {
   lat: number;
   lng: number;
   locationText: string | null;
+  referenceNote: string | null;
   condition: string | null;
   animalSex: string | null;
   animalSize: string | null;
@@ -81,6 +82,7 @@ const BASE_CASE_SELECT = `
   ST_Y(c.location) AS lat,
   ST_X(c.location) AS lng,
   c.location_text AS "locationText",
+  c.reference_note AS "referenceNote",
   c.condition,
   c.animal_sex AS "animalSex",
   c.animal_size AS "animalSize",
@@ -104,12 +106,12 @@ export async function createCase(
   const result = await sequelize.query<CaseRow>(
     `INSERT INTO cases
        (id, user_id, listing_type, animal_type, description, status, urgency_level,
-        location, location_text, condition, phone_contact,
+        location, location_text, reference_note, condition, phone_contact,
         animal_sex, animal_size, animal_color,
         created_at, updated_at)
      VALUES
        (gen_random_uuid(), :userId, :listingType, :animalType, :description, 'abierto', :urgencyLevel,
-        ST_SetSRID(ST_MakePoint(:lng, :lat), 4326), :locationText, :condition, :phoneContact,
+        ST_SetSRID(ST_MakePoint(:lng, :lat), 4326), :locationText, :referenceNote, :condition, :phoneContact,
         :animalSex, :animalSize, :animalColor,
         NOW(), NOW())
      RETURNING
@@ -124,6 +126,7 @@ export async function createCase(
        ST_Y(location) AS lat,
        ST_X(location) AS lng,
        location_text AS "locationText",
+       reference_note AS "referenceNote",
        condition,
        animal_sex AS "animalSex",
        animal_size AS "animalSize",
@@ -141,6 +144,7 @@ export async function createCase(
         lat,
         lng,
         locationText: input.locationText ?? null,
+        referenceNote: input.referenceNote ?? null,
         condition: input.condition ?? null,
         phoneContact: input.phoneContact ?? null,
         animalSex: input.animalSex ?? null,
@@ -392,6 +396,11 @@ export async function updateCase(
     setClauses.push(`location_text = :locationText`);
     replacements.locationText = input.locationText;
   }
+
+  if (input.referenceNote !== undefined) {
+    setClauses.push(`reference_note = :referenceNote`);
+    replacements.referenceNote = input.referenceNote;
+  }
   if (input.animalSex !== undefined) {
     setClauses.push(`animal_sex = :animalSex`);
     replacements.animalSex = input.animalSex;
@@ -421,6 +430,7 @@ export async function updateCase(
        ST_Y(location) AS lat,
        ST_X(location) AS lng,
        location_text AS "locationText",
+       reference_note AS "referenceNote",
        condition,
        animal_sex AS "animalSex",
        animal_size AS "animalSize",

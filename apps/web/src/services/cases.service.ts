@@ -53,6 +53,7 @@ export const updateCase = async (
     urgencyLevel?: number
     phoneContact?: string
     locationText?: string
+    referenceNote?: string
   },
 ): Promise<CaseDetail> => {
   const res = await api.patch<{ case: CaseDetail }>(`/cases/${id}`, data)
