@@ -1,18 +1,29 @@
 import { useState } from 'react'
 import { requestPushPermission } from '../services/fcm.service'
+import { isSnoozed, snooze } from '../lib/snooze'
+
+const SNOOZE_KEY = '10pet:push-banner-snooze'
+const SNOOZE_DAYS = 7
 
 export function NotificationPermission() {
   const [state, setState] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle')
+  const [snoozed, setSnoozed] = useState(() => isSnoozed(SNOOZE_KEY))
 
   if (!('Notification' in window)) return null
   if (Notification.permission === 'granted') return null
   if (Notification.permission === 'denied') return null
   if (state === 'granted' || state === 'denied') return null
+  if (snoozed) return null
 
   const handleEnable = async () => {
     setState('loading')
     const ok = await requestPushPermission()
     setState(ok ? 'granted' : 'denied')
+  }
+
+  const handleDismiss = () => {
+    snooze(SNOOZE_KEY, SNOOZE_DAYS)
+    setSnoozed(true)
   }
 
   return (
@@ -31,7 +42,7 @@ export function NotificationPermission() {
               {state === 'loading' ? 'Activando...' : 'Activar'}
             </button>
             <button
-              onClick={() => setState('denied')}
+              onClick={handleDismiss}
               className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xs px-3 py-1.5"
             >
               Ahora no

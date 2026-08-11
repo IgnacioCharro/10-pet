@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { getMe, patchMe, getMyCases, patchNotificationLocation, deleteNotificationLocation } from '../services/users.service'
+import { requestPushPermission } from '../services/fcm.service'
 import { toast } from '../stores/toastStore'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
@@ -213,6 +214,8 @@ export default function ProfilePage() {
           )}
         </Card>
 
+        <PushNotificationsCard />
+
         <NotificationZoneCard />
 
         <div>
@@ -235,6 +238,61 @@ export default function ProfilePage() {
         </div>
       </div>
     </main>
+  )
+}
+
+function PushNotificationsCard() {
+  const supported = typeof window !== 'undefined' && 'Notification' in window
+  const [permission, setPermission] = useState<NotificationPermission | null>(
+    supported ? Notification.permission : null,
+  )
+  const [activating, setActivating] = useState(false)
+
+  if (permission === null) return null
+
+  const activate = async () => {
+    setActivating(true)
+    const ok = await requestPushPermission()
+    // requestPushPermission devuelve false tanto si el usuario dijo que no como
+    // si fallo la config o el token, asi que el permiso del navegador manda.
+    const current = Notification.permission
+    setPermission(current)
+    if (ok) {
+      toast.success('Notificaciones activadas en este dispositivo.')
+    } else if (current === 'denied') {
+      toast.error('Están bloqueadas en el navegador. Habilitalas desde la configuración del sitio.')
+    } else {
+      toast.error('No se pudieron activar. Intentá de nuevo más tarde.')
+    }
+    setActivating(false)
+  }
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-base font-semibold">Notificaciones push</h2>
+        {permission === 'default' && (
+          <Button size="sm" onClick={activate} loading={activating}>
+            Activar
+          </Button>
+        )}
+      </div>
+
+      {permission === 'granted' ? (
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Activas — te avisamos en este dispositivo cuando respondan tus solicitudes.
+        </p>
+      ) : permission === 'denied' ? (
+        <p className="text-sm text-gray-400">
+          Bloqueadas en este navegador. Habilitalas desde la configuración del sitio para volver a
+          recibir avisos.
+        </p>
+      ) : (
+        <p className="text-sm text-gray-400">
+          Desactivadas — no vas a recibir avisos cuando respondan tus solicitudes de contacto.
+        </p>
+      )}
+    </Card>
   )
 }
 
