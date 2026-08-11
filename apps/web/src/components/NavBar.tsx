@@ -56,12 +56,11 @@ export default function NavBar() {
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 text-primary-600 dark:text-primary-300 font-bold text-lg">
-          {/* Dos archivos y no uno: sobre el header oscuro el escudo violeta se funde con el
-              fondo y queda flotando la huella. El handoff manda la version negativo para
-              fondos oscuros. Van como <img> porque son de dos colores y se sostienen solos;
-              la version de una tinta necesitaria el SVG inline. */}
-          <img src="/brand/10_pet-logo.svg" alt="" aria-hidden="true" className="w-8 h-8 dark:hidden" />
-          <img src="/brand/10_pet-logo-negativo.svg" alt="" aria-hidden="true" className="w-8 h-8 hidden dark:block" />
+          {/* El mismo archivo en los dos temas: el escudo violeta con huella crema se sostiene
+              sobre claro y sobre oscuro, y asi la marca no cambia de identidad al togglear.
+              La version negativo es para fotos, no para dark. Va como <img> porque es de dos
+              colores; la version de una tinta necesitaria el SVG inline. */}
+          <img src="/brand/10_pet-logo.svg" alt="" aria-hidden="true" className="w-8 h-8" />
           10_Pet
         </Link>
 
