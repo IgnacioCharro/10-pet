@@ -12,8 +12,10 @@ export default defineConfig({
         name: '10Pet — Rescate Animal',
         short_name: '10Pet',
         description: 'Plataforma de rescate animal para Argentina',
-        theme_color: '#16a34a',
-        background_color: '#ffffff',
+        // theme_color pinta la barra del navegador y la ventana de la PWA: ahi va
+        // marca. background_color es el splash de arranque y replica el fondo.
+        theme_color: '#7c3aed',
+        background_color: '#faf6f0',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',

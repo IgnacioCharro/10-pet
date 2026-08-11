@@ -8,7 +8,13 @@
     <link rel="apple-touch-icon" href="/icons/favicon-180.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#16a34a" />
+    <!--
+      Un solo meta que el script de abajo pisa, en vez de los dos con
+      media=(prefers-color-scheme) que sugiere el handoff: aca el tema lo elige
+      el usuario y queda en localStorage, asi que la media query se equivocaria
+      con quien forzo claro teniendo el sistema en oscuro.
+    -->
+    <meta name="theme-color" content="#7c3aed" />
     <!--
       Sincrono y sin type=module a proposito: tiene que correr antes del primer
       pintado. Si esperara a React, quien fijo el tema oscuro veria un flash
@@ -24,7 +30,7 @@
         if (dark) {
           document.documentElement.classList.add('dark')
           var meta = document.querySelector('meta[name="theme-color"]')
-          if (meta) meta.setAttribute('content', '#111827')
+          if (meta) meta.setAttribute('content', '#161614')
         }
       })()
     </script>
