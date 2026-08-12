@@ -2,10 +2,22 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
-    <link rel="apple-touch-icon" href="/icons/favicon-180.png" />
+    <!--
+      El ?v=3 no es decorativo. Firefox guarda el favicon de cada pagina en su
+      propia base y lo reusa en la barra de marcadores casi para siempre: aunque
+      el archivo cambie en el server, un marcador viejo sigue mostrando el icono
+      viejo. Cambiar la URL lo obliga a buscarlo de nuevo. Si en el futuro se
+      vuelve a retocar el logo, hay que subir este numero.
+
+      El de 48 estaba en el repo pero sin declarar. Firefox elige el mas grande
+      que le sirva para la barra y las pestanas en pantallas HiDPI, asi que sin
+      declararlo se quedaba escalando el de 32.
+    -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png?v=3" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png?v=3" />
+    <link rel="apple-touch-icon" href="/icons/favicon-180.png?v=3" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <!--
