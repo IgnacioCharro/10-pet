@@ -22,3 +22,31 @@ html.dark {
 body {
   @apply bg-gray-50 dark:bg-gray-900;
 }
+
+/*
+  Safari en iOS hace zoom al enfocar un campo de menos de 16px y NO vuelve solo
+  al salir: la pagina queda zoomeada y paneable, y desde ahi todo lo que es
+  position:fixed (la hoja de detalle, la navbar, los toasts) se dibuja corrido
+  respecto de lo que ve el usuario. Es el corte lateral que aparecia en el
+  recorrido del 11/08 despues de escribir una novedad.
+
+  Ya lo habiamos tapado campo por campo con "text-base md:text-sm" (PRs #41-#46)
+  y volvio, porque cada campo nuevo se escribe con text-sm y nadie se acuerda.
+  Esta regla lo cierra de una: mientras el font-size no baje de 16px, no hay
+  zoom que arreglar despues.
+
+  Detalles que no son decorativos:
+  - pointer:coarse en vez de un ancho: el bug es de dispositivos tactiles, no de
+    pantallas chicas. Un iPhone acostado mide mas de 768px y seguia zoomeando.
+  - los :not() le dan a la regla mas peso que una utility de Tailwind, asi un
+    text-sm futuro no revive el bug.
+  - range, checkbox y radio quedan afuera: no disparan el zoom y el font-size
+    les cambia el dibujo del control.
+*/
+@media (pointer: coarse) {
+  input:not([type='range']):not([type='checkbox']):not([type='radio']),
+  textarea:not([disabled]),
+  select:not([disabled]) {
+    font-size: 16px;
+  }
+}

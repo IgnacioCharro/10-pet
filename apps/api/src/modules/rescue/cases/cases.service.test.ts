@@ -13,7 +13,7 @@ vi.mock('../../../jobs/queue', () => ({
 }));
 
 import { sequelize } from '../../../db';
-import { listCases, getFeedCases, listCasesByUser } from './cases.service';
+import { listCases, getFeedCases, listCasesByUser, FEED_MAX_AGE_DAYS } from './cases.service';
 import { VOLUNTEER_COUNT_SUBQUERY, FEED_VOLUNTEER_COUNT_EXPR } from './cases.ordering';
 import { ListCasesQuery, FeedCasesQuery } from './cases.validators';
 
@@ -26,6 +26,11 @@ const queryMock = vi.mocked(
 
 // SQL emitido en la llamada n-esima a sequelize.query
 const sqlOf = (call: number): string => String(queryMock.mock.calls[call]?.[0] ?? '');
+
+// Los replacements de esa misma llamada, para chequear que los valores viajan
+// parametrizados y no concatenados dentro del SQL
+const replacementsOf = (call: number): Record<string, unknown> =>
+  queryMock.mock.calls[call]?.[1]?.replacements ?? {};
 
 // El SELECT lleva una subconsulta con su propio ORDER BY (heroUrl): el de la
 // consulta es siempre el ultimo
@@ -106,5 +111,20 @@ describe('getFeedCases — ORDER BY', () => {
     await getFeedCases({ ...baseFeedQuery, listingType: 'found' });
 
     expect(orderByOf(sqlOf(0))).toContain(`${FEED_VOLUNTEER_COUNT_EXPR} ASC`);
+  });
+});
+
+describe('getFeedCases — antiguedad', () => {
+  it('deja afuera los casos mas viejos que el tope', async () => {
+    await getFeedCases(baseFeedQuery);
+
+    expect(sqlOf(0)).toContain(`c.created_at > NOW() - (:maxAgeDays * INTERVAL '1 day')`);
+  });
+
+  it('pasa el tope como replacement y no interpolado en el SQL', async () => {
+    await getFeedCases(baseFeedQuery);
+
+    expect(replacementsOf(0)).toMatchObject({ maxAgeDays: FEED_MAX_AGE_DAYS });
+    expect(sqlOf(0)).not.toContain(String(FEED_MAX_AGE_DAYS));
   });
 });

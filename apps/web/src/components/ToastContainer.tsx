@@ -12,8 +12,18 @@ export default function ToastContainer() {
 
   if (toasts.length === 0) return null
 
+  /*
+    Arriba en mobile, abajo en desktop. Abajo el toast caia justo sobre la
+    botonera de CaseDetailSheet ("Editar" / "Marcar como resuelto"): confirmaba
+    la accion tapando el boton que la habia disparado. Subirle el bottom no
+    alcanzaba porque esa botonera cambia de alto segun el caso (uno, dos o el
+    de WhatsApp). Arriba queda libre, debajo de la navbar sticky.
+
+    El calc no es capricho: la navbar mide 3.5rem mas el safe-area-inset-top,
+    asi que en un iPhone con notch un top fijo dejaba el toast pisandola.
+  */
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 items-center pointer-events-none">
+    <div className="fixed top-[calc(env(safe-area-inset-top)_+_4.5rem)] md:top-auto md:bottom-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 items-center pointer-events-none px-4">
       {toasts.map((t) => (
         <div
           key={t.id}

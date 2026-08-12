@@ -9,6 +9,7 @@ import { Card } from '../components/ui'
 import Button from '../components/ui/Button'
 import CaseDetailSheet from '../components/cases/CaseDetailSheet'
 import { useLastSeen } from '../hooks/useLastSeen'
+import { displayLocation } from '../lib/location'
 import type { CaseItem } from '../types/case'
 
 type Tab = 'casos' | 'enviados' | 'recibidos'
@@ -129,8 +130,10 @@ export default function DashboardPage() {
     }
   }
 
+  // El pb-28 del main deja pasar la ultima tarjeta por debajo de los botones
+  // flotantes, que antes la tapaban y la volvian imposible de tocar.
   return (
-    <main className="flex-1 px-4 py-8">
+    <main className="flex-1 px-4 pt-8 pb-28">
       <div className="max-w-3xl mx-auto flex flex-col gap-6">
         <div>
           <h1 className="text-2xl font-semibold">Mis casos y solicitudes</h1>
@@ -270,12 +273,11 @@ function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
         )}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium capitalize">{item.animalType}</p>
+          {/* Antes, si no habia direccion, caiamos a mostrar el par de coordenadas.
+              A quien busca su perro "-34.171, -59.794" no le dice nada; "Sin
+              direccion" al menos es honesto sobre lo que sabemos del caso. */}
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-            {item.locationText && !item.locationText.includes('undefined')
-              ? item.locationText
-              : item.lat != null && item.lng != null
-              ? `${item.lat.toFixed(3)}, ${item.lng.toFixed(3)}`
-              : <span className="italic">Sin direccion</span>}
+            {displayLocation(item.locationText) ?? <span className="italic">Sin direccion</span>}
           </p>
           <p className="text-xs text-gray-400 mt-0.5">
             {new Date(item.createdAt).toLocaleDateString('es-AR')}
