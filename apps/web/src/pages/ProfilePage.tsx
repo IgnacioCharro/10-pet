@@ -7,6 +7,7 @@ import { toast } from '../stores/toastStore'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import { Card } from '../components/ui'
+import { displayLocation } from '../lib/location'
 import type { CaseItem } from '../types/case'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -93,7 +94,7 @@ export default function ProfilePage() {
   const resolvedCount = cases.filter((c) => c.status === 'resuelto').length
 
   return (
-    <main className="flex-1 px-4 py-8">
+    <main className="flex-1 px-4 pt-8 pb-28">
       <div className="max-w-2xl mx-auto flex flex-col gap-6">
         <Card>
           <div className="flex items-start gap-4">
@@ -473,11 +474,7 @@ function CaseRow({ item }: { item: CaseItem }) {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium capitalize">{item.animalType}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {item.locationText && !item.locationText.includes('undefined')
-                ? item.locationText
-                : item.lat != null && item.lng != null
-                ? `${item.lat.toFixed(3)}, ${item.lng.toFixed(3)}`
-                : <span className="italic">Sin direccion</span>}
+              {displayLocation(item.locationText) ?? <span className="italic">Sin direccion</span>}
             </p>
             <p className="text-xs text-gray-400 mt-0.5">{new Date(item.createdAt).toLocaleDateString('es-AR')}</p>
           </div>

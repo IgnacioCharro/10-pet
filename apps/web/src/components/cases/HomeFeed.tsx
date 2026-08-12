@@ -9,6 +9,7 @@ import LocalidadPicker, {
   type PickedLocation,
 } from './LocalidadPicker'
 import { Button } from '../ui'
+import { displayLocation, displayDistance } from '../../lib/location'
 import type { AnimalType, ListingType, CaseItem } from '../../types/case'
 
 interface FeedRow {
@@ -85,9 +86,9 @@ function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
           <span className="text-xs font-medium text-gray-800 dark:text-gray-100">{ANIMAL_LABEL[row.animalType]}</span>
           <span className={`text-xs px-1.5 py-0.5 rounded ${urg}`}>{urgLabel}</span>
         </div>
-        {row.locationText && !row.locationText.includes('undefined') && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{row.locationText}</p>
-        )}
+        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+          {displayLocation(row.locationText) ?? <span className="italic">Sin direccion</span>}
+        </p>
         <p className="text-xs text-gray-400 mt-0.5">{timeAgo(row.createdAt)}</p>
       </div>
     </button>
@@ -95,6 +96,7 @@ function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
 }
 
 function ListRow({ caseItem, onClick }: { caseItem: CaseItem; onClick: () => void }) {
+  const distance = displayDistance(caseItem.distanceKm)
   return (
     <button
       type="button"
@@ -116,14 +118,12 @@ function ListRow({ caseItem, onClick }: { caseItem: CaseItem; onClick: () => voi
               {caseItem.listingType === 'lost' ? 'Busco' : 'Encontré'}
             </span>
           </div>
-          {caseItem.locationText && !caseItem.locationText.includes('undefined') && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{caseItem.locationText}</p>
-          )}
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            {displayLocation(caseItem.locationText) ?? <span className="italic">Sin direccion</span>}
+          </p>
           <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
             <span>{timeAgo(caseItem.createdAt)}</span>
-            {caseItem.distanceKm != null && (
-              <span>· {caseItem.distanceKm.toFixed(1)} km</span>
-            )}
+            {distance && <span>· {distance}</span>}
           </div>
         </div>
       </div>
@@ -205,7 +205,10 @@ export default function HomeFeed() {
     <>
       {showPicker && <LocalidadPicker onPick={handlePick} />}
 
-      <div className="max-w-2xl mx-auto px-4 py-5">
+      {/* pb-28 y no py-5: los botones flotantes (feedback, y mejoras si sos admin)
+          viven en la esquina inferior derecha y tapaban la ultima tarjeta de la
+          lista, que quedaba imposible de tocar. */}
+      <div className="max-w-2xl mx-auto px-4 pt-5 pb-28">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>

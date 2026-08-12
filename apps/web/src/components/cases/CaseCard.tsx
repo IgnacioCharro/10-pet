@@ -1,3 +1,4 @@
+import { displayLocation, displayDistance } from '../../lib/location'
 import type { CaseItem, AnimalType, CaseStatus } from '../../types/case'
 
 const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
@@ -60,6 +61,7 @@ interface Props {
 export default function CaseCard({ caseItem: c, onClick }: Props) {
   const urgencyClass = URGENCY_CLASS[c.urgencyLevel] ?? 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
   const urgencyLabel = URGENCY_LABEL[c.urgencyLevel] ?? `Urgencia ${c.urgencyLevel}`
+  const distance = displayDistance(c.distanceKm)
 
   return (
     <button
@@ -96,18 +98,14 @@ export default function CaseCard({ caseItem: c, onClick }: Props) {
           <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">{c.description}</p>
 
           <div className="flex items-center gap-3 text-xs text-gray-400">
-            {c.locationText && !c.locationText.includes('undefined') && (
-              <span className="flex items-center gap-1 truncate">
-                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {c.locationText}
-              </span>
-            )}
-            {c.distanceKm != null && (
-              <span className="flex-shrink-0">{c.distanceKm.toFixed(1)} km</span>
-            )}
+            <span className="flex items-center gap-1 truncate">
+              <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {displayLocation(c.locationText) ?? <span className="italic">Sin direccion</span>}
+            </span>
+            {distance && <span className="flex-shrink-0">{distance}</span>}
             <span className="flex-shrink-0 ml-auto cursor-help" title={formatExact(c.createdAt)}>{timeAgo(c.createdAt)}</span>
           </div>
         </div>

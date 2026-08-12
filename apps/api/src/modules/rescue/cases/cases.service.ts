@@ -461,18 +461,31 @@ export interface FeedCaseRow {
 // arrives as a string from Postgres
 type FeedCaseDbRow = Omit<FeedCaseRow, 'publisherName'> & { publisherName: string | null };
 
+// The feed is what fills the "urgent cases" strip on the home screen, so it is
+// capped by age: a case flagged critical three months ago was either resolved
+// without anyone closing it or abandoned. Either way, showing it as urgent
+// today teaches people that the urgency badge means nothing. Cases older than
+// this still exist and are still listed — they just stop being urgent.
+export const FEED_MAX_AGE_DAYS = 30;
+
 export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]> {
   const { lat, lng, radius, listingType } = query;
 
   const conditions: string[] = [
     `c.status IN ('abierto', 'en_rescate')`,
+    `c.created_at > NOW() - (:maxAgeDays * INTERVAL '1 day')`,
     `ST_DWithin(
        c.location::geography,
        ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
        :radiusM
      )`,
   ];
-  const replacements: Record<string, unknown> = { lat, lng, radiusM: radius * 1000 };
+  const replacements: Record<string, unknown> = {
+    lat,
+    lng,
+    radiusM: radius * 1000,
+    maxAgeDays: FEED_MAX_AGE_DAYS,
+  };
 
   if (listingType) {
     conditions.push(`c.listing_type = :listingType`);
