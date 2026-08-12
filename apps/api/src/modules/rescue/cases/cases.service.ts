@@ -462,11 +462,16 @@ export interface FeedCaseRow {
 type FeedCaseDbRow = Omit<FeedCaseRow, 'publisherName'> & { publisherName: string | null };
 
 // The feed is what fills the "urgent cases" strip on the home screen, so it is
-// capped by age: a case flagged critical three months ago was either resolved
-// without anyone closing it or abandoned. Either way, showing it as urgent
-// today teaches people that the urgency badge means nothing. Cases older than
-// this still exist and are still listed — they just stop being urgent.
-export const FEED_MAX_AGE_DAYS = 30;
+// capped by age: a case flagged critical long ago was either resolved without
+// anyone closing it or abandoned, and showing it as urgent today teaches people
+// that the urgency badge means nothing. Cases older than this still exist and
+// are still listed — they just stop being urgent.
+//
+// Six months and not something tighter because during the pilot the only data
+// is seeded test cases, and the oldest is around 113 days: a 30-day cap emptied
+// the strip completely. Worth tightening once there is real traffic, where a
+// case that nobody touched in a month really is stale.
+export const FEED_MAX_AGE_DAYS = 180;
 
 export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]> {
   const { lat, lng, radius, listingType } = query;
