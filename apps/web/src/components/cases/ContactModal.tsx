@@ -45,7 +45,7 @@ export function ContactModal({ caseId, onClose, onSuccess }: Props) {
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 mx-4">
         <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">Ofrecer ayuda</h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-          El reportador recibira tu solicitud y podra compartirte su numero de WhatsApp.
+          El reportador recibirá tu solicitud y podrá compartirte su número de WhatsApp.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <textarea

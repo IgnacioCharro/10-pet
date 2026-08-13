@@ -173,7 +173,7 @@ export default function CasePage() {
       setVetProcedure('')
       setVetMedication('')
       setShowVetForm(false)
-      toast.success('Atencion registrada.')
+      toast.success('Atención registrada.')
     } catch {
       toast.error('No se pudo guardar. Intenta de nuevo.')
     } finally {
@@ -407,7 +407,7 @@ export default function CasePage() {
             )}
             {contacted && !whatsappLink && (
               <p className="text-center text-sm text-green-600 dark:text-green-300 font-medium py-2">
-                Solicitud enviada. El reportador te contactara pronto.
+                Solicitud enviada. El reportador te contactará pronto.
               </p>
             )}
             {!contacted && (
@@ -477,7 +477,7 @@ function VolunteersSection({ volunteers }: { volunteers: CaseVolunteer[] }) {
         Voluntarios ({volunteers.length})
       </p>
       {volunteers.length === 0 ? (
-        <p className="text-xs text-gray-400">Todavia no hay voluntarios en este caso.</p>
+        <p className="text-xs text-gray-400">Todavía no hay voluntarios en este caso.</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           {volunteers.map((v) => (
