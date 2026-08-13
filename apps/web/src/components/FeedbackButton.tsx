@@ -27,7 +27,8 @@ export default function FeedbackButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-20 right-4 z-30 bg-primary-600 hover:bg-primary-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-colors"
+        className="fixed right-4 z-30 bg-primary-600 hover:bg-primary-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-colors"
+        style={{ bottom: 'calc(5rem + var(--install-banner-h, 0px))' }}
         aria-label="Enviar feedback"
         title="Enviar sugerencia o reportar error"
       >

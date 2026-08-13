@@ -1,21 +1,27 @@
 import { useEffect } from 'react'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 
+/** Alto real del banner (p-4 + dos lineas de texto) con algo de aire. */
+const BANNER_HEIGHT = '5.5rem'
+
 export function InstallBanner() {
   const { canInstall, install, dismiss } = useInstallPrompt()
 
   /**
    * El banner es `fixed` y se monta fuera del router, asi que ninguna pagina
    * puede reservarle lugar: tapaba la franja inferior y llego a interceptar
-   * clics reales (el boton "Editar" de la ficha de un caso). Empujar el fondo
-   * del body le da al contenido a donde correrse, y se limpia solo cuando el
-   * banner desaparece.
+   * clics reales (el boton "Editar" de la ficha de un caso).
+   *
+   * Publica su alto como variable en el root mientras esta visible. El body la
+   * usa de padding para que el contenido en flujo pueda correrse, y las barras
+   * de accion `fixed bottom-0` la usan de `bottom` para subir por encima: a
+   * esas el padding del body no las toca, porque no estan en el flujo.
    */
   useEffect(() => {
     if (!canInstall) return
-    document.body.style.paddingBottom = '5.5rem'
+    document.documentElement.style.setProperty('--install-banner-h', BANNER_HEIGHT)
     return () => {
-      document.body.style.paddingBottom = ''
+      document.documentElement.style.removeProperty('--install-banner-h')
     }
   }, [canInstall])
 

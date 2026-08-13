@@ -18,9 +18,15 @@ html.dark {
 }
 
 /* El canvas: sin esto el fondo detras del root queda blanco en dark y se ve
-   al hacer overscroll. */
+   al hacer overscroll.
+
+   El padding lo publica InstallBanner mientras el banner de instalacion esta
+   visible; sin banner la variable no existe y el fallback deja el body como
+   estaba. Es lo que le da al contenido a donde correrse en vez de quedar
+   tapado por el banner. */
 body {
   @apply bg-gray-50 dark:bg-gray-900;
+  padding-bottom: var(--install-banner-h, 0px);
 }
 
 /*

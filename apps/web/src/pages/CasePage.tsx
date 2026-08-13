@@ -369,7 +369,7 @@ export default function CasePage() {
       </div>
 
       {isOwner && (detail.status === 'abierto' || detail.status === 'en_rescate') && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3 z-20">
+        <div className="fixed left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3 z-20" style={{ bottom: 'var(--install-banner-h, 0px)' }}>
           <div className="max-w-2xl mx-auto flex gap-2">
             <button
               type="button"
@@ -390,7 +390,7 @@ export default function CasePage() {
       )}
 
       {canHelp && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3 z-20">
+        <div className="fixed left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3 z-20" style={{ bottom: 'var(--install-banner-h, 0px)' }}>
           <div className="max-w-2xl mx-auto flex flex-col gap-2">
             {contacted && whatsappLink && (
               <a

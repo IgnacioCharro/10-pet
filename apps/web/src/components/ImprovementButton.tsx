@@ -43,7 +43,8 @@ export default function ImprovementButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-20 right-20 z-30 bg-amber-500 hover:bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-colors"
+        className="fixed right-20 z-30 bg-amber-500 hover:bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-colors"
+        style={{ bottom: 'calc(5rem + var(--install-banner-h, 0px))' }}
         aria-label="Anotar una mejora"
         title="Anotar una mejora (solo admin)"
       >
