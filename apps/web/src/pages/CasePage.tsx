@@ -173,7 +173,7 @@ export default function CasePage() {
       setVetProcedure('')
       setVetMedication('')
       setShowVetForm(false)
-      toast.success('Atencion registrada.')
+      toast.success('Atención registrada.')
     } catch {
       toast.error('No se pudo guardar. Intenta de nuevo.')
     } finally {
@@ -232,7 +232,9 @@ export default function CasePage() {
 
   return (
     <>
-      <div className="max-w-2xl mx-auto pb-28">
+      {/* pb-36 (144px) y no pb-28: los botones flotantes llegan a 128px del borde
+          inferior y "Reportar" queda justo debajo de esa columna. */}
+      <div className="max-w-2xl mx-auto pb-36">
         <div className="px-4 pt-4 pb-2">
           <button
             type="button"
@@ -287,7 +289,7 @@ export default function CasePage() {
 
           {detail.condition && (
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condicion</p>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condición</p>
               <p className="text-sm text-gray-700 dark:text-gray-200">{detail.condition}</p>
             </div>
           )}
@@ -367,7 +369,7 @@ export default function CasePage() {
       </div>
 
       {isOwner && (detail.status === 'abierto' || detail.status === 'en_rescate') && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3 z-20">
+        <div className="fixed left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3 z-20" style={{ bottom: 'var(--install-banner-h, 0px)' }}>
           <div className="max-w-2xl mx-auto flex gap-2">
             <button
               type="button"
@@ -388,7 +390,7 @@ export default function CasePage() {
       )}
 
       {canHelp && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3 z-20">
+        <div className="fixed left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3 z-20" style={{ bottom: 'var(--install-banner-h, 0px)' }}>
           <div className="max-w-2xl mx-auto flex flex-col gap-2">
             {contacted && whatsappLink && (
               <a
@@ -405,7 +407,7 @@ export default function CasePage() {
             )}
             {contacted && !whatsappLink && (
               <p className="text-center text-sm text-green-600 dark:text-green-300 font-medium py-2">
-                Solicitud enviada. El reportador te contactara pronto.
+                Solicitud enviada. El reportador te contactará pronto.
               </p>
             )}
             {!contacted && (
@@ -475,7 +477,7 @@ function VolunteersSection({ volunteers }: { volunteers: CaseVolunteer[] }) {
         Voluntarios ({volunteers.length})
       </p>
       {volunteers.length === 0 ? (
-        <p className="text-xs text-gray-400">Todavia no hay voluntarios en este caso.</p>
+        <p className="text-xs text-gray-400">Todavía no hay voluntarios en este caso.</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           {volunteers.map((v) => (

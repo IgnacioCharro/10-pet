@@ -313,7 +313,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
 
               {detail.condition && (
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condicion</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condición</p>
                   <p className="text-sm text-gray-700 dark:text-gray-200">{detail.condition}</p>
                 </div>
               )}
@@ -445,7 +445,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
             )}
             {contacted && !whatsappLink && (
               <p className="text-center text-sm text-green-600 dark:text-green-300 font-medium py-2">
-                Solicitud enviada. El reportador te contactara pronto.
+                Solicitud enviada. El reportador te contactará pronto.
               </p>
             )}
             {!contacted && (
@@ -698,10 +698,10 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
 
 const RESOLUTION_OPTIONS: { value: ResolutionType; label: string }[] = [
   { value: 'adoptado',     label: 'Adoptado' },
-  { value: 'en_transito',  label: 'En transito' },
+  { value: 'en_transito',  label: 'En tránsito' },
   { value: 'zoonosis',     label: 'Centro de zoonosis' },
   { value: 'derivado_ong', label: 'Derivado a ONG' },
-  { value: 'fallecio',     label: 'Fallecio' },
+  { value: 'fallecio',     label: 'Falleció' },
   { value: 'sin_paradero', label: 'Sin paradero' },
   { value: 'otro',         label: 'Otro' },
 ]
@@ -770,7 +770,7 @@ export function ResolutionModal({
 const UPDATE_META: Record<CaseUpdateType, { label: string; color: string; icon: string }> = {
   avistamiento:  { label: 'Avistamiento',         color: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300',   icon: '👁' },
   medicacion:    { label: 'Medicacion aplicada',   color: 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300', icon: '💊' },
-  veterinario:   { label: 'Atencion veterinaria',  color: 'bg-teal-50 dark:bg-teal-900/30 border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300',   icon: '🩺' },
+  veterinario:   { label: 'Atención veterinaria',  color: 'bg-teal-50 dark:bg-teal-900/30 border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300',   icon: '🩺' },
   comentario:    { label: 'Novedad',               color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '📝' },
   status_change: { label: 'Cambio de estado',      color: 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300',icon: '🔄' },
   comment:       { label: 'Comentario',            color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '💬' },
@@ -783,7 +783,7 @@ const OWNER_UPDATE_TYPES: CaseUpdateType[] = ['avistamiento', 'medicacion', 'vet
 const OWNER_TYPE_LABELS: Record<string, string> = {
   avistamiento: 'Lo vi en otro lugar',
   medicacion:   'Medicacion aplicada',
-  veterinario:  'Atencion veterinaria',
+  veterinario:  'Atención veterinaria',
   comentario:   'Otra novedad',
 }
 
@@ -871,7 +871,7 @@ export function CaseTimeline({
 
       {updates.length === 0 && !showAddUpdate && (
         <p className="text-xs text-gray-400 text-center py-2">
-          Sin novedades todavia.{isOwner ? ' Usá "+ Agregar novedad" para registrar actualizaciones.' : ''}
+          Sin novedades todavía.{isOwner ? ' Usá "+ Agregar novedad" para registrar actualizaciones.' : ''}
         </p>
       )}
 
@@ -914,7 +914,7 @@ export function VetAssistancesSection({
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-          Atencion veterinaria
+          Atención veterinaria
         </p>
         {isAuthenticated && (
           <button
@@ -922,7 +922,7 @@ export function VetAssistancesSection({
             onClick={onToggleForm}
             className="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
           >
-            {showForm ? 'Cancelar' : '+ Registrar atencion'}
+            {showForm ? 'Cancelar' : '+ Registrar atención'}
           </button>
         )}
       </div>

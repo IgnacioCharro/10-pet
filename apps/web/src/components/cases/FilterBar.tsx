@@ -16,7 +16,7 @@ const URGENCY_OPTIONS: { value: number | 0; label: string }[] = [
   { value: 0, label: 'Todos' },
   { value: 3, label: '3+' },
   { value: 4, label: '4+' },
-  { value: 5, label: 'Critica' },
+  { value: 5, label: 'Crítica' },
 ]
 
 
@@ -250,7 +250,7 @@ export default function FilterBar({ filters, onFiltersChange, onLocationFound, z
             ].join(' ')}
           >
             {hasExtraFilters && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-gray-800 inline-block" />}
-            Mas filtros
+            Más filtros
             <svg
               className={['w-3 h-3 transition-transform', showMore || hasExtraFilters ? 'rotate-180' : ''].join(' ')}
               fill="none" stroke="currentColor" viewBox="0 0 24 24"

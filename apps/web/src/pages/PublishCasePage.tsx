@@ -47,12 +47,12 @@ const ANIMAL_LABELS: Record<AnimalType, string> = {
 const URGENCY_LABELS: Record<number, string> = {
   1: 'Sin urgencia',
   2: 'Baja — estable',
-  3: 'Moderada — necesita atencion pronto',
-  4: 'Alta — en riesgo, actuar rapido',
-  5: 'Critica — riesgo de vida / atropellado',
+  3: 'Moderada — necesita atención pronto',
+  4: 'Alta — en riesgo, actuar rápido',
+  5: 'Crítica — riesgo de vida / atropellado',
 }
 
-const STEPS = ['Fotos', 'Ubicacion', 'Descripcion', 'Contacto']
+const STEPS = ['Fotos', 'Ubicación', 'Descripción', 'Contacto']
 
 export default function PublishCasePage() {
   const navigate = useNavigate()
@@ -335,7 +335,7 @@ export default function PublishCasePage() {
 
             <div className="flex gap-3">
               <Button variant="secondary" onClick={back} disabled={submitting}>
-                Atras
+                Atrás
               </Button>
               <div className="flex-1" />
               {step < 4 ? (
@@ -717,7 +717,7 @@ function StepUbicacion({
             </div>
             <div className="w-24 shrink-0">
               <Input
-                label="Numero"
+                label="Número"
                 placeholder="1234"
                 value={numero}
                 onChange={(e) => setNumero(e.target.value)}
@@ -757,7 +757,7 @@ function StepUbicacion({
           disabled={!localidad.trim()}
           fullWidth
         >
-          Buscar direccion
+          Buscar dirección
         </Button>
       </div>
       )}
@@ -780,7 +780,7 @@ function StepUbicacion({
             <ErrorBoundary fallback={
               <div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex flex-col items-center justify-center gap-2 text-gray-400 text-sm">
                 <span>No se pudo cargar el mapa.</span>
-                <button type="button" className="text-primary-600 dark:text-primary-300 underline text-xs" onClick={() => window.location.reload()}>Recargar pagina</button>
+                <button type="button" className="text-primary-600 dark:text-primary-300 underline text-xs" onClick={() => window.location.reload()}>Recargar página</button>
               </div>
             }>
               <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 text-sm">Cargando mapa...</div>}>
