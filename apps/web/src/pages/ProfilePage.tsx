@@ -18,6 +18,14 @@ const STATUS_LABELS: Record<string, string> = {
   spam: 'Spam',
 }
 
+const ANIMAL_EMOJI: Record<string, string> = {
+  perro: '🐕',
+  gato: '🐈',
+  caballo: '🐴',
+  vaca: '🐄',
+  otro: '🐾',
+}
+
 const STATUS_COLORS: Record<string, string> = {
   abierto: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
   en_rescate: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
@@ -470,13 +478,24 @@ function CaseRow({ item }: { item: CaseItem }) {
   return (
     <Link to={`/cases/${item.id}`} className="block">
       <Card className="hover:shadow-md transition-shadow cursor-pointer">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start gap-3">
+          {item.heroUrl ? (
+            <img
+              src={item.heroUrl}
+              alt=""
+              className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+            />
+          ) : (
+            <span className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-2xl flex-shrink-0">
+              {ANIMAL_EMOJI[item.animalType] ?? '🐾'}
+            </span>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium capitalize">{item.animalType}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {displayLocation(item.locationText) ?? <span className="italic">Sin direccion</span>}
+              {displayLocation(item.locationText) ?? <span className="italic">Sin dirección</span>}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">{new Date(item.createdAt).toLocaleDateString('es-AR')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{new Date(item.createdAt).toLocaleDateString('es-AR')}</p>
           </div>
           <span className={['text-xs px-2 py-0.5 rounded-full font-medium shrink-0', statusClass].join(' ')}>
             {STATUS_LABELS[item.status] ?? item.status}

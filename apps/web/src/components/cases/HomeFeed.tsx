@@ -31,11 +31,13 @@ const URGENCY_CLS: Record<number, string> = {
   1: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
   2: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
   3: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
-  4: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300',
+  // El 4 va naranja como en CaseCard, CasePage y CaseDetailSheet; en rojo se
+  // confundia con el 5. El 5 si es mas pesado a proposito: es el carrusel de urgentes.
+  4: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
   5: 'bg-red-200 dark:bg-red-900/60 text-red-800 dark:text-red-200 font-semibold',
 }
 const URGENCY_LABEL: Record<number, string> = {
-  1: 'Baja', 2: 'Baja', 3: 'Media', 4: 'Alta', 5: 'Critica',
+  1: 'Baja', 2: 'Baja', 3: 'Media', 4: 'Alta', 5: 'Crítica',
 }
 
 type Tab = 'all' | 'found' | 'lost'
@@ -87,7 +89,7 @@ function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
           <span className={`text-xs px-1.5 py-0.5 rounded ${urg}`}>{urgLabel}</span>
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-          {displayLocation(row.locationText) ?? <span className="italic">Sin direccion</span>}
+          {displayLocation(row.locationText) ?? <span className="italic">Sin dirección</span>}
         </p>
         <p className="text-xs text-gray-400 mt-0.5">{timeAgo(row.createdAt)}</p>
       </div>
@@ -119,7 +121,7 @@ function ListRow({ caseItem, onClick }: { caseItem: CaseItem; onClick: () => voi
             </span>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-            {displayLocation(caseItem.locationText) ?? <span className="italic">Sin direccion</span>}
+            {displayLocation(caseItem.locationText) ?? <span className="italic">Sin dirección</span>}
           </p>
           <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
             <span>{timeAgo(caseItem.createdAt)}</span>

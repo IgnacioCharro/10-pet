@@ -38,10 +38,12 @@ export default function ImprovementButton() {
 
   return (
     <>
+      {/* Al lado del boton de feedback y no encima: apilados ocupaban 192px de
+          alto y tapaban los controles del pie de /cases/:id. Lado a lado son 48. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-36 right-4 z-30 bg-amber-500 hover:bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-colors"
+        className="fixed bottom-20 right-20 z-30 bg-amber-500 hover:bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-colors"
         aria-label="Anotar una mejora"
         title="Anotar una mejora (solo admin)"
       >

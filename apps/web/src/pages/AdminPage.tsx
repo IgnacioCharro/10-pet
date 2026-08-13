@@ -42,7 +42,7 @@ function StatCard({ label, value, sub }: { label: string; value: number; sub?: s
     <Card className="p-4 flex flex-col gap-1">
       <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value.toLocaleString()}</span>
       <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{label}</span>
-      {sub && <span className="text-xs text-gray-400">{sub}</span>}
+      {sub && <span className="text-xs text-gray-500 dark:text-gray-400">{sub}</span>}
     </Card>
   )
 }
@@ -197,13 +197,13 @@ export default function AdminPage() {
     <main className="flex-1 px-4 py-8">
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Panel de administracion</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Gestion de usuarios, reportes y casos</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Panel de administración</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Gestión de usuarios, reportes y casos</p>
         </div>
 
         <div className="flex border-b border-gray-200 dark:border-gray-700">
           <button className={tabClass('stats')} onClick={() => setTab('stats')}>
-            Estadisticas
+            Estadísticas
           </button>
           <button className={tabClass('reports')} onClick={() => setTab('reports')}>
             Reportes
@@ -224,7 +224,7 @@ export default function AdminPage() {
         {tab === 'stats' && (
           <div className="flex flex-col gap-6">
             {loadingStats ? (
-              <p className="text-sm text-gray-400">Cargando...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
             ) : stats ? (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -275,9 +275,9 @@ export default function AdminPage() {
             </div>
 
             {loadingReports ? (
-              <p className="text-sm text-gray-400">Cargando...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
             ) : reports.length === 0 ? (
-              <p className="text-sm text-gray-400">Sin reportes.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Sin reportes.</p>
             ) : (
               <div className="flex flex-col gap-3">
                 {reports.map((r) => (
@@ -290,7 +290,7 @@ export default function AdminPage() {
                         {r.description && (
                           <p className="text-sm text-gray-700 dark:text-gray-200">{r.description}</p>
                         )}
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {r.targetCaseId ? `Caso: ${r.targetCaseId.slice(0, 8)}...` : ''}
                           {' · '}
                           {new Date(r.createdAt).toLocaleDateString('es-AR')}
@@ -381,9 +381,9 @@ export default function AdminPage() {
             </div>
 
             {loadingUsers ? (
-              <p className="text-sm text-gray-400">Cargando...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
             ) : users.length === 0 ? (
-              <p className="text-sm text-gray-400">Sin resultados.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Sin resultados.</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {users.map((u) => (
@@ -407,8 +407,8 @@ export default function AdminPage() {
                               Baneado
                             </span>
                           )}
-                          <span className="text-xs text-gray-400">{u.casesCount} casos</span>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{u.casesCount} casos</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             {new Date(u.createdAt).toLocaleDateString('es-AR')}
                           </span>
                         </div>
@@ -469,9 +469,9 @@ export default function AdminPage() {
             </div>
 
             {loadingAdminCases ? (
-              <p className="text-sm text-gray-400">Cargando...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
             ) : adminCases.length === 0 ? (
-              <p className="text-sm text-gray-400">Sin casos.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Sin casos.</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {adminCases.map((c) => (
@@ -482,7 +482,7 @@ export default function AdminPage() {
                         {c.locationText && (
                           <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{c.locationText}</span>
                         )}
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {new Date(c.updatedAt).toLocaleDateString('es-AR')}
                         </span>
                       </div>

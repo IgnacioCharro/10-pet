@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import type { KeyboardEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useNotificationsStore } from '../stores/notificationsStore'
@@ -36,10 +37,10 @@ const ANIMAL_EMOJI: Record<string, string> = {
 
 const RESOLUTION_LABELS: Record<string, string> = {
   adoptado:     'Adoptado',
-  en_transito:  'En transito',
+  en_transito:  'En tránsito',
   zoonosis:     'Centro de zoonosis',
   derivado_ong: 'Derivado a ONG',
-  fallecio:     'Fallecio',
+  fallecio:     'Falleció',
   sin_paradero: 'Sin paradero',
   otro:         'Otro',
 }
@@ -254,10 +255,32 @@ export default function DashboardPage() {
 }
 
 function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
+  // La tarjeta abre el detalle con el mouse, asi que tiene que abrirlo tambien
+  // con el teclado: sin role ni tabindex el lector de pantalla la lee como texto
+  // suelto y el foco la saltea.
+  const interactive = onClick
+    ? {
+        role: 'button',
+        tabIndex: 0,
+        onClick,
+        onKeyDown: (e: KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onClick()
+          }
+        },
+      }
+    : {}
+
   return (
     <Card
-      className={['p-4', onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''].join(' ')}
-      onClick={onClick}
+      className={[
+        'p-4',
+        onClick
+          ? 'cursor-pointer hover:shadow-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500'
+          : '',
+      ].join(' ')}
+      {...interactive}
     >
       <div className="flex items-start gap-3">
         {item.heroUrl ? (
@@ -277,7 +300,7 @@ function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
               A quien busca su perro "-34.171, -59.794" no le dice nada; "Sin
               direccion" al menos es honesto sobre lo que sabemos del caso. */}
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-            {displayLocation(item.locationText) ?? <span className="italic">Sin direccion</span>}
+            {displayLocation(item.locationText) ?? <span className="italic">Sin dirección</span>}
           </p>
           <p className="text-xs text-gray-400 mt-0.5">
             {new Date(item.createdAt).toLocaleDateString('es-AR')}

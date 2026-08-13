@@ -313,7 +313,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
 
               {detail.condition && (
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condicion</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condición</p>
                   <p className="text-sm text-gray-700 dark:text-gray-200">{detail.condition}</p>
                 </div>
               )}
@@ -698,10 +698,10 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
 
 const RESOLUTION_OPTIONS: { value: ResolutionType; label: string }[] = [
   { value: 'adoptado',     label: 'Adoptado' },
-  { value: 'en_transito',  label: 'En transito' },
+  { value: 'en_transito',  label: 'En tránsito' },
   { value: 'zoonosis',     label: 'Centro de zoonosis' },
   { value: 'derivado_ong', label: 'Derivado a ONG' },
-  { value: 'fallecio',     label: 'Fallecio' },
+  { value: 'fallecio',     label: 'Falleció' },
   { value: 'sin_paradero', label: 'Sin paradero' },
   { value: 'otro',         label: 'Otro' },
 ]

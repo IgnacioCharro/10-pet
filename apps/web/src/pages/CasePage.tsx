@@ -232,7 +232,9 @@ export default function CasePage() {
 
   return (
     <>
-      <div className="max-w-2xl mx-auto pb-28">
+      {/* pb-36 (144px) y no pb-28: los botones flotantes llegan a 128px del borde
+          inferior y "Reportar" queda justo debajo de esa columna. */}
+      <div className="max-w-2xl mx-auto pb-36">
         <div className="px-4 pt-4 pb-2">
           <button
             type="button"
@@ -287,7 +289,7 @@ export default function CasePage() {
 
           {detail.condition && (
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condicion</p>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condición</p>
               <p className="text-sm text-gray-700 dark:text-gray-200">{detail.condition}</p>
             </div>
           )}
