@@ -5,6 +5,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import passport from 'passport';
 import { env } from './config/env';
+import { errorHandler } from './middleware/error-handler';
 import { healthRouter } from './routes/health.routes';
 import { authRouter } from './modules/auth/auth.routes';
 import { usersRouter } from './modules/users/users.routes';
@@ -54,5 +55,9 @@ app.use('/api/v1/feedback', mutationLimiter, feedbackRouter);
 app.use('/api/v1/improvements', mutationLimiter, improvementsRouter);
 
 Sentry.setupExpressErrorHandler(app);
+
+// Va despues de Sentry: Sentry reporta y delega, y este cierra la cadena con
+// una respuesta JSON en el formato estandar en vez del HTML de Express.
+app.use(errorHandler);
 
 export default app;
