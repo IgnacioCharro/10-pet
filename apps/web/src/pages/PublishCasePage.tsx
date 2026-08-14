@@ -525,6 +525,55 @@ interface StepUbicacionProps {
 
 type AddressMode = 'numero' | 'interseccion'
 
+interface OverpassResponse {
+  elements: Array<{ lat: number; lon: number }>
+}
+
+// overpass-api.de corta por cuota devolviendo 406 o 504 con un cuerpo HTML, no JSON.
+// Cuando pasa, la instancia queda inutilizable por un rato para esa IP, asi que un
+// reintento contra el mismo host no sirve: hay que cambiar de mirror. Los dos de
+// respaldo mandan Access-Control-Allow-Origin: *, que es lo que los hace usables
+// desde el browser.
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+]
+
+// Cuando un mirror esta saturado no rechaza: deja la conexion abierta. Sin este
+// corte la cadena entera se cuelga detras del primero que no contesta y el
+// usuario se queda mirando el spinner.
+const OVERPASS_TIMEOUT_MS = 8000
+
+/**
+ * Devuelve null si ningun mirror contesto. Distinguirlo de una respuesta vacia
+ * importa: "no encontramos la interseccion" manda al usuario a corregir los
+ * nombres, y si en realidad fue el servidor, lo manda a corregir algo que estaba bien.
+ */
+async function queryOverpass(query: string): Promise<OverpassResponse | null> {
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), OVERPASS_TIMEOUT_MS)
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `data=${encodeURIComponent(query)}`,
+        signal: controller.signal,
+      })
+      // Sin este chequeo el cuerpo HTML del error llega a res.json(), que tira
+      // SyntaxError y se confunde con una falla de red.
+      if (!res.ok) continue
+      return (await res.json()) as OverpassResponse
+    } catch {
+      // Timeout, red caida o JSON invalido: probamos el siguiente mirror.
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+  return null
+}
+
 function StepUbicacion({
   lat, lng, locationText, referenceNote, geolocating, error,
   onGeolocate, onLatChange, onLngChange, onLocationTextChange, onReferenceNoteChange,
@@ -580,12 +629,13 @@ function StepUbicacion({
           `way["name"="${escape(calle.trim())}"]["highway"](area.a)->.w1;` +
           `way["name"="${escape(calle2.trim())}"]["highway"](area.a)->.w2;` +
           `node(w.w1)(w.w2);out;`
-        const res = await fetch('https://overpass-api.de/api/interpreter', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `data=${encodeURIComponent(overpassQuery)}`,
-        })
-        const data: { elements: Array<{ lat: number; lon: number }> } = await res.json()
+        const data = await queryOverpass(overpassQuery)
+        if (data === null) {
+          setGeocodeError(
+            'El buscador de intersecciones no responde en este momento. Tocá el mapa para marcar la ubicación.',
+          )
+          return
+        }
         if (!data.elements.length) {
           setGeocodeError('No encontramos esa intersección. Revisá los nombres o tocá el mapa.')
           return
@@ -600,6 +650,14 @@ function StepUbicacion({
           `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=ar`,
           { headers: { 'Accept-Language': 'es', 'User-Agent': '10pet-web/1.0' } },
         )
+        // Mismo motivo que en el mirror de Overpass: si Nominatim corta por cuota
+        // el cuerpo no es JSON y res.json() tira SyntaxError.
+        if (!res.ok) {
+          setGeocodeError(
+            'El buscador de direcciones no responde en este momento. Tocá el mapa para marcar la ubicación.',
+          )
+          return
+        }
         const data: Array<{ lat: string; lon: string }> = await res.json()
         if (data.length === 0) {
           setGeocodeError('No encontramos esa dirección. Revisá los datos o tocá el mapa.')
