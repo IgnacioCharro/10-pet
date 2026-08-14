@@ -71,9 +71,12 @@ export const updateCaseSchema = z
   });
 
 export const addUpdateSchema = z.object({
+  // Espejo del CHECK case_updates_type_check. Sumar un valor aca sin la migration
+  // correspondiente hace que el insert rebote contra el constraint.
+  // Ver 20260814100000-update-case-update-types.js.
   updateType: z.enum([
     'status_change', 'comment', 'photo_added', 'reactivated',
-    'avistamiento', 'medicacion', 'veterinario', 'comentario',
+    'avistamiento', 'alojamiento', 'salud', 'veterinario', 'comentario',
   ]),
   content: z.string().trim().max(1000).optional(),
 });

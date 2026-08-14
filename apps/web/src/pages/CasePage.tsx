@@ -9,11 +9,10 @@ import type { CaseDetail, AnimalType, CaseStatus, CaseUpdateType, CaseVolunteer 
 import { ContactModal } from '../components/cases/ContactModal'
 import { ReportModal } from '../components/cases/ReportModal'
 import {
-  CaseTimeline,
-  VetAssistancesSection,
   EditModal,
   ResolutionModal,
 } from '../components/cases/CaseDetailSheet'
+import CaseTimeline from '../components/cases/CaseTimeline'
 
 const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
 const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', caballo: '🐴', vaca: '🐄', otro: '🐾' }
@@ -323,8 +322,13 @@ export default function CasePage() {
           )}
 
           <CaseTimeline
+            createdAt={detail.createdAt}
+            status={detail.status}
+            resolutionType={detail.resolutionType}
             updates={detail.updates}
+            assistances={vetAssistances}
             isOwner={isOwner}
+            isAuthenticated={isAuthenticated}
             showAddUpdate={showAddUpdate}
             addUpdateType={addUpdateType}
             addUpdateContent={addUpdateContent}
@@ -333,19 +337,14 @@ export default function CasePage() {
             onTypeChange={setAddUpdateType}
             onContentChange={setAddUpdateContent}
             onSubmit={handleAddUpdate}
-          />
-
-          <VetAssistancesSection
-            assistances={vetAssistances}
-            isAuthenticated={isAuthenticated}
-            showForm={showVetForm}
-            procedure={vetProcedure}
-            medication={vetMedication}
-            loading={vetLoading}
-            onToggleForm={() => setShowVetForm((v) => !v)}
-            onProcedureChange={setVetProcedure}
-            onMedicationChange={setVetMedication}
-            onSubmit={handleVetSubmit}
+            showVetForm={showVetForm}
+            vetProcedure={vetProcedure}
+            vetMedication={vetMedication}
+            vetLoading={vetLoading}
+            onToggleVetForm={() => setShowVetForm((v) => !v)}
+            onVetProcedureChange={setVetProcedure}
+            onVetMedicationChange={setVetMedication}
+            onVetSubmit={handleVetSubmit}
           />
 
           {detail.volunteers !== undefined && (
