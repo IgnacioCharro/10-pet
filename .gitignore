@@ -85,3 +85,6 @@ secrets/
 # Taller de marca: originales del handoff de diseno. Lo que se deploya vive en
 # apps/web/public/, esta carpeta es material de trabajo.
 logo/
+
+# Maquetas de brainstorming (superpowers)
+.superpowers/

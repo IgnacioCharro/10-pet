@@ -12,6 +12,9 @@ export default defineConfig({
         name: '10Pet — Rescate Animal',
         short_name: '10Pet',
         description: 'Plataforma de rescate animal para Argentina',
+        // Sin esto vite-plugin-pwa lo deja en 'en' y la app instalada queda
+        // declarada como inglesa: el lector de pantalla la lee con voz inglesa.
+        lang: 'es-AR',
         // theme_color pinta la barra del navegador y la ventana de la PWA: ahi va
         // marca. background_color es el splash de arranque y replica el fondo.
         theme_color: '#7c3aed',
