@@ -91,7 +91,7 @@ function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
           {displayLocation(row.locationText) ?? <span className="italic">Sin dirección</span>}
         </p>
-        <p className="text-xs text-gray-400 mt-0.5">{timeAgo(row.createdAt)}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{timeAgo(row.createdAt)}</p>
       </div>
     </button>
   )
@@ -123,7 +123,7 @@ function ListRow({ caseItem, onClick }: { caseItem: CaseItem; onClick: () => voi
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
             {displayLocation(caseItem.locationText) ?? <span className="italic">Sin dirección</span>}
           </p>
-          <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
             <span>{timeAgo(caseItem.createdAt)}</span>
             {distance && <span>· {distance}</span>}
           </div>
@@ -245,11 +245,11 @@ export default function HomeFeed() {
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wide">Casos urgentes</h2>
               {urgentFiltered.length > 0 && (
-                <span className="text-xs text-gray-400">{urgentFiltered.length} en tu zona</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{urgentFiltered.length} en tu zona</span>
               )}
             </div>
             {urgentLoading ? (
-              <div className="h-40 flex items-center justify-center text-gray-400 text-sm">Cargando…</div>
+              <div className="h-40 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">Cargando…</div>
             ) : (
               <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
                 {urgentFiltered.map((row) => (
@@ -305,11 +305,11 @@ export default function HomeFeed() {
           </div>
 
           {listLoading && (
-            <div className="text-center py-10 text-gray-400 text-sm">Cargando...</div>
+            <div className="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">Cargando...</div>
           )}
 
           {!listLoading && listRows.length === 0 && loc && (
-            <div className="text-center py-10 text-gray-400 text-sm">
+            <div className="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">
               No hay casos en tu zona.{' '}
               <Link to="/cases/new" className="text-primary-600 dark:text-primary-300 hover:underline">
                 Publicar uno

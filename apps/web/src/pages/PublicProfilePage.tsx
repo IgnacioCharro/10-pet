@@ -49,7 +49,7 @@ export default function PublicProfilePage() {
         </div>
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{profile.name ?? 'Usuario'}</h1>
-          <p className="text-xs text-gray-400">Miembro desde {memberSince(profile.createdAt)}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Miembro desde {memberSince(profile.createdAt)}</p>
         </div>
       </div>
 

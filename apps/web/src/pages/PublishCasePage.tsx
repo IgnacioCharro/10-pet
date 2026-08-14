@@ -230,7 +230,7 @@ export default function PublishCasePage() {
             Te mandamos un enlace a <strong>{user.email}</strong>. Hacé clic ahí para poder
             reportar un caso.
           </p>
-          <p className="text-xs text-gray-400 mb-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
             Si no lo ves, revisá la carpeta de spam o promociones.
           </p>
 
@@ -409,7 +409,7 @@ function StepIndicator({ current }: { current: Step }) {
           <div key={label} className="flex items-center flex-1">
             <div className={[
               'flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold shrink-0',
-              done ? 'bg-primary-600 text-white' : active ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 ring-2 ring-primary-500' : 'bg-gray-100 dark:bg-gray-700 text-gray-400',
+              done ? 'bg-primary-600 text-white' : active ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 ring-2 ring-primary-500' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
             ].join(' ')}>
               {done ? '✓' : n}
             </div>
@@ -486,8 +486,8 @@ function StepFotos({ images, uploading, error, fileInputRef, onFiles, onRemove }
                 <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <span className="text-xl leading-none text-gray-400">+</span>
-                  <span className="text-[10px] text-gray-400">Agregar</span>
+                  <span className="text-xl leading-none text-gray-500 dark:text-gray-400">+</span>
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400">Agregar</span>
                 </>
               )}
             </button>
@@ -793,7 +793,7 @@ function StepUbicacion({
                 localidad={localidad}
               />
             </div>
-            <span className="pb-2.5 text-sm text-gray-400 shrink-0">y</span>
+            <span className="pb-2.5 text-sm text-gray-500 dark:text-gray-400 shrink-0">y</span>
             <div className="flex-1 min-w-0">
               <CalleAutocomplete
                 label="Calle 2"
@@ -829,19 +829,19 @@ function StepUbicacion({
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {confirmed ? 'o ajustá el pin en el mapa' : 'o tocá el mapa para marcar la ubicación'}
               </span>
               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
             </div>
 
             <ErrorBoundary fallback={
-              <div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex flex-col items-center justify-center gap-2 text-gray-400 text-sm">
+              <div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
                 <span>No se pudo cargar el mapa.</span>
                 <button type="button" className="text-primary-600 dark:text-primary-300 underline text-xs" onClick={() => window.location.reload()}>Recargar página</button>
               </div>
             }>
-              <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 text-sm">Cargando mapa...</div>}>
+              <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">Cargando mapa...</div>}>
                 <LocationPickerMap lat={mapLat} lng={mapLng} onChange={handleMapChange} />
               </Suspense>
             </ErrorBoundary>
@@ -856,7 +856,7 @@ function StepUbicacion({
 
       <div className="relative">
         {reverseGeocoding && (
-          <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1">
             <span className="inline-block w-3 h-3 border border-gray-400 dark:border-gray-500 border-t-transparent rounded-full animate-spin" />
             Buscando dirección...
           </p>
@@ -1015,7 +1015,7 @@ function StepDescripcion({
             )}
           </span>
           <svg
-            className={['w-4 h-4 text-gray-400 transition-transform', showDetails || hasDetails ? 'rotate-180' : ''].join(' ')}
+            className={['w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform', showDetails || hasDetails ? 'rotate-180' : ''].join(' ')}
             fill="none" stroke="currentColor" viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

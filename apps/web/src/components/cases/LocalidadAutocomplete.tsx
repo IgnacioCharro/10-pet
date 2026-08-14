@@ -90,7 +90,7 @@ export default function LocalidadAutocomplete({
           autoComplete="off"
         />
         {loading && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">...</span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400">...</span>
         )}
       </div>
 

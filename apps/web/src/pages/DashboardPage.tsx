@@ -174,7 +174,7 @@ export default function DashboardPage() {
         {tab === 'casos' && (
           <>
             {loadingCases ? (
-              <p className="text-sm text-gray-400">Cargando casos...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Cargando casos...</p>
             ) : cases.length === 0 ? (
               <Card>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Todavía no publicaste ningún caso.</p>
@@ -195,7 +195,7 @@ export default function DashboardPage() {
         {tab === 'enviados' && (
           <>
             {loadingContacts ? (
-              <p className="text-sm text-gray-400">Cargando...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
             ) : sent.length === 0 ? (
               <Card>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
@@ -222,7 +222,7 @@ export default function DashboardPage() {
         {tab === 'recibidos' && (
           <>
             {loadingContacts ? (
-              <p className="text-sm text-gray-400">Cargando...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
             ) : received.length === 0 ? (
               <Card>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
@@ -302,7 +302,7 @@ function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
             {displayLocation(item.locationText) ?? <span className="italic">Sin dirección</span>}
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
             {new Date(item.createdAt).toLocaleDateString('es-AR')}
           </p>
         </div>
@@ -322,7 +322,7 @@ function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
             {STATUS_LABELS[item.status] ?? item.status}
           </span>
           {item.status === 'resuelto' && item.resolutionType && (
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[10px] text-gray-500 dark:text-gray-400">
               {RESOLUTION_LABELS[item.resolutionType] ?? item.resolutionType}
             </span>
           )}
@@ -361,9 +361,9 @@ function SentContactCard({ item, isNew }: { item: ContactItem; isNew: boolean })
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{caseSummary(item)}</p>
             {item.message && (
-              <p className="text-xs text-gray-400 mt-0.5 italic truncate">"{item.message}"</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 italic truncate">"{item.message}"</p>
             )}
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               {new Date(item.createdAt).toLocaleDateString('es-AR')}
             </p>
           </div>
@@ -419,7 +419,7 @@ function ReceivedContactCard({
             {item.message && (
               <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 italic">"{item.message}"</p>
             )}
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               {new Date(item.createdAt).toLocaleDateString('es-AR')}
             </p>
           </div>

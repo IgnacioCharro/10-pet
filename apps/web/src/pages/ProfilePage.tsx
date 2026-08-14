@@ -136,14 +136,14 @@ export default function ProfilePage() {
                     </h1>
                     <button
                       onClick={startEdit}
-                      className="text-xs text-gray-400 hover:text-gray-600 underline shrink-0"
+                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 underline shrink-0"
                     >
                       Editar
                     </button>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
                   {user?.createdAt && (
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       Miembro desde {new Date(user.createdAt).toLocaleDateString('es-AR', { year: 'numeric', month: 'long' })}
                     </p>
                   )}
@@ -169,7 +169,7 @@ export default function ProfilePage() {
                   setVetLicenseInput(user?.vetLicense ?? '')
                   setVetEditing(true)
                 }}
-                className="text-xs text-gray-400 hover:text-gray-600 underline"
+                className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 underline"
               >
                 Editar
               </button>
@@ -219,7 +219,7 @@ export default function ProfilePage() {
               )}
             </div>
           ) : (
-            <p className="text-sm text-gray-400">No declarado. Editá para indicar si sos veterinario/a.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">No declarado. Editá para indicar si sos veterinario/a.</p>
           )}
         </Card>
 
@@ -230,7 +230,7 @@ export default function ProfilePage() {
         <div>
           <h2 className="text-base font-semibold mb-3">Mis casos</h2>
           {loadingCases ? (
-            <p className="text-sm text-gray-400">Cargando...</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
           ) : cases.length === 0 ? (
             <Card>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -292,12 +292,12 @@ function PushNotificationsCard() {
           Activas — te avisamos en este dispositivo cuando respondan tus solicitudes.
         </p>
       ) : permission === 'denied' ? (
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Bloqueadas en este navegador. Habilitalas desde la configuración del sitio para volver a
           recibir avisos.
         </p>
       ) : (
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Desactivadas — no vas a recibir avisos cuando respondan tus solicitudes de contacto.
         </p>
       )}
@@ -396,7 +396,7 @@ function NotificationZoneCard() {
             )}
             <button
               onClick={startEdit}
-              className="text-xs text-gray-400 hover:text-gray-600 underline"
+              className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 underline"
             >
               {configured ? 'Editar' : 'Configurar'}
             </button>
@@ -418,7 +418,7 @@ function NotificationZoneCard() {
             Usar mi ubicación actual
           </Button>
           {lat !== null && (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Ubicación capturada: {lat.toFixed(4)}, {lng?.toFixed(4)}
             </p>
           )}
@@ -456,7 +456,7 @@ function NotificationZoneCard() {
           <span className="font-medium">{user?.notificationRadiusKm} km</span> de tu ubicación.
         </p>
       ) : (
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Sin configurar — recibís notificaciones de todos los casos nuevos.
         </p>
       )}

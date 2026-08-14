@@ -134,7 +134,7 @@ export default function LocalidadPicker({ onPick }: Props) {
                     className="w-full text-left px-3 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     <span className="block truncate">{r.display_name.split(',').slice(0, 2).join(',')}</span>
-                    <span className="block text-xs text-gray-400 truncate">{r.display_name.split(',').slice(2).join(',')}</span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">{r.display_name.split(',').slice(2).join(',')}</span>
                   </button>
                 </li>
               ))}
@@ -144,7 +144,7 @@ export default function LocalidadPicker({ onPick }: Props) {
 
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-          <span className="text-xs text-gray-400">o usá tu ubicación</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">o usá tu ubicación</span>
           <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
         </div>
 

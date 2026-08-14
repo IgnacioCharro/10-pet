@@ -87,7 +87,7 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
+        <div className="my-4 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
           <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
           <span>o</span>
           <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />

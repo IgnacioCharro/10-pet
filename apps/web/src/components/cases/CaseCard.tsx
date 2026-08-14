@@ -16,7 +16,7 @@ const STATUS_CLASS: Record<CaseStatus, string> = {
   abierto: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
   en_rescate: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
   resuelto: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
-  inactivo: 'bg-gray-100 dark:bg-gray-700 text-gray-400',
+  inactivo: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
   spam: 'bg-red-100 dark:bg-red-900/40 text-red-500',
 }
 
@@ -97,7 +97,7 @@ export default function CaseCard({ caseItem: c, onClick }: Props) {
 
           <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">{c.description}</p>
 
-          <div className="flex items-center gap-3 text-xs text-gray-400">
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
             <span className="flex items-center gap-1 truncate">
               <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

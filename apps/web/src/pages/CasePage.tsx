@@ -30,7 +30,7 @@ const STATUS_CLASS: Record<CaseStatus, string> = {
   abierto: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
   en_rescate: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
   resuelto: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
-  inactivo: 'bg-gray-100 dark:bg-gray-700 text-gray-400',
+  inactivo: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
   spam: 'bg-red-100 dark:bg-red-900/40 text-red-500',
 }
 
@@ -275,7 +275,7 @@ export default function CasePage() {
                 </span>
               </div>
               {detail.publisherName && (
-                <p className="text-xs text-gray-400 mt-1.5">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
                   por{' '}
                   <Link to={`/users/${detail.userId}`} className="text-primary-600 dark:text-primary-300 hover:underline">
                     {detail.publisherName}
@@ -296,7 +296,7 @@ export default function CasePage() {
 
           {(detail.locationText || detail.referenceNote) && (
             <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
-              <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -353,17 +353,17 @@ export default function CasePage() {
           )}
 
           <div className="flex items-center justify-between pt-2">
-            <p className="text-xs text-gray-400 cursor-help" title={formatExact(detail.createdAt)}>{timeAgo(detail.createdAt)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 cursor-help" title={formatExact(detail.createdAt)}>{timeAgo(detail.createdAt)}</p>
             {isAuthenticated && !isOwner && !reported && (
               <button
                 type="button"
                 onClick={() => setShowReportModal(true)}
-                className="text-xs text-gray-400 hover:text-red-500 transition-colors underline"
+                className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors underline"
               >
                 Reportar
               </button>
             )}
-            {reported && <span className="text-xs text-gray-400">Reporte enviado</span>}
+            {reported && <span className="text-xs text-gray-500 dark:text-gray-400">Reporte enviado</span>}
           </div>
         </div>
       </div>
@@ -420,7 +420,7 @@ export default function CasePage() {
                   Yo ayudo
                 </button>
                 {!isAuthenticated && (
-                  <p className="text-center text-xs text-gray-400">Necesitas estar registrado</p>
+                  <p className="text-center text-xs text-gray-500 dark:text-gray-400">Necesitas estar registrado</p>
                 )}
               </>
             )}
@@ -477,7 +477,7 @@ function VolunteersSection({ volunteers }: { volunteers: CaseVolunteer[] }) {
         Voluntarios ({volunteers.length})
       </p>
       {volunteers.length === 0 ? (
-        <p className="text-xs text-gray-400">Todavía no hay voluntarios en este caso.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Todavía no hay voluntarios en este caso.</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           {volunteers.map((v) => (
