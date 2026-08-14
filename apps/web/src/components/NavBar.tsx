@@ -57,12 +57,15 @@ export default function NavBar() {
       {/* h-16 (4rem). Si cambia, mover tambien el calc de CasesPage y el top del
           ToastContainer, que dependen de esta altura. */}
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5 text-primary-600 dark:text-primary-300 font-bold text-lg">
+        {/* font-semibold y no font-bold: del woff2 de Lora solo cargamos el peso 600
+            (ver el @font-face de index.css). Pedirle 700 haria que el browser fabrique
+            la negrita engordando los trazos. */}
+        <Link to="/" className="flex items-center gap-2.5 text-primary-600 dark:text-primary-300 font-brand font-semibold text-[22px]">
           {/* El mismo archivo en los dos temas: el escudo violeta con huella crema se sostiene
               sobre claro y sobre oscuro, y asi la marca no cambia de identidad al togglear.
               La version negativo es para fotos, no para dark. Va como <img> porque es de dos
               colores; la version de una tinta necesitaria el SVG inline. */}
-          <img src="/brand/10_pet-logo.svg" alt="" aria-hidden="true" className="w-8 h-8" />
+          <img src="/brand/10_pet-logo.svg" alt="" aria-hidden="true" className="w-[34px] h-[34px]" />
           10_Pet
         </Link>
 

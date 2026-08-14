@@ -7,6 +7,13 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        // Solo para el wordmark. El @font-face vive en index.css.
+        // El fallback es una serif de verdad y no la sans del sistema: si la
+        // fuente tarda o no carga, la marca se degrada dentro de la misma
+        // familia visual en vez de saltar de serif a palo seco.
+        brand: ['Lora', 'Georgia', 'Times New Roman', 'serif'],
+      },
       colors: {
         // Violeta de marca. El 600 es exactamente el #7c3aed del fill de los SVG
         // del logo; el resto de la rampa se derivo en oklch al mismo matiz (293)

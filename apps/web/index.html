@@ -18,6 +18,16 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png?v=3" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png?v=3" />
     <link rel="apple-touch-icon" href="/icons/favicon-180.png?v=3" />
+    <!--
+      El wordmark de la navbar esta en todas las paginas y arriba de todo. Sin
+      este preload el browser recien descubre la fuente al parsear el CSS, y en
+      cada primera carga se ve el parpadeo de Georgia a Lora.
+
+      El crossorigin no es opcional aunque el archivo sea nuestro: las fuentes se
+      piden siempre en modo CORS, y sin el atributo el preload queda en una entrada
+      de cache distinta de la que usa el @font-face, con lo que se baja dos veces.
+    -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/lora-latin-600.woff2" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <!--
