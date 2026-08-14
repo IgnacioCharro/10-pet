@@ -159,7 +159,7 @@ export default function CasesPage() {
   }, [])
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100vh - 56px)' }}>
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
       {showPicker && <LocalidadPicker onPick={handlePickerPick} />}
 
       <FilterBar
@@ -179,7 +179,7 @@ export default function CasesPage() {
           </div>
         )}
 
-        <Suspense fallback={<div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 text-sm">Cargando mapa…</div>}>
+        <Suspense fallback={<div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">Cargando mapa…</div>}>
           <LeafletMap
             center={center}
             cases={cases}
@@ -207,7 +207,7 @@ export default function CasesPage() {
             <span className="text-2xl">🐾</span>
             <div className="flex-1 min-w-0">
               <p className="text-gray-700 dark:text-gray-200 font-medium text-xs leading-tight">Sin casos en esta zona</p>
-              <p className="text-gray-400 text-xs mt-0.5">¿Viste un animal en problema?</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">¿Viste un animal en problema?</p>
             </div>
             <Link
               to="/cases/new"

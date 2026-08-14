@@ -206,7 +206,7 @@ export default function FilterBar({ filters, onFiltersChange, onLocationFound, z
           <div className="w-px bg-gray-200 dark:bg-gray-700 self-stretch" />
 
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400 flex-shrink-0">Urgencia:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Urgencia:</span>
             {URGENCY_OPTIONS.map((o) => (
               <button
                 key={o.value}
@@ -222,7 +222,7 @@ export default function FilterBar({ filters, onFiltersChange, onLocationFound, z
           <div className="w-px bg-gray-200 dark:bg-gray-700 self-stretch" />
 
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400 flex-shrink-0">Radio:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Radio:</span>
             {RADIUS_OPTIONS.map((r) => (
               <button
                 key={r}
@@ -278,7 +278,7 @@ export default function FilterBar({ filters, onFiltersChange, onLocationFound, z
         <div className="overflow-x-auto pb-1 border-t border-gray-100 dark:border-gray-700 pt-3">
           <div className="flex gap-4 min-w-max">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-gray-400 flex-shrink-0">Sexo:</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Sexo:</span>
               {SEX_OPTIONS.map((o) => (
                 <button
                   key={o.value}
@@ -294,7 +294,7 @@ export default function FilterBar({ filters, onFiltersChange, onLocationFound, z
             <div className="w-px bg-gray-200 dark:bg-gray-700 self-stretch" />
 
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-gray-400 flex-shrink-0">Tamaño:</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Tamaño:</span>
               {SIZE_OPTIONS.map((o) => (
                 <button
                   key={o.value}
@@ -310,7 +310,7 @@ export default function FilterBar({ filters, onFiltersChange, onLocationFound, z
             <div className="w-px bg-gray-200 dark:bg-gray-700 self-stretch" />
 
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-gray-400 flex-shrink-0">Color:</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Color:</span>
               {COLOR_OPTIONS.map((o) => (
                 <button
                   key={o.value}

@@ -36,7 +36,7 @@ const STATUS_CLASS: Record<CaseStatus, string> = {
   abierto: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
   en_rescate: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
   resuelto: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
-  inactivo: 'bg-gray-100 dark:bg-gray-700 text-gray-400',
+  inactivo: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
   spam: 'bg-red-100 dark:bg-red-900/40 text-red-500',
 }
 
@@ -301,7 +301,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                       >
                         {detail.publisherName}
                       </Link>
-                      <span className="text-xs text-gray-400 flex-shrink-0" title={formatExact(detail.createdAt)}>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0" title={formatExact(detail.createdAt)}>
                         · {timeAgo(detail.createdAt)}
                       </span>
                     </div>
@@ -320,7 +320,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
 
               {(detail.locationText || detail.referenceNote) && (
                 <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
-                  <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -392,12 +392,12 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
               {isAuthenticated && detail.userId !== currentUserId && (
                 <div className="flex justify-end">
                   {reported ? (
-                    <span className="text-xs text-gray-400">Reporte enviado</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Reporte enviado</span>
                   ) : (
                     <button
                       type="button"
                       onClick={() => setShowReportModal(true)}
-                      className="text-xs text-gray-400 hover:text-red-500 transition-colors underline"
+                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors underline"
                     >
                       Reportar
                     </button>
@@ -458,7 +458,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                   Yo ayudo
                 </button>
                 {!isAuthenticated && (
-                  <p className="text-center text-xs text-gray-400">Necesitas estar registrado</p>
+                  <p className="text-center text-xs text-gray-500 dark:text-gray-400">Necesitas estar registrado</p>
                 )}
               </>
             )}
@@ -870,7 +870,7 @@ export function CaseTimeline({
       )}
 
       {updates.length === 0 && !showAddUpdate && (
-        <p className="text-xs text-gray-400 text-center py-2">
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
           Sin novedades todavía.{isOwner ? ' Usá "+ Agregar novedad" para registrar actualizaciones.' : ''}
         </p>
       )}
@@ -949,7 +949,7 @@ export function VetAssistancesSection({
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
-          <p className="text-xs text-gray-400">Completá al menos uno de los dos campos.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Completá al menos uno de los dos campos.</p>
           <button
             type="button"
             onClick={onSubmit}
@@ -962,7 +962,7 @@ export function VetAssistancesSection({
       )}
 
       {assistances.length === 0 && !showForm && (
-        <p className="text-xs text-gray-400 text-center py-1">Sin atenciones registradas.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-1">Sin atenciones registradas.</p>
       )}
 
       {assistances.map((a) => (
@@ -976,7 +976,7 @@ export function VetAssistancesSection({
                 </span>
               )}
             </div>
-            <span className="text-xs text-gray-400 flex-shrink-0">{formatDate(a.createdAt)}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{formatDate(a.createdAt)}</span>
           </div>
           {a.procedure && (
             <p className="text-xs text-gray-700 dark:text-gray-200 mb-0.5">

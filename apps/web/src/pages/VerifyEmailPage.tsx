@@ -61,7 +61,7 @@ export default function VerifyEmailPage() {
           Revisá tu casilla y hacé clic en el enlace para activar tu cuenta antes de publicar casos.
         </p>
       )}
-      <p className="text-xs text-gray-400 mb-4">
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
         Si no lo ves, revisá la carpeta de spam o promociones.
       </p>
       <ResendVerification defaultEmail={user?.email} />

@@ -30,12 +30,12 @@ export function InstallBanner() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg flex items-center gap-3">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Instala 10Pet</p>
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Instalá 10Pet</p>
         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Accedé rápido y recibí notificaciones</p>
       </div>
       <button
         onClick={dismiss}
-        className="text-gray-400 hover:text-gray-600 p-1 shrink-0"
+        className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 shrink-0"
         aria-label="Cerrar"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

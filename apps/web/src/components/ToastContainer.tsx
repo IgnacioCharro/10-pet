@@ -19,11 +19,12 @@ export default function ToastContainer() {
     alcanzaba porque esa botonera cambia de alto segun el caso (uno, dos o el
     de WhatsApp). Arriba queda libre, debajo de la navbar sticky.
 
-    El calc no es capricho: la navbar mide 3.5rem mas el safe-area-inset-top,
+    El calc no es capricho: la navbar mide 4rem mas el safe-area-inset-top,
     asi que en un iPhone con notch un top fijo dejaba el toast pisandola.
+    El 5rem es esa altura mas 1rem de aire; si cambia la navbar, cambia esto.
   */
   return (
-    <div className="fixed top-[calc(env(safe-area-inset-top)_+_4.5rem)] md:top-auto md:bottom-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 items-center pointer-events-none px-4">
+    <div className="fixed top-[calc(env(safe-area-inset-top)_+_5rem)] md:top-auto md:bottom-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 items-center pointer-events-none px-4">
       {toasts.map((t) => (
         <div
           key={t.id}
