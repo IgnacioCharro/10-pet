@@ -5,9 +5,10 @@ import { getVetAssistances, createVetAssistance } from '../../services/vet-assis
 import type { VetAssistanceItem } from '../../services/vet-assistances.service'
 import { useAuthStore } from '../../stores/authStore'
 import { toast } from '../../stores/toastStore'
-import type { CaseDetail, AnimalType, CaseStatus, CaseUpdateType, CaseUpdateItem, CaseVolunteer } from '../../types/case'
+import type { CaseDetail, AnimalType, CaseStatus, CaseUpdateType, CaseVolunteer } from '../../types/case'
 import { ContactModal } from './ContactModal'
 import { ReportModal } from './ReportModal'
+import CaseTimeline from './CaseTimeline'
 
 function contactedKey(userId: string) { return `10pet:contacted:${userId}` }
 function hasContactedCase(userId: string, caseId: string): boolean {
@@ -360,8 +361,13 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
               })()}
 
               <CaseTimeline
+                createdAt={detail.createdAt}
+                status={detail.status}
+                resolutionType={detail.resolutionType}
                 updates={detail.updates}
+                assistances={vetAssistances}
                 isOwner={isAuthenticated && detail.userId === currentUserId}
+                isAuthenticated={isAuthenticated}
                 showAddUpdate={showAddUpdate}
                 addUpdateType={addUpdateType}
                 addUpdateContent={addUpdateContent}
@@ -370,19 +376,14 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 onTypeChange={setAddUpdateType}
                 onContentChange={setAddUpdateContent}
                 onSubmit={handleAddUpdate}
-              />
-
-              <VetAssistancesSection
-                assistances={vetAssistances}
-                isAuthenticated={isAuthenticated}
-                showForm={showVetForm}
-                procedure={vetProcedure}
-                medication={vetMedication}
-                loading={vetLoading}
-                onToggleForm={() => setShowVetForm((v) => !v)}
-                onProcedureChange={setVetProcedure}
-                onMedicationChange={setVetMedication}
-                onSubmit={handleVetSubmit}
+                showVetForm={showVetForm}
+                vetProcedure={vetProcedure}
+                vetMedication={vetMedication}
+                vetLoading={vetLoading}
+                onToggleVetForm={() => setShowVetForm((v) => !v)}
+                onVetProcedureChange={setVetProcedure}
+                onVetMedicationChange={setVetMedication}
+                onVetSubmit={handleVetSubmit}
               />
 
               {(detail.volunteers?.length ?? 0) > 0 && (
@@ -764,233 +765,6 @@ export function ResolutionModal({
         </div>
       </div>
     </>
-  )
-}
-
-const UPDATE_META: Record<CaseUpdateType, { label: string; color: string; icon: string }> = {
-  avistamiento:  { label: 'Avistamiento',         color: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300',   icon: '👁' },
-  medicacion:    { label: 'Medicacion aplicada',   color: 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300', icon: '💊' },
-  veterinario:   { label: 'Atención veterinaria',  color: 'bg-teal-50 dark:bg-teal-900/30 border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300',   icon: '🩺' },
-  comentario:    { label: 'Novedad',               color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '📝' },
-  status_change: { label: 'Cambio de estado',      color: 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300',icon: '🔄' },
-  comment:       { label: 'Comentario',            color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200',   icon: '💬' },
-  photo_added:   { label: 'Foto agregada',         color: 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300',icon: '📷' },
-  reactivated:   { label: 'Reactivado',            color: 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300', icon: '🔔' },
-}
-
-const OWNER_UPDATE_TYPES: CaseUpdateType[] = ['avistamiento', 'medicacion', 'veterinario', 'comentario']
-
-const OWNER_TYPE_LABELS: Record<string, string> = {
-  avistamiento: 'Lo vi en otro lugar',
-  medicacion:   'Medicacion aplicada',
-  veterinario:  'Atención veterinaria',
-  comentario:   'Otra novedad',
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('es-AR', {
-    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-  })
-}
-
-export interface CaseTimelineProps {
-  updates: CaseUpdateItem[]
-  isOwner: boolean
-  showAddUpdate: boolean
-  addUpdateType: CaseUpdateType
-  addUpdateContent: string
-  addUpdateLoading: boolean
-  onToggleForm: () => void
-  onTypeChange: (t: CaseUpdateType) => void
-  onContentChange: (v: string) => void
-  onSubmit: () => void
-}
-
-export function CaseTimeline({
-  updates, isOwner, showAddUpdate, addUpdateType, addUpdateContent, addUpdateLoading,
-  onToggleForm, onTypeChange, onContentChange, onSubmit,
-}: CaseTimelineProps) {
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-          Historial del caso
-        </p>
-        {isOwner && (
-          <button
-            type="button"
-            onClick={onToggleForm}
-            className="text-xs text-primary-600 dark:text-primary-300 hover:text-primary-700 font-medium"
-          >
-            {showAddUpdate ? 'Cancelar' : '+ Agregar novedad'}
-          </button>
-        )}
-      </div>
-
-      {showAddUpdate && isOwner && (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex flex-col gap-3 bg-gray-50 dark:bg-gray-700">
-          <div className="flex flex-wrap gap-1.5">
-            {OWNER_UPDATE_TYPES.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => onTypeChange(t)}
-                className={[
-                  'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
-                  addUpdateType === t
-                    ? 'bg-primary-600 text-white border-primary-600'
-                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-primary-400',
-                ].join(' ')}
-              >
-                {UPDATE_META[t].icon} {OWNER_TYPE_LABELS[t]}
-              </button>
-            ))}
-          </div>
-          <textarea
-            rows={3}
-            placeholder={
-              addUpdateType === 'avistamiento' ? 'Dónde fue visto, cuándo, en qué condición...' :
-              addUpdateType === 'medicacion'   ? 'Qué medicación, dosis, quién la aplicó...' :
-              addUpdateType === 'veterinario'  ? 'Nombre del vet, diagnóstico, tratamiento...' :
-              'Contá la novedad...'
-            }
-            value={addUpdateContent}
-            onChange={(e) => onContentChange(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={addUpdateLoading || !addUpdateContent.trim()}
-            className="self-end px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            {addUpdateLoading ? 'Guardando...' : 'Publicar novedad'}
-          </button>
-        </div>
-      )}
-
-      {updates.length === 0 && !showAddUpdate && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
-          Sin novedades todavía.{isOwner ? ' Usá "+ Agregar novedad" para registrar actualizaciones.' : ''}
-        </p>
-      )}
-
-      {updates.map((u) => {
-        const meta = UPDATE_META[u.updateType] ?? UPDATE_META.comentario
-        return (
-          <div key={u.id} className={`border rounded-xl px-3 py-2.5 ${meta.color}`}>
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <span className="text-xs font-semibold flex items-center gap-1">
-                <span>{meta.icon}</span> {meta.label}
-              </span>
-              <span className="text-xs opacity-60 flex-shrink-0">{formatDate(u.createdAt)}</span>
-            </div>
-            {u.content && <p className="text-sm leading-snug">{u.content}</p>}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-export interface VetAssistancesSectionProps {
-  assistances: VetAssistanceItem[]
-  isAuthenticated: boolean
-  showForm: boolean
-  procedure: string
-  medication: string
-  loading: boolean
-  onToggleForm: () => void
-  onProcedureChange: (v: string) => void
-  onMedicationChange: (v: string) => void
-  onSubmit: () => void
-}
-
-export function VetAssistancesSection({
-  assistances, isAuthenticated, showForm, procedure, medication, loading,
-  onToggleForm, onProcedureChange, onMedicationChange, onSubmit,
-}: VetAssistancesSectionProps) {
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-          Atención veterinaria
-        </p>
-        {isAuthenticated && (
-          <button
-            type="button"
-            onClick={onToggleForm}
-            className="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
-          >
-            {showForm ? 'Cancelar' : '+ Registrar atención'}
-          </button>
-        )}
-      </div>
-
-      {showForm && (
-        <div className="border border-teal-200 dark:border-teal-800 rounded-xl p-3 flex flex-col gap-3 bg-teal-50 dark:bg-teal-900/30">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Procedimiento</label>
-            <textarea
-              rows={2}
-              placeholder="Examen, diagnóstico, tratamiento aplicado..."
-              value={procedure}
-              onChange={(e) => onProcedureChange(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Medicacion</label>
-            <textarea
-              rows={2}
-              placeholder="Nombre, dosis, frecuencia..."
-              value={medication}
-              onChange={(e) => onMedicationChange(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            />
-          </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Completá al menos uno de los dos campos.</p>
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={loading || (!procedure.trim() && !medication.trim())}
-            className="self-end px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            {loading ? 'Guardando...' : 'Registrar'}
-          </button>
-        </div>
-      )}
-
-      {assistances.length === 0 && !showForm && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-1">Sin atenciones registradas.</p>
-      )}
-
-      {assistances.map((a) => (
-        <div key={a.id} className="border border-teal-100 dark:border-teal-900 rounded-xl px-3 py-2.5 bg-white dark:bg-gray-800">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-teal-700 dark:text-teal-300">{a.userName ?? 'Usuario'}</span>
-              {a.isVet && (
-                <span className="inline-flex items-center px-1.5 py-0.5 bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-[10px] font-medium rounded-full border border-teal-200 dark:border-teal-800">
-                  Profesional verificado
-                </span>
-              )}
-            </div>
-            <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{formatDate(a.createdAt)}</span>
-          </div>
-          {a.procedure && (
-            <p className="text-xs text-gray-700 dark:text-gray-200 mb-0.5">
-              <span className="font-medium text-gray-500 dark:text-gray-400">Procedimiento: </span>{a.procedure}
-            </p>
-          )}
-          {a.medication && (
-            <p className="text-xs text-gray-700 dark:text-gray-200">
-              <span className="font-medium text-gray-500 dark:text-gray-400">Medicacion: </span>{a.medication}
-            </p>
-          )}
-        </div>
-      ))}
-    </div>
   )
 }
 

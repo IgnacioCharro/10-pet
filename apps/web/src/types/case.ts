@@ -37,9 +37,11 @@ export interface CaseImageItem {
   position: number
 }
 
+// Los cuatro primeros son legacy: hay filas viejas y se siguen renderizando, pero no
+// se ofrecen al crear. 'medicacion' se dio de baja, absorbido por 'veterinario'.
 export type CaseUpdateType =
   | 'status_change' | 'comment' | 'photo_added' | 'reactivated'
-  | 'avistamiento' | 'medicacion' | 'veterinario' | 'comentario'
+  | 'avistamiento' | 'alojamiento' | 'salud' | 'veterinario' | 'comentario'
 
 export interface CaseUpdateItem {
   id: string

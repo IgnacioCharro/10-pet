@@ -46,8 +46,32 @@ Sin ellas la linea empieza y termina en el aire.
 viven en tres listas de codigo: el `z.enum` de `addUpdateSchema` en
 `apps/api/src/modules/rescue/cases/cases.validators.ts`, la union `UpdateType` en
 `apps/api/src/models/case-update.model.ts`, y `UPDATE_META` en
-`apps/web/src/components/cases/CaseDetailSheet.tsx`. **Agregar o sacar tipos no requiere
-migration ni DDL.**
+`apps/web/src/components/cases/CaseDetailSheet.tsx`.
+
+> **CORRECCION (2026-08-14): la version original de este spec decia que agregar tipos
+> "no requiere migration ni DDL". Es FALSO: los tipos nuevos no se pueden guardar.**
+>
+> Que no sea un enum de Postgres no significa que no este restringido: hay un CHECK
+> constraint espejo. Verificado en prod el 14/08:
+>
+> ```
+> case_updates_type_check CHECK (update_type = ANY (ARRAY[
+>   'status_change','comment','photo_added','reactivated',
+>   'avistamiento','medicacion','veterinario','comentario']))
+> ```
+>
+> `alojamiento` y `salud` **no estan en esa lista**. Sumarlos al `z.enum` sin migration
+> repite el bug del PR #111 (caballo y vaca): Zod deja pasar el valor y el insert pega
+> contra el CHECK. Verificado el 14/08 intentando el INSERT: `23514, violates check
+> constraint "case_updates_type_check"`. **Hace falta una migration de Sequelize que
+> reescriba el constraint** antes de tocar las listas de codigo.
+>
+> A diferencia del #111 esto **no** sale como 500: el `error-handler` que ese mismo PR
+> agrego mapea el codigo 23514 a un 400 con el nombre del constraint. Falla claro en vez
+> de mudo, pero la novedad no se guarda igual.
+>
+> Ver [[db_check_constraints_vs_zod]]: cada `z.enum` de este proyecto tiene un CHECK espejo
+> en Postgres.
 
 | Tipo | Etiqueta | Color | Estado |
 |---|---|---|---|
@@ -85,6 +109,11 @@ procedimiento — y eso **ya existe**: la tabla `vet_assistances` tiene las colu
 **Verificado en prod el 13/08: hay 0 filas con `update_type = 'medicacion'`** (el total es
 4 `comentario` y 3 `veterinario`). No hay datos viejos que preservar, la baja es limpia.
 
+Como la migration ya va a reescribir el CHECK, conviene sacar `medicacion` de la lista en
+el mismo movimiento: con 0 filas no hay riesgo de que el constraint falle al aplicarse, y
+dejarlo permitiria seguir insertando un tipo que la UI ya no sabe ofrecer. Confirmar el
+conteo en 0 **en el momento de correr la migration**, no confiar en esta linea.
+
 ### Nombres que se descartaron, y por que
 
 El tipo `salud` paso por tres nombres antes de cerrar:
@@ -105,25 +134,44 @@ objetivo original ("herida o algo negativo: rojo").
 
 ## Alcance
 
-Toca frontend y las listas de tipos del API. **Sin migration, sin DDL.**
+Toca frontend, las listas de tipos del API **y una migration** que reescriba
+`case_updates_type_check` (ver la correccion en "Taxonomia final").
 
 Archivos previstos:
 
+- `apps/api/src/db/migrations/` — nueva migration: reescribir `case_updates_type_check`
+  sumando `alojamiento` y `salud`. Sobre si sacar `medicacion` del CHECK, ver mas abajo.
 - `apps/api/src/modules/rescue/cases/cases.validators.ts` — `z.enum` de `addUpdateSchema`
 - `apps/api/src/models/case-update.model.ts` — union `UpdateType`
 - `apps/web/src/components/cases/CaseDetailSheet.tsx` — `UPDATE_META`,
   `OWNER_UPDATE_TYPES`, `OWNER_TYPE_LABELS`, y el componente `CaseTimeline`
 - `apps/web/src/pages/CasePage.tsx` — consume el timeline nuevo
 
+## Resuelto el 2026-08-14
+
+**1 y 2 — el timeline absorbe "Atencion veterinaria".** Las `vet_assistances` se fusionan
+en el mismo stream que los `case_updates`, ordenadas juntas por su dimension temporal. La
+seccion separada de abajo **desaparece**. `procedure` y `medication` se muestran en el
+desplegable del hito, que es el mecanismo que el spec ya preveia para el contenido. El
+formulario de carga de atencion pasa a ser una accion del timeline.
+
+Es la unica de las tres opciones que resuelve el problema declarado en este documento:
+ver la historia del caso como **una** secuencia. Las otras dos dejaban la historia partida
+en dos lugares, que es exactamente lo que motivo el rediseño.
+
+Detalles que se desprenden:
+
+- **Orden**: las asistencias tienen `attendedAt` **y** `createdAt`. Ordenar por
+  `attendedAt ?? createdAt`, porque lo que importa en una linea de tiempo es cuando paso,
+  no cuando se cargo.
+- **Autor**: las asistencias traen `userName` e `isVet`; las novedades solo `userId`. El
+  hito de asistencia puede mostrar el nombre y la insignia de profesional; el de novedad
+  se mantiene como esta hoy. No hay que unificar la representacion del autor a la fuerza.
+- **Hitos sin contenido**: una asistencia con `procedure` y `medication` ambos en null no
+  lleva flecha de despliegue, igual que una novedad sin texto.
+
 ## Sin resolver
 
-1. **Que pasa con la seccion "Atencion veterinaria" separada.** Si el timeline muestra las
-   atenciones, esa seccion queda duplicada. Falta decidir si el timeline la absorbe, si la
-   resume y deja el detalle abajo, o si conviven. **Es lo primero a definir al retomar.**
-2. **Si las `vet_assistances` se fusionan en el mismo stream** que los `case_updates`.
-   Son dos tablas distintas con la misma dimension temporal; hay que ordenarlas juntas por
-   `createdAt` y decidir como se representa el autor (las asistencias traen `userName` e
-   `isVet`, las novedades solo `userId`).
-3. **La seccion "Voluntarios"** no se discutio. Queda como esta.
-4. **Alta de los tipos nuevos en el formulario**: falta definir el texto de ayuda y el
+1. **La seccion "Voluntarios"** no se discutio. Queda como esta.
+2. **Alta de los tipos nuevos en el formulario**: falta definir el texto de ayuda y el
    placeholder de `alojamiento` y `salud`, al estilo de los que ya tienen los otros.

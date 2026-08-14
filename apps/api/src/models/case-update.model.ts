@@ -1,8 +1,12 @@
 import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
 
+// Los cuatro primeros son legacy: siguen existiendo en la base y hay que renderizarlos,
+// pero no se ofrecen al crear una novedad.
+// 'medicacion' se dio de baja en 20260814100000, absorbido por 'veterinario'.
+// Cualquier cambio a esta lista necesita migration: hay un CHECK espejo en Postgres.
 export type UpdateType =
   | 'status_change' | 'comment' | 'photo_added' | 'reactivated'
-  | 'avistamiento' | 'medicacion' | 'veterinario' | 'comentario';
+  | 'avistamiento' | 'alojamiento' | 'salud' | 'veterinario' | 'comentario';
 
 interface CaseUpdateAttributes {
   id: string;
