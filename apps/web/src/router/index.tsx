@@ -15,6 +15,7 @@ import CasePage from '../pages/CasePage'
 import ForgotPasswordPage from '../pages/ForgotPasswordPage'
 import ResetPasswordPage from '../pages/ResetPasswordPage'
 import PublicProfilePage from '../pages/PublicProfilePage'
+import ContactThreadPage from '../pages/ContactThreadPage'
 import ProtectedRoute from './ProtectedRoute'
 import AdminRoute from './AdminRoute'
 
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'cases/new', element: <PublishCasePage /> },
           { path: 'profile', element: <ProfilePage /> },
+          { path: 'contacts/:id', element: <ContactThreadPage /> },
         ],
       },
       {

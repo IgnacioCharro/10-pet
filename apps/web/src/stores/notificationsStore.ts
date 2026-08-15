@@ -7,6 +7,12 @@ interface NotificationsState {
   volunteerUpdatesCount: number
   setVolunteerUpdatesCount: (count: number) => void
   clearVolunteerUpdates: () => void
+  // Mensajes que me escribieron y no vi. Va aparte de volunteerUpdatesCount
+  // porque son cosas distintas y se marcan como vistas en momentos distintos:
+  // aquella al abrir la pestana Enviados, esta al abrir un hilo.
+  unreadMessagesCount: number
+  setUnreadMessagesCount: (count: number) => void
+  clearUnreadMessages: () => void
 }
 
 export const useNotificationsStore = create<NotificationsState>((set) => ({
@@ -17,4 +23,7 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
   volunteerUpdatesCount: 0,
   setVolunteerUpdatesCount: (count) => set({ volunteerUpdatesCount: count }),
   clearVolunteerUpdates: () => set({ volunteerUpdatesCount: 0 }),
+  unreadMessagesCount: 0,
+  setUnreadMessagesCount: (count) => set({ unreadMessagesCount: count }),
+  clearUnreadMessages: () => set({ unreadMessagesCount: 0 }),
 }))
