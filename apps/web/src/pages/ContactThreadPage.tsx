@@ -177,8 +177,14 @@ export default function ContactThreadPage() {
   const otroNombre = (soyElInitiator ? contact.responderName : contact.initiatorName) ?? 'La otra persona'
   const hayMasViejos = messages.length < total
 
+  // El banner de instalacion es `fixed` y se monta fuera del router. El body le
+  // reserva sitio con un padding, pero el layout raiz es `min-h-screen` (100vh)
+  // y ese padding no lo corre: la franja de abajo queda debajo del banner. Con
+  // el hilo eso tapaba el compositor entero, boton de enviar incluido.
+  const holguraBanner = { paddingBottom: 'var(--install-banner-h, 0px)' }
+
   return (
-    <main className="flex-1 flex flex-col px-4 pt-4 pb-4">
+    <main className="flex-1 flex flex-col px-4 pt-4 pb-4" style={holguraBanner}>
       <div className="max-w-2xl w-full mx-auto flex-1 flex flex-col gap-3">
         <header className="flex items-start gap-3">
           <Link
@@ -275,7 +281,14 @@ export default function ContactThreadPage() {
         </div>
 
         {contact.canWrite ? (
-          <form onSubmit={handleSend} className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 pt-2 pb-1 flex gap-2 items-end">
+          <form
+            onSubmit={handleSend}
+            /* El `bottom` es para cuando el hilo es largo y hay scroll: ahi el
+               pegajoso se ancla al viewport, donde el padding del main ya no
+               llega y el banner volveria a taparlo. */
+            style={{ bottom: 'var(--install-banner-h, 0px)' }}
+            className="sticky bg-gray-50 dark:bg-gray-900 pt-2 pb-1 flex gap-2 items-end"
+          >
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
