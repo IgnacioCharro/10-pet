@@ -117,6 +117,37 @@ describe('checkThreadRead', () => {
   });
 });
 
+// La pantalla muestra estos mensajes tal cual llegan del API, al lado de textos
+// propios que si van acentuados. Sin acentos se ve como un error de la app.
+describe('los mensajes que lee una persona van acentuados', () => {
+  const denegaciones = [
+    checkThreadWrite(thread('pending'), INITIATOR),
+    checkThreadWrite(thread('rejected'), INITIATOR),
+    checkThreadWrite(thread('completed'), INITIATOR),
+    checkThreadRead(thread('pending'), INITIATOR),
+    checkThreadRead(thread('rejected'), INITIATOR),
+  ];
+
+  const SIN_TILDE = ['conversacion', 'esta completada', 'podes '];
+
+  it('ninguno cae en las formas sin tilde', () => {
+    for (const denial of denegaciones) {
+      for (const forma of SIN_TILDE) {
+        expect(denial?.message, `"${denial?.message}" contiene "${forma}"`).not.toContain(forma);
+      }
+    }
+  });
+
+  it('los que nombran la conversación la escriben con tilde', () => {
+    const conConversacion = denegaciones.filter((d) => d?.message.includes('onversaci'));
+
+    expect(conConversacion.length).toBeGreaterThan(0);
+    for (const denial of conConversacion) {
+      expect(denial?.message).toContain('conversación');
+    }
+  });
+});
+
 describe('canWriteThread', () => {
   it('resume checkThreadWrite en un booleano para la pantalla', () => {
     expect(canWriteThread(thread('active'), INITIATOR)).toBe(true);

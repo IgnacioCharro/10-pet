@@ -48,17 +48,21 @@ const FORBIDDEN: ThreadDenial = {
 
 // Por que ese hilo no esta abierto todavia, o ya no lo esta. El texto cambia por
 // estado porque "no podes" a secas no le dice a nadie que hacer.
+//
+// Estos mensajes los muestra la pantalla tal cual llegan, asi que van acentuados
+// como el resto de los del API ('No podés contactar tu propio caso'). Los
+// comentarios de este repo van sin acentos; el texto que lee una persona, no.
 function notOpenDenial(status: string): ThreadDenial {
   if (status === 'pending') {
     return {
       code: 'THREAD_NOT_OPEN',
-      message: 'La conversacion se abre cuando se acepta la solicitud',
+      message: 'La conversación se abre cuando se acepta la solicitud',
       status: 403,
     };
   }
   return {
     code: 'THREAD_NOT_OPEN',
-    message: 'La solicitud fue rechazada: no hay conversacion',
+    message: 'La solicitud fue rechazada: no hay conversación',
     status: 403,
   };
 }
@@ -78,7 +82,7 @@ export function checkThreadWrite(thread: ThreadParties, userId: string): ThreadD
   if (READABLE_STATUSES.includes(thread.status)) {
     return {
       code: 'THREAD_CLOSED',
-      message: 'La solicitud esta completada: podes leer la conversacion pero ya no escribir',
+      message: 'La solicitud está completada: podés leer la conversación pero ya no escribir',
       status: 403,
     };
   }
