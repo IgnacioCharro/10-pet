@@ -120,7 +120,7 @@ export default function DashboardPage() {
       setReceived((prev) => prev.map((c) => (c.id === contactId ? { ...c, ...updated } : c)))
       if (status === 'active') {
         decrementPending()
-        toast.success('Solicitud aceptada.')
+        toast.success('Solicitud aceptada. Ya podés escribirle desde acá.')
       }
       if (status === 'rejected') {
         decrementPending()
@@ -344,11 +344,35 @@ function caseSummary(item: ContactItem): string {
   return location ? `${animal} · ${location}` : animal
 }
 
+// El hilo existe desde que se acepta la solicitud y se sigue leyendo cuando se
+// completa. En pending y rejected no hay nada que abrir.
+const tieneHilo = (item: ContactItem): boolean =>
+  item.status === 'active' || item.status === 'completed'
+
+function ThreadButton({ item }: { item: ContactItem }) {
+  const unread = item.unreadCount ?? 0
+  return (
+    <Link
+      to={`/contacts/${item.id}`}
+      className="flex items-center justify-center gap-2 w-full border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-semibold py-2 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
+    >
+      Abrir conversación
+      {unread > 0 && (
+        <span className="inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+          {unread > 9 ? '9+' : unread}
+        </span>
+      )}
+    </Link>
+  )
+}
+
 function SentContactCard({ item, isNew }: { item: ContactItem; isNew: boolean }) {
   const statusClass = CONTACT_STATUS_COLORS[item.status] ?? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
   return (
-    <Link to={`/cases/${item.caseId}`}>
-      <Card className={['p-4 hover:shadow-md transition-shadow cursor-pointer', isNew ? 'border-l-4 border-primary-500' : ''].join(' ')}>
+    <Card className={['p-4', isNew ? 'border-l-4 border-primary-500' : ''].join(' ')}>
+      {/* El enlace al caso envuelve solo la cabecera: antes envolvia la tarjeta
+          entera, y un <Link> dentro de otro <Link> no es HTML valido. */}
+      <Link to={`/cases/${item.caseId}`} className="block hover:opacity-90 transition-opacity">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -371,8 +395,13 @@ function SentContactCard({ item, isNew }: { item: ContactItem; isNew: boolean })
             {CONTACT_STATUS_LABELS[item.status] ?? item.status}
           </span>
         </div>
-      </Card>
-    </Link>
+      </Link>
+      {tieneHilo(item) && (
+        <div className="mt-3">
+          <ThreadButton item={item} />
+        </div>
+      )}
+    </Card>
   )
 }
 
@@ -444,6 +473,7 @@ function ReceivedContactCard({
           </button>
         </div>
       )}
+      {tieneHilo(item) && <ThreadButton item={item} />}
     </Card>
   )
 }

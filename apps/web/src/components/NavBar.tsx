@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useNotificationsStore } from '../stores/notificationsStore'
-import { getPendingContactsCount, getContactUpdatesCount } from '../services/contacts.service'
+import {
+  getPendingContactsCount,
+  getContactUpdatesCount,
+  getUnreadMessagesCount,
+} from '../services/contacts.service'
 import { logoutRequest } from '../services/auth.service'
 import Button from './ui/Button'
 import ThemeToggle from './ThemeToggle'
@@ -25,6 +29,8 @@ export default function NavBar() {
   const setPendingContactsCount = useNotificationsStore((s) => s.setPendingContactsCount)
   const volunteerUpdatesCount = useNotificationsStore((s) => s.volunteerUpdatesCount)
   const setVolunteerUpdatesCount = useNotificationsStore((s) => s.setVolunteerUpdatesCount)
+  const unreadMessagesCount = useNotificationsStore((s) => s.unreadMessagesCount)
+  const setUnreadMessagesCount = useNotificationsStore((s) => s.setUnreadMessagesCount)
 
   useEffect(() => {
     if (!isAuthenticated) return
@@ -37,7 +43,25 @@ export default function NavBar() {
     getContactUpdatesCount(since)
       .then(setVolunteerUpdatesCount)
       .catch(() => {})
-  }, [isAuthenticated, location.pathname, setPendingContactsCount, setVolunteerUpdatesCount, user?.id])
+    // Sin marcador local: los mensajes se dan por vistos al abrir el hilo, y esa
+    // marca la guarda el servidor por solicitud y por persona. Se vuelve a pedir
+    // en cada cambio de ruta, que es lo que baja el globo al salir de un hilo.
+    getUnreadMessagesCount()
+      .then(setUnreadMessagesCount)
+      .catch(() => {})
+  }, [
+    isAuthenticated,
+    location.pathname,
+    setPendingContactsCount,
+    setVolunteerUpdatesCount,
+    setUnreadMessagesCount,
+    user?.id,
+  ])
+
+  // Un solo numero en el globo: solicitudes por responder, cambios de estado de
+  // las que envie, y mensajes sin leer. Tres cosas distintas, pero para quien
+  // mira la barra es "tengo algo pendiente en Mis casos".
+  const badgeCount = pendingCount + volunteerUpdatesCount + unreadMessagesCount
 
   const handleLogout = async () => {
     if (refreshToken) {
@@ -81,9 +105,9 @@ export default function NavBar() {
               <NavLink to="/dashboard" className={navLinkClass}>
                 <span className="relative inline-flex items-center">
                   Mis casos
-                  {(pendingCount + volunteerUpdatesCount) > 0 && (
+                  {badgeCount > 0 && (
                     <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-                      {(pendingCount + volunteerUpdatesCount) > 9 ? '9+' : pendingCount + volunteerUpdatesCount}
+                      {badgeCount > 9 ? '9+' : badgeCount}
                     </span>
                   )}
                 </span>
@@ -187,9 +211,9 @@ export default function NavBar() {
                 <NavLink to="/dashboard" className={navLinkClass} onClick={() => setOpen(false)}>
                   <span className="relative inline-flex items-center">
                     Mis casos
-                    {pendingCount > 0 && (
+                    {badgeCount > 0 && (
                       <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-                        {pendingCount > 9 ? '9+' : pendingCount}
+                        {badgeCount > 9 ? '9+' : badgeCount}
                       </span>
                     )}
                   </span>
