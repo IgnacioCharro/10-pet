@@ -48,6 +48,8 @@ export interface CaseUpdateItem {
   userId: string
   updateType: CaseUpdateType
   content: string | null
+  /** Quien aloja al animal. Solo lo traen las novedades de tipo 'alojamiento'. */
+  hostName: string | null
   createdAt: string
 }
 

@@ -57,7 +57,8 @@ const OWNER_TYPE_LABELS: Record<string, string> = {
 
 const PLACEHOLDERS: Record<string, string> = {
   avistamiento: 'Dónde fue visto, cuándo, en qué condición...',
-  alojamiento:  'Dónde está ahora, quién lo tiene, hasta cuándo...',
+  // 'quién lo tiene' salio del placeholder: ahora es un campo aparte.
+  alojamiento:  'Dónde está ahora, en qué condiciones, hasta cuándo...',
   salud:        'Cómo está: heridas, si come, si mejoró o empeoró...',
   veterinario:  'Nombre del vet, diagnóstico, tratamiento...',
   comentario:   'Contá la novedad...',
@@ -93,8 +94,12 @@ interface Milestone {
   at: string
   dot: string
   label: string
-  /** Nombre del autor, si la fuente lo trae. Las novedades solo tienen userId. */
-  author?: string | null
+  /**
+   * Persona que le pone nombre al hito, cuando la fuente la trae: el veterinario que
+   * atendio, o quien aloja al animal. Las demas novedades solo tienen userId, que es
+   * siempre el dueño del caso y no aporta nada.
+   */
+  who?: string | null
   isVet?: boolean
   /** Si es null el hito no lleva flecha: no se promete contenido que no existe. */
   body?: React.ReactNode
@@ -113,6 +118,7 @@ function buildMilestones(
       at: u.createdAt,
       dot: DOT[u.updateType] ?? DOT.comentario,
       label: LABEL[u.updateType] ?? LABEL.comentario,
+      who: u.hostName,
       body: u.content ? <p className="whitespace-pre-line">{u.content}</p> : undefined,
     })),
     ...assistances.map((a) => ({
@@ -120,7 +126,7 @@ function buildMilestones(
       at: a.attendedAt ?? a.createdAt,
       dot: DOT.veterinario,
       label: LABEL.veterinario,
-      author: a.userName,
+      who: a.userName,
       isVet: a.isVet,
       body: (a.procedure || a.medication) ? (
         <>
@@ -167,9 +173,9 @@ function MilestoneRow({ m, last }: { m: Milestone; last: boolean }) {
   const head = (
     <div className="flex items-baseline gap-2 min-w-0 flex-1 text-left">
       <span className="text-xs font-medium text-gray-700 dark:text-gray-200 truncate">{m.label}</span>
-      {m.author && (
+      {m.who && (
         <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
-          {m.author}
+          {m.who}
           {m.isVet && <span className="ml-1 text-teal-600 dark:text-teal-400" title="Profesional verificado">✓</span>}
         </span>
       )}
@@ -235,10 +241,12 @@ export interface CaseTimelineProps {
   showAddUpdate: boolean
   addUpdateType: CaseUpdateType
   addUpdateContent: string
+  addUpdateHostName: string
   addUpdateLoading: boolean
   onToggleForm: () => void
   onTypeChange: (t: CaseUpdateType) => void
   onContentChange: (v: string) => void
+  onHostNameChange: (v: string) => void
   onSubmit: () => void
   // Alta de atencion veterinaria (cualquier autenticado)
   showVetForm: boolean
@@ -254,8 +262,8 @@ export interface CaseTimelineProps {
 export default function CaseTimeline({
   createdAt, status, resolutionType, updates, assistances,
   isOwner, isAuthenticated,
-  showAddUpdate, addUpdateType, addUpdateContent, addUpdateLoading,
-  onToggleForm, onTypeChange, onContentChange, onSubmit,
+  showAddUpdate, addUpdateType, addUpdateContent, addUpdateHostName, addUpdateLoading,
+  onToggleForm, onTypeChange, onContentChange, onHostNameChange, onSubmit,
   showVetForm, vetProcedure, vetMedication, vetLoading,
   onToggleVetForm, onVetProcedureChange, onVetMedicationChange, onVetSubmit,
 }: CaseTimelineProps) {
@@ -317,6 +325,25 @@ export default function CaseTimeline({
               </button>
             ))}
           </div>
+          {addUpdateType === 'alojamiento' && (
+            <div>
+              <label htmlFor="host-name" className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                ¿Quién lo tiene?
+              </label>
+              <input
+                id="host-name"
+                type="text"
+                maxLength={100}
+                placeholder="Nombre de quien lo aloja"
+                value={addUpdateHostName}
+                onChange={(e) => onHostNameChange(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Se muestra en la línea de tiempo. Opcional.
+              </p>
+            </div>
+          )}
           <textarea
             rows={3}
             placeholder={PLACEHOLDERS[addUpdateType] ?? PLACEHOLDERS.comentario}

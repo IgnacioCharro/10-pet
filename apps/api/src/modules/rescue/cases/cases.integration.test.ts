@@ -337,6 +337,7 @@ describe('POST /api/v1/cases/:id/updates', () => {
       userId: 'user-uuid-1',
       updateType: 'comment',
       content: 'El perro fue asistido por veterinaria',
+      hostName: null,
       createdAt: new Date(),
     };
     vi.mocked(svc.addCaseUpdate).mockResolvedValueOnce(fakeUpdate);
@@ -355,6 +356,40 @@ describe('POST /api/v1/cases/:id/updates', () => {
       .post('/api/v1/cases/case-uuid-1/updates')
       .set('Authorization', authHeader)
       .send({ updateType: 'invalid_type' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('acepta hostName en una novedad de alojamiento', async () => {
+    const fakeUpdate = {
+      id: 'update-uuid-2',
+      userId: 'user-uuid-1',
+      updateType: 'alojamiento',
+      content: 'Lo tiene en su casa hasta el fin de semana',
+      hostName: 'Marta Gimenez',
+      createdAt: new Date(),
+    };
+    vi.mocked(svc.addCaseUpdate).mockResolvedValueOnce(fakeUpdate);
+
+    const res = await request(app)
+      .post('/api/v1/cases/case-uuid-1/updates')
+      .set('Authorization', authHeader)
+      .send({
+        updateType: 'alojamiento',
+        content: 'Lo tiene en su casa hasta el fin de semana',
+        hostName: 'Marta Gimenez',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.update.hostName).toBe('Marta Gimenez');
+  });
+
+  it('devuelve 400 si viene hostName en un tipo que no es alojamiento', async () => {
+    const res = await request(app)
+      .post('/api/v1/cases/case-uuid-1/updates')
+      .set('Authorization', authHeader)
+      .send({ updateType: 'salud', content: 'Mejoro mucho', hostName: 'Marta Gimenez' });
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');

@@ -74,10 +74,14 @@ export const addCaseUpdate = async (
   caseId: string,
   updateType: CaseUpdateType,
   content?: string,
+  hostName?: string,
 ): Promise<CaseUpdateItem> => {
   const res = await api.post<{ update: CaseUpdateItem }>(`/cases/${caseId}/updates`, {
     updateType,
     content: content || undefined,
+    // El API rechaza hostName en cualquier tipo que no sea 'alojamiento', asi que no
+    // alcanza con que el campo este vacio: hay que no mandarlo.
+    hostName: updateType === 'alojamiento' && hostName ? hostName : undefined,
   })
   return res.data.update
 }

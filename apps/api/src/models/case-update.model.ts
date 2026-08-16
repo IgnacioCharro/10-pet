@@ -14,12 +14,14 @@ interface CaseUpdateAttributes {
   userId: string;
   updateType: UpdateType;
   content: string | null;
+  /** Quien aloja al animal. Solo tiene sentido en las novedades de tipo 'alojamiento'. */
+  hostName: string | null;
   createdAt: Date;
 }
 
 type CaseUpdateCreationAttributes = Optional<
   CaseUpdateAttributes,
-  'id' | 'content' | 'createdAt'
+  'id' | 'content' | 'hostName' | 'createdAt'
 >;
 
 export class CaseUpdate
@@ -31,6 +33,7 @@ export class CaseUpdate
   declare userId: string;
   declare updateType: UpdateType;
   declare content: string | null;
+  declare hostName: string | null;
   declare readonly createdAt: Date;
 
   static initModel(sequelize: Sequelize): typeof CaseUpdate {
@@ -56,6 +59,10 @@ export class CaseUpdate
         },
         content: {
           type: DataTypes.TEXT,
+          allowNull: true,
+        },
+        hostName: {
+          type: DataTypes.STRING(100),
           allowNull: true,
         },
         createdAt: {
