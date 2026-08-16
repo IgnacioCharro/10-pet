@@ -70,12 +70,19 @@ export default function AdminPage() {
   const [adminCasesStatus, setAdminCasesStatus] = useState<'archivado' | 'eliminado'>('archivado')
   const [loadingAdminCases, setLoadingAdminCases] = useState(false)
 
-  useEffect(() => {
-    getAdminStats()
+  // Se relee despues de cada accion sobre un reporte: pendingReports alimenta el globo
+  // rojo de la solapa y el StatCard, y si no se refresca se queda con el numero viejo
+  // hasta que el admin recargue la pagina.
+  const loadStats = useCallback(() => {
+    return getAdminStats()
       .then(setStats)
       .catch(() => {})
       .finally(() => setLoadingStats(false))
   }, [])
+
+  useEffect(() => {
+    loadStats()
+  }, [loadStats])
 
   const loadReports = useCallback(() => {
     if (tab !== 'reports') return
@@ -130,6 +137,7 @@ export default function AdminPage() {
       await patchAdminCase(c.id, 'restore')
       setAdminCases((prev) => prev.filter((x) => x.id !== c.id))
       setAdminCasesTotal((t) => t - 1)
+      void loadStats()
       toast.success('Caso reactivado.')
     } catch {
       toast.error('No se pudo reactivar el caso.')
@@ -140,6 +148,7 @@ export default function AdminPage() {
     try {
       await updateAdminReport(report.id, 'dismissed')
       setReports((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: 'dismissed' } : r)))
+      void loadStats()
       toast.success('Reporte descartado.')
     } catch {
       toast.error('No se pudo descartar el reporte.')
@@ -152,6 +161,7 @@ export default function AdminPage() {
       await patchAdminCase(report.targetCaseId, 'delete')
       await updateAdminReport(report.id, 'actioned')
       setReports((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: 'actioned' } : r)))
+      void loadStats()
       toast.success('Caso eliminado.')
     } catch {
       toast.error('No se pudo eliminar el caso.')
@@ -164,6 +174,7 @@ export default function AdminPage() {
       await patchAdminCase(report.targetCaseId, 'archive')
       await updateAdminReport(report.id, 'actioned')
       setReports((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: 'actioned' } : r)))
+      void loadStats()
       toast.success('Caso archivado.')
     } catch {
       toast.error('No se pudo archivar el caso.')
