@@ -543,7 +543,11 @@ export default function AdminPage() {
                                   </option>
                                 ))}
                               </select>
-                              {userDetail.user.vetLicense && (
+                              {/* La matricula solo acompana al rol que la
+                                  justifica: al sacarle el rol de veterinario a
+                                  alguien, la columna queda escrita y sin esto
+                                  seguia colgada de un rol que no la explica. */}
+                              {userDetail.user.isVet && userDetail.user.vetLicense && (
                                 <span className="text-xs text-gray-500 dark:text-gray-400">
                                   Mat. {userDetail.user.vetLicense}
                                 </span>
