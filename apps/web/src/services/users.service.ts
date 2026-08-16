@@ -7,11 +7,9 @@ export const getMe = async (): Promise<AuthUser> => {
   return res.data
 }
 
-export const patchMe = async (input: {
-  name?: string
-  isVet?: boolean
-  vetLicense?: string | null
-}): Promise<AuthUser> => {
+// isVet y vetLicense salieron del payload: el API los ignora, los otorga el
+// panel de admin.
+export const patchMe = async (input: { name?: string }): Promise<AuthUser> => {
   const res = await api.patch<AuthUser>('/users/me', input)
   return res.data
 }
