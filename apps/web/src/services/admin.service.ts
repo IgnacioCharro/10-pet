@@ -9,10 +9,14 @@ export interface AdminStats {
   pendingReports: number
 }
 
+// Espejo del enum del API y del CHECK users_role_check en Postgres.
+export type UserRole = 'comun' | 'tester' | 'voluntario' | 'veterinario' | 'admin'
+
 export interface AdminUser {
   id: string
   email: string
   name: string | null
+  role: UserRole
   emailVerified: boolean
   bannedAt: string | null
   casesCount: number
@@ -47,6 +51,32 @@ export async function listAdminUsers(params?: {
 
 export async function banAdminUser(userId: string, action: 'ban' | 'unban'): Promise<void> {
   await api.patch(`/admin/users/${userId}`, { action })
+}
+
+export async function setAdminUserRole(userId: string, role: UserRole): Promise<void> {
+  await api.patch(`/admin/users/${userId}`, { action: 'set_role', role })
+}
+
+export interface AdminUserDetail {
+  // No reusa AdminUser: la ficha no trae casesCount, el recuento va en counts.
+  user: {
+    id: string
+    email: string
+    name: string | null
+    role: UserRole
+    isVet: boolean
+    vetLicense: string | null
+    emailVerified: boolean
+    bannedAt: string | null
+    createdAt: string
+  }
+  counts: { cases: number; contactsInitiated: number; contactsReceived: number }
+  recentCases: { id: string; animalType: string; status: string; createdAt: string }[]
+}
+
+export async function getAdminUserDetail(userId: string): Promise<AdminUserDetail> {
+  const res = await api.get<AdminUserDetail>(`/admin/users/${userId}`)
+  return res.data
 }
 
 export async function listAdminReports(params?: {

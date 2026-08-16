@@ -9,7 +9,8 @@ import {
 import {
   getAdminStats,
   listAdminUsers,
-  banUser,
+  getAdminUserDetail,
+  patchAdminUser,
   patchAdminCase,
   listAdminCases,
 } from './admin.service';
@@ -47,6 +48,23 @@ export const getUsers = async (
   }
 };
 
+export const getUserDetail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const detail = await getAdminUserDetail(req.params['id']!);
+    if (!detail) {
+      res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: 'Usuario no encontrado' } });
+      return;
+    }
+    res.json(detail);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const patchUser = async (
   req: Request,
   res: Response,
@@ -54,7 +72,7 @@ export const patchUser = async (
 ): Promise<void> => {
   try {
     const input = patchAdminUserSchema.parse(req.body);
-    const result = await banUser(req.params['id']!, input);
+    const result = await patchAdminUser(req.params['id']!, input);
     if ('error' in result) {
       res.status(result.error.status).json({ error: { code: result.error.code, message: result.error.message } });
       return;

@@ -2,6 +2,7 @@ import { QueryTypes } from 'sequelize';
 import { sequelize } from '../../../db';
 import { RefreshToken } from '../../../db';
 import { ListUsersQuery, PatchAdminUserInput, PatchAdminCaseInput, ListAdminCasesQuery } from './admin.validators';
+import { isAdminEmail, isVetForRole, type UserRole } from './admin.roles';
 
 export interface AdminStats {
   totalUsers: number;
@@ -16,6 +17,7 @@ export interface AdminUserRow {
   id: string;
   email: string;
   name: string | null;
+  role: UserRole;
   emailVerified: boolean;
   bannedAt: Date | null;
   casesCount: number;
@@ -96,6 +98,7 @@ export async function listAdminUsers(
        u.id,
        u.email,
        u.name,
+       u.role,
        u.email_verified AS "emailVerified",
        u.banned_at AS "bannedAt",
        u.created_at AS "createdAt",
@@ -112,17 +115,105 @@ export async function listAdminUsers(
   return { users, total: parseInt(count, 10) };
 }
 
-export async function banUser(
+export interface AdminUserCaseRow {
+  id: string;
+  animalType: string;
+  status: string;
+  createdAt: Date;
+}
+
+export interface AdminUserDetail {
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    role: UserRole;
+    isVet: boolean;
+    vetLicense: string | null;
+    emailVerified: boolean;
+    bannedAt: Date | null;
+    createdAt: Date;
+  };
+  counts: { cases: number; contactsInitiated: number; contactsReceived: number };
+  recentCases: AdminUserCaseRow[];
+}
+
+export async function getAdminUserDetail(userId: string): Promise<AdminUserDetail | null> {
+  const [user] = await sequelize.query<AdminUserDetail['user']>(
+    `SELECT id, email, name, role,
+            is_vet AS "isVet", vet_license AS "vetLicense",
+            email_verified AS "emailVerified", banned_at AS "bannedAt",
+            created_at AS "createdAt"
+     FROM users WHERE id = :userId`,
+    { replacements: { userId }, type: QueryTypes.SELECT },
+  );
+
+  if (!user) return null;
+
+  const [counts] = await sequelize.query<{
+    cases: string;
+    contactsInitiated: string;
+    contactsReceived: string;
+  }>(
+    `SELECT
+       (SELECT COUNT(*) FROM cases WHERE user_id = :userId) AS cases,
+       (SELECT COUNT(*) FROM contacts WHERE initiator_id = :userId) AS "contactsInitiated",
+       (SELECT COUNT(*) FROM contacts WHERE responder_id = :userId) AS "contactsReceived"`,
+    { replacements: { userId }, type: QueryTypes.SELECT },
+  );
+
+  const recentCases = await sequelize.query<AdminUserCaseRow>(
+    `SELECT id, animal_type AS "animalType", status, created_at AS "createdAt"
+     FROM cases WHERE user_id = :userId
+     ORDER BY created_at DESC LIMIT 5`,
+    { replacements: { userId }, type: QueryTypes.SELECT },
+  );
+
+  return {
+    user,
+    counts: {
+      cases: parseInt(counts.cases, 10),
+      contactsInitiated: parseInt(counts.contactsInitiated, 10),
+      contactsReceived: parseInt(counts.contactsReceived, 10),
+    },
+    recentCases,
+  };
+}
+
+export async function patchAdminUser(
   userId: string,
   input: PatchAdminUserInput,
 ): Promise<{ ok: true } | { error: { code: string; message: string; status: number } }> {
-  const [user] = await sequelize.query<{ id: string }>(
-    `SELECT id FROM users WHERE id = :userId`,
+  const [user] = await sequelize.query<{ id: string; email: string }>(
+    `SELECT id, email FROM users WHERE id = :userId`,
     { replacements: { userId }, type: QueryTypes.SELECT },
   );
 
   if (!user) {
     return { error: { code: 'USER_NOT_FOUND', message: 'Usuario no encontrado', status: 404 } };
+  }
+
+  if (input.action === 'set_role') {
+    // La etiqueta no puede contradecir al permiso: quien entra al panel lo decide
+    // ADMIN_EMAILS, no esta columna.
+    if (isAdminEmail(user.email, process.env['ADMIN_EMAILS'])) {
+      return {
+        error: {
+          code: 'ADMIN_ROLE_LOCKED',
+          message: 'No se puede cambiar el rol de un administrador',
+          status: 409,
+        },
+      };
+    }
+    // is_vet se escribe en el mismo UPDATE: los dos campos no pueden divergir.
+    await sequelize.query(
+      `UPDATE users SET role = :role, is_vet = :isVet, updated_at = NOW() WHERE id = :userId`,
+      {
+        replacements: { role: input.role, isVet: isVetForRole(input.role), userId },
+        type: QueryTypes.UPDATE,
+      },
+    );
+    return { ok: true };
   }
 
   if (input.action === 'ban') {

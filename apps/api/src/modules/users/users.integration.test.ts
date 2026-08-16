@@ -68,6 +68,35 @@ describe('GET /api/v1/users/me', () => {
     expect(res.body.emailVerified).toBe(false);
   });
 
+  it('pide isVet y vetLicense a la base', async () => {
+    // El perfil los muestra en solo lectura, asi que tienen que venir en el
+    // SELECT: sin esto quedan undefined y el sello desaparece al recargar.
+    const fakeUser = {
+      id: 'uuid-1',
+      email: 'a@b.com',
+      name: 'Test User',
+      emailVerified: true,
+      isVet: true,
+      vetLicense: 'MP-123',
+      createdAt: new Date('2026-04-20'),
+    };
+    vi.mocked(db.User.findByPk).mockResolvedValueOnce(fakeUser as never);
+
+    const res = await request(app)
+      .get('/api/v1/users/me')
+      .set('Authorization', `Bearer ${makeToken()}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.isVet).toBe(true);
+    expect(res.body.vetLicense).toBe('MP-123');
+    expect(vi.mocked(db.User.findByPk)).toHaveBeenCalledWith(
+      'uuid-1',
+      expect.objectContaining({
+        attributes: expect.arrayContaining(['isVet', 'vetLicense']),
+      }),
+    );
+  });
+
   it('devuelve 404 si el usuario no existe en DB', async () => {
     vi.mocked(db.User.findByPk).mockResolvedValueOnce(null);
 
@@ -101,6 +130,29 @@ describe('PATCH /api/v1/users/me', () => {
     expect(res.status).toBe(200);
     expect(fakeUser.save).toHaveBeenCalled();
     expect(res.body.name).toBe('Nombre Nuevo');
+  });
+
+  it('ignora isVet y vetLicense: el perfil propio ya no los escribe', async () => {
+    const fakeUser = {
+      id: 'uuid-1',
+      email: 'a@b.com',
+      name: 'Nuevo nombre',
+      emailVerified: true,
+      isVet: false,
+      vetLicense: null,
+      createdAt: new Date('2026-04-20'),
+      save: vi.fn().mockResolvedValue(undefined),
+    };
+    vi.mocked(db.User.findByPk).mockResolvedValueOnce(fakeUser as never);
+
+    const res = await request(app)
+      .patch('/api/v1/users/me')
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send({ name: 'Nuevo nombre', isVet: true, vetLicense: 'MP-999' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.isVet).toBe(false);
+    expect(res.body.vetLicense).toBeNull();
   });
 
   it('devuelve 400 con nombre vacio', async () => {

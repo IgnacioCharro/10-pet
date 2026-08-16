@@ -10,10 +10,14 @@ import {
   updateAdminReport,
   patchAdminCase,
   listAdminCases,
+  setAdminUserRole,
+  getAdminUserDetail,
   type AdminStats,
   type AdminUser,
+  type AdminUserDetail,
   type AdminReport,
   type AdminCase,
+  type UserRole,
 } from '../services/admin.service'
 import { toast } from '../stores/toastStore'
 
@@ -35,6 +39,24 @@ const STATUS_LABELS: Record<string, string> = {
   spam: 'Spam',
   archivado: 'Archivado',
   eliminado: 'Eliminado',
+}
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  comun: 'Común',
+  tester: 'Tester',
+  voluntario: 'Voluntario',
+  veterinario: 'Veterinario',
+  admin: 'Admin',
+}
+
+// El violeta es el color de marca y se reserva para admin. Veterinario va en
+// teal, que es el color que el timeline ya usa para las atenciones.
+const ROLE_CHIP: Record<UserRole, string> = {
+  comun: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+  tester: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  voluntario: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  veterinario: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+  admin: 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300',
 }
 
 function StatCard({ label, value, sub }: { label: string; value: number; sub?: string }) {
@@ -63,6 +85,9 @@ export default function AdminPage() {
   const [usersPage, setUsersPage] = useState(1)
   const [usersSearch, setUsersSearch] = useState('')
   const [loadingUsers, setLoadingUsers] = useState(false)
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
+  const [userDetail, setUserDetail] = useState<AdminUserDetail | null>(null)
+  const [loadingDetail, setLoadingDetail] = useState(false)
 
   const [adminCases, setAdminCases] = useState<AdminCase[]>([])
   const [adminCasesTotal, setAdminCasesTotal] = useState(0)
@@ -193,6 +218,42 @@ export default function AdminPage() {
       toast.success(action === 'ban' ? 'Usuario baneado.' : 'Usuario desbaneado.')
     } catch {
       toast.error('No se pudo actualizar el usuario.')
+    }
+  }
+
+  const toggleUserRow = (userId: string) => {
+    if (expandedUserId === userId) {
+      setExpandedUserId(null)
+      setUserDetail(null)
+      return
+    }
+    setExpandedUserId(userId)
+    setUserDetail(null)
+    setLoadingDetail(true)
+    getAdminUserDetail(userId)
+      .then(setUserDetail)
+      .catch(() => toast.error('No se pudo cargar la ficha.'))
+      .finally(() => setLoadingDetail(false))
+  }
+
+  const handleRoleChange = async (userId: string, role: UserRole) => {
+    try {
+      await setAdminUserRole(userId, role)
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role } : u)))
+      setUserDetail((prev) =>
+        prev && prev.user.id === userId
+          ? { ...prev, user: { ...prev.user, role, isVet: role === 'veterinario' } }
+          : prev,
+      )
+      toast.success('Rol actualizado.')
+    } catch (err) {
+      const code = (err as { response?: { data?: { error?: { code?: string } } } })
+        .response?.data?.error?.code
+      toast.error(
+        code === 'ADMIN_ROLE_LOCKED'
+          ? 'No se puede cambiar el rol de un administrador.'
+          : 'No se pudo actualizar el rol.',
+      )
     }
   }
 
@@ -401,9 +462,21 @@ export default function AdminPage() {
                   <Card key={u.id} className="p-4">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                          {u.name ?? u.email}
-                        </span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <button
+                            type="button"
+                            onClick={() => toggleUserRow(u.id)}
+                            aria-expanded={expandedUserId === u.id}
+                            className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate hover:underline text-left"
+                          >
+                            {u.name ?? u.email}
+                          </button>
+                          <span
+                            className={`shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full ${ROLE_CHIP[u.role]}`}
+                          >
+                            {ROLE_LABELS[u.role]}
+                          </span>
+                        </div>
                         {u.name && (
                           <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{u.email}</span>
                         )}
@@ -432,6 +505,78 @@ export default function AdminPage() {
                         {u.bannedAt ? 'Desbanear' : 'Banear'}
                       </Button>
                     </div>
+
+                    {expandedUserId === u.id && (
+                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-3">
+                        {loadingDetail || !userDetail ? (
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Cargando ficha...</p>
+                        ) : (
+                          <>
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <span className="text-gray-600 dark:text-gray-300">
+                                Casos: <strong>{userDetail.counts.cases}</strong>
+                              </span>
+                              <span className="text-gray-600 dark:text-gray-300">
+                                Solicitudes enviadas: <strong>{userDetail.counts.contactsInitiated}</strong>
+                              </span>
+                              <span className="text-gray-600 dark:text-gray-300">
+                                Recibidas: <strong>{userDetail.counts.contactsReceived}</strong>
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <label
+                                htmlFor={`role-${u.id}`}
+                                className="text-sm text-gray-600 dark:text-gray-300"
+                              >
+                                Rol
+                              </label>
+                              <select
+                                id={`role-${u.id}`}
+                                value={userDetail.user.role}
+                                onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
+                                className="rounded-lg border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                              >
+                                {(Object.keys(ROLE_LABELS) as UserRole[]).map((r) => (
+                                  <option key={r} value={r}>
+                                    {ROLE_LABELS[r]}
+                                  </option>
+                                ))}
+                              </select>
+                              {userDetail.user.vetLicense && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  Mat. {userDetail.user.vetLicense}
+                                </span>
+                              )}
+                            </div>
+
+                            {userDetail.recentCases.length > 0 && (
+                              <div className="flex flex-col gap-1">
+                                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                  Casos recientes
+                                </span>
+                                {userDetail.recentCases.map((c) => (
+                                  <Link
+                                    key={c.id}
+                                    to={`/cases/${c.id}`}
+                                    className="text-sm text-primary-600 dark:text-primary-300 hover:underline"
+                                  >
+                                    {c.animalType} — {STATUS_LABELS[c.status] ?? c.status}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+
+                            <Link
+                              to={`/users/${u.id}`}
+                              className="text-sm text-primary-600 dark:text-primary-300 hover:underline self-start"
+                            >
+                              Ver perfil público
+                            </Link>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </Card>
                 ))}
               </div>

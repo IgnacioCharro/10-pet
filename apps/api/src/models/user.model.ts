@@ -1,4 +1,5 @@
 import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
+import type { UserRole } from '../modules/moderation/admin/admin.roles';
 
 interface UserAttributes {
   id: string;
@@ -12,6 +13,8 @@ interface UserAttributes {
   pushToken: string | null;
   isVet: boolean;
   vetLicense: string | null;
+  /** Etiqueta, no permiso: el acceso al panel sigue saliendo de ADMIN_EMAILS. */
+  role: UserRole;
   bannedAt: Date | null;
   passwordResetToken: string | null;
   passwordResetExpiresAt: Date | null;
@@ -34,6 +37,7 @@ type UserCreationAttributes = Optional<
   | 'pushToken'
   | 'isVet'
   | 'vetLicense'
+  | 'role'
   | 'bannedAt'
   | 'passwordResetToken'
   | 'passwordResetExpiresAt'
@@ -59,6 +63,7 @@ export class User
   declare pushToken: string | null;
   declare isVet: boolean;
   declare vetLicense: string | null;
+  declare role: UserRole;
   declare bannedAt: Date | null;
   declare passwordResetToken: string | null;
   declare passwordResetExpiresAt: Date | null;
@@ -120,6 +125,11 @@ export class User
         vetLicense: {
           type: DataTypes.STRING(50),
           allowNull: true,
+        },
+        role: {
+          type: DataTypes.TEXT,
+          allowNull: false,
+          defaultValue: 'comun',
         },
         bannedAt: {
           type: DataTypes.DATE,
