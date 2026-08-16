@@ -14,6 +14,7 @@ import {
   type AdminUser,
   type AdminReport,
   type AdminCase,
+  type UserRole,
 } from '../services/admin.service'
 import { toast } from '../stores/toastStore'
 
@@ -35,6 +36,24 @@ const STATUS_LABELS: Record<string, string> = {
   spam: 'Spam',
   archivado: 'Archivado',
   eliminado: 'Eliminado',
+}
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  comun: 'Común',
+  tester: 'Tester',
+  voluntario: 'Voluntario',
+  veterinario: 'Veterinario',
+  admin: 'Admin',
+}
+
+// El violeta es el color de marca y se reserva para admin. Veterinario va en
+// teal, que es el color que el timeline ya usa para las atenciones.
+const ROLE_CHIP: Record<UserRole, string> = {
+  comun: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+  tester: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  voluntario: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  veterinario: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+  admin: 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300',
 }
 
 function StatCard({ label, value, sub }: { label: string; value: number; sub?: string }) {
@@ -401,9 +420,16 @@ export default function AdminPage() {
                   <Card key={u.id} className="p-4">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                          {u.name ?? u.email}
-                        </span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                            {u.name ?? u.email}
+                          </span>
+                          <span
+                            className={`shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full ${ROLE_CHIP[u.role]}`}
+                          >
+                            {ROLE_LABELS[u.role]}
+                          </span>
+                        </div>
                         {u.name && (
                           <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{u.email}</span>
                         )}

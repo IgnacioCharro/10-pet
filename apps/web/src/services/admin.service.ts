@@ -9,10 +9,14 @@ export interface AdminStats {
   pendingReports: number
 }
 
+// Espejo del enum del API y del CHECK users_role_check en Postgres.
+export type UserRole = 'comun' | 'tester' | 'voluntario' | 'veterinario' | 'admin'
+
 export interface AdminUser {
   id: string
   email: string
   name: string | null
+  role: UserRole
   emailVerified: boolean
   bannedAt: string | null
   casesCount: number
@@ -47,6 +51,10 @@ export async function listAdminUsers(params?: {
 
 export async function banAdminUser(userId: string, action: 'ban' | 'unban'): Promise<void> {
   await api.patch(`/admin/users/${userId}`, { action })
+}
+
+export async function setAdminUserRole(userId: string, role: UserRole): Promise<void> {
+  await api.patch(`/admin/users/${userId}`, { action: 'set_role', role })
 }
 
 export async function listAdminReports(params?: {
