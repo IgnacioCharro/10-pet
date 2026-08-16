@@ -9,7 +9,7 @@ import {
 import {
   getAdminStats,
   listAdminUsers,
-  banUser,
+  patchAdminUser,
   patchAdminCase,
   listAdminCases,
 } from './admin.service';
@@ -54,7 +54,7 @@ export const patchUser = async (
 ): Promise<void> => {
   try {
     const input = patchAdminUserSchema.parse(req.body);
-    const result = await banUser(req.params['id']!, input);
+    const result = await patchAdminUser(req.params['id']!, input);
     if ('error' in result) {
       res.status(result.error.status).json({ error: { code: result.error.code, message: result.error.message } });
       return;

@@ -10,7 +10,7 @@ import request from 'supertest';
 vi.mock('./admin.service', () => ({
   getAdminStats: vi.fn(),
   listAdminUsers: vi.fn(),
-  banUser: vi.fn(),
+  patchAdminUser: vi.fn(),
   patchAdminCase: vi.fn(),
   listAdminCases: vi.fn(),
 }));
@@ -54,6 +54,7 @@ const fakeUsers = [
     id: userId,
     email: 'user@test.com',
     name: 'Test User',
+    role: 'comun' as const,
     emailVerified: true,
     bannedAt: null,
     casesCount: 3,
@@ -103,7 +104,7 @@ describe('GET /api/v1/admin/users', () => {
 
 describe('PATCH /api/v1/admin/users/:id', () => {
   it('banea un usuario', async () => {
-    vi.mocked(svc.banUser).mockResolvedValueOnce({ ok: true });
+    vi.mocked(svc.patchAdminUser).mockResolvedValueOnce({ ok: true });
     const res = await request(app)
       .patch(`/api/v1/admin/users/${userId}`)
       .set('Authorization', adminHeader)
@@ -112,7 +113,7 @@ describe('PATCH /api/v1/admin/users/:id', () => {
   });
 
   it('desbanea un usuario', async () => {
-    vi.mocked(svc.banUser).mockResolvedValueOnce({ ok: true });
+    vi.mocked(svc.patchAdminUser).mockResolvedValueOnce({ ok: true });
     const res = await request(app)
       .patch(`/api/v1/admin/users/${userId}`)
       .set('Authorization', adminHeader)
@@ -121,7 +122,7 @@ describe('PATCH /api/v1/admin/users/:id', () => {
   });
 
   it('devuelve 404 si usuario no existe', async () => {
-    vi.mocked(svc.banUser).mockResolvedValueOnce({
+    vi.mocked(svc.patchAdminUser).mockResolvedValueOnce({
       error: { code: 'USER_NOT_FOUND', message: 'Usuario no encontrado', status: 404 },
     });
     const res = await request(app)
@@ -137,6 +138,52 @@ describe('PATCH /api/v1/admin/users/:id', () => {
       .set('Authorization', adminHeader)
       .send({ action: 'delete' });
     expect(res.status).toBe(400);
+  });
+
+  it('cambia el rol de un usuario', async () => {
+    vi.mocked(svc.patchAdminUser).mockResolvedValueOnce({ ok: true });
+    const res = await request(app)
+      .patch(`/api/v1/admin/users/${userId}`)
+      .set('Authorization', adminHeader)
+      .send({ action: 'set_role', role: 'veterinario' });
+    expect(res.status).toBe(204);
+    expect(vi.mocked(svc.patchAdminUser)).toHaveBeenCalledWith(userId, {
+      action: 'set_role',
+      role: 'veterinario',
+    });
+  });
+
+  it('devuelve 400 si set_role viene sin rol', async () => {
+    const res = await request(app)
+      .patch(`/api/v1/admin/users/${userId}`)
+      .set('Authorization', adminHeader)
+      .send({ action: 'set_role' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('devuelve 400 con un rol que no existe', async () => {
+    const res = await request(app)
+      .patch(`/api/v1/admin/users/${userId}`)
+      .set('Authorization', adminHeader)
+      .send({ action: 'set_role', role: 'jefe' });
+    expect(res.status).toBe(400);
+  });
+
+  it('devuelve 409 al intentar cambiarle el rol a un admin', async () => {
+    vi.mocked(svc.patchAdminUser).mockResolvedValueOnce({
+      error: {
+        code: 'ADMIN_ROLE_LOCKED',
+        message: 'No se puede cambiar el rol de un administrador',
+        status: 409,
+      },
+    });
+    const res = await request(app)
+      .patch(`/api/v1/admin/users/${adminId}`)
+      .set('Authorization', adminHeader)
+      .send({ action: 'set_role', role: 'comun' });
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('ADMIN_ROLE_LOCKED');
   });
 });
 
