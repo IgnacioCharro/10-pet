@@ -995,3 +995,22 @@ VALUES ('20260816100000-add-role-to-users.js') ON CONFLICT DO NOTHING;
 ```
 
 - [ ] Abrir el PR contra `main` (squash merge; no hay push directo a main).
+
+## Lo que el plan no habia previsto
+
+Tres huecos que aparecieron al ejecutar, arreglados dentro de la misma rama:
+
+1. **`GET /users/me` devolvia `undefined` en `isVet`, `vetLicense` y la zona de
+   avisos.** El SELECT pedia cinco columnas y la respuesta declara diez. Con el
+   sello ahora en solo lectura, sin esto desaparecia al recargar. Ningun test lo
+   veia porque todos mockean `User.findByPk`; el test que sirve afirma sobre el
+   `attributes` con el que se llama.
+2. **`RegisterPage` tambien autodeclaraba veterinario** con un `patchMe` tras el
+   alta. Con la Task 5 esa casilla quedaba muda. Se saco, junto con `isVet` y
+   `vetLicense` del payload de `patchMe` en el service del web.
+3. **`AdminUserDetail['user']` no puede extender `AdminUser`**: la ficha no trae
+   `casesCount`, el recuento vive en `counts`.
+
+Las tres consultas de la Task 4 se verificaron contra la base con
+`BEGIN; ... ROLLBACK;` antes de commitear, por el mismo motivo de siempre: la
+suite mockea `../../../db` y no ejecuta SQL.
