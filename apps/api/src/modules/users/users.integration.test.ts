@@ -103,6 +103,29 @@ describe('PATCH /api/v1/users/me', () => {
     expect(res.body.name).toBe('Nombre Nuevo');
   });
 
+  it('ignora isVet y vetLicense: el perfil propio ya no los escribe', async () => {
+    const fakeUser = {
+      id: 'uuid-1',
+      email: 'a@b.com',
+      name: 'Nuevo nombre',
+      emailVerified: true,
+      isVet: false,
+      vetLicense: null,
+      createdAt: new Date('2026-04-20'),
+      save: vi.fn().mockResolvedValue(undefined),
+    };
+    vi.mocked(db.User.findByPk).mockResolvedValueOnce(fakeUser as never);
+
+    const res = await request(app)
+      .patch('/api/v1/users/me')
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send({ name: 'Nuevo nombre', isVet: true, vetLicense: 'MP-999' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.isVet).toBe(false);
+    expect(res.body.vetLicense).toBeNull();
+  });
+
   it('devuelve 400 con nombre vacio', async () => {
     const res = await request(app)
       .patch('/api/v1/users/me')

@@ -3,25 +3,18 @@ import { ZodError, z } from 'zod';
 import { User, Case } from '../../db';
 import { getOfferStats } from './users.service';
 import { listCasesByUser } from '../rescue/cases/cases.service';
-
-function isAdminEmail(email: string): boolean {
-  const adminEmails = new Set(
-    (process.env['ADMIN_EMAILS'] ?? '')
-      .split(',')
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean),
-  );
-  return adminEmails.has(email.toLowerCase());
-}
+import { isAdminEmail } from '../moderation/admin/admin.roles';
 
 const pushTokenSchema = z.object({
   token: z.string().min(1),
 });
 
+// El rol lo otorga el panel de admin, no el propio usuario. isVet y vetLicense
+// se IGNORAN en vez de rechazarse: durante la ventana de deploy el frontend
+// viejo los sigue mandando y un 400 le romperia el guardado del perfil. Zod
+// descarta las claves desconocidas por defecto, que es justo lo que hace falta.
 const patchMeSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
-  isVet: z.boolean().optional(),
-  vetLicense: z.string().trim().max(50).nullable().optional(),
 });
 
 const notificationLocationSchema = z.object({
@@ -48,7 +41,7 @@ export const getMe = async (
       email: user.email,
       name: user.name,
       emailVerified: user.emailVerified,
-      isAdmin: isAdminEmail(user.email),
+      isAdmin: isAdminEmail(user.email, process.env['ADMIN_EMAILS']),
       isVet: user.isVet,
       vetLicense: user.vetLicense,
       notificationLat: user.notificationLat,
@@ -74,15 +67,13 @@ export const patchMe = async (
       return;
     }
     if (input.name !== undefined) user.name = input.name;
-    if (input.isVet !== undefined) user.isVet = input.isVet;
-    if (input.vetLicense !== undefined) user.vetLicense = input.vetLicense;
     await user.save();
     res.json({
       id: user.id,
       email: user.email,
       name: user.name,
       emailVerified: user.emailVerified,
-      isAdmin: isAdminEmail(user.email),
+      isAdmin: isAdminEmail(user.email, process.env['ADMIN_EMAILS']),
       isVet: user.isVet,
       vetLicense: user.vetLicense,
       notificationLat: user.notificationLat,
