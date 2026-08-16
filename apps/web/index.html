@@ -3,21 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <!--
-      El ?v=3 no es decorativo. Firefox guarda el favicon de cada pagina en su
-      propia base y lo reusa en la barra de marcadores casi para siempre: aunque
-      el archivo cambie en el server, un marcador viejo sigue mostrando el icono
-      viejo. Cambiar la URL lo obliga a buscarlo de nuevo. Si en el futuro se
-      vuelve a retocar el logo, hay que subir este numero.
+      Estas URLs van SIN query de version, y es a proposito. Firefox no guarda
+      "el favicon de la pagina": guarda un pool de iconos por pagina en
+      favicons.sqlite y nunca descarta los que dejaste de declarar. La barra de
+      marcadores dibuja eligiendo de ese pool, no del <link> de abajo (la
+      pestana si usa el <link>, por eso puede verse bien mientras el marcador
+      se ve viejo).
+
+      Un ?v=N no reemplaza nada: crea una entrada nueva y deja la vieja
+      compitiendo para siempre, y entre dos SVG el desempate no favorece a la
+      nueva. Con la URL estable, en cambio, Firefox pisa la entrada existente
+      al revalidar (misma icon_url = misma fila) y no hay dos candidatos.
+      Asi que si se retoca el logo, se pisa el archivo y listo: los marcadores
+      viejos se acomodan solos cuando expira la entrada (Firefox la limita a
+      una semana). NO agregar ?v=N aca, empeora justo lo que quiere arreglar.
 
       El de 48 estaba en el repo pero sin declarar. Firefox elige el mas grande
       que le sirva para la barra y las pestanas en pantallas HiDPI, asi que sin
       declararlo se quedaba escalando el de 32.
     -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
-    <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png?v=3" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png?v=3" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png?v=3" />
-    <link rel="apple-touch-icon" href="/icons/favicon-180.png?v=3" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/icons/favicon-180.png" />
     <!--
       El wordmark de la navbar esta en todas las paginas y arriba de todo. Sin
       este preload el browser recien descubre la fuente al parsear el CSS, y en
