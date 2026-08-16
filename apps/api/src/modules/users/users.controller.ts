@@ -30,7 +30,21 @@ export const getMe = async (
 ): Promise<void> => {
   try {
     const user = await User.findByPk(req.user!.id, {
-      attributes: ['id', 'email', 'name', 'emailVerified', 'createdAt'],
+      // isVet y vetLicense entran al SELECT porque el perfil los muestra en
+      // solo lectura: sin ellos salian undefined y el sello se perdia al
+      // recargar la pagina.
+      attributes: [
+        'id',
+        'email',
+        'name',
+        'emailVerified',
+        'isVet',
+        'vetLicense',
+        'notificationLat',
+        'notificationLng',
+        'notificationRadiusKm',
+        'createdAt',
+      ],
     });
     if (!user) {
       res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: 'Usuario no encontrado' } });
