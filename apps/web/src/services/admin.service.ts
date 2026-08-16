@@ -57,6 +57,28 @@ export async function setAdminUserRole(userId: string, role: UserRole): Promise<
   await api.patch(`/admin/users/${userId}`, { action: 'set_role', role })
 }
 
+export interface AdminUserDetail {
+  // No reusa AdminUser: la ficha no trae casesCount, el recuento va en counts.
+  user: {
+    id: string
+    email: string
+    name: string | null
+    role: UserRole
+    isVet: boolean
+    vetLicense: string | null
+    emailVerified: boolean
+    bannedAt: string | null
+    createdAt: string
+  }
+  counts: { cases: number; contactsInitiated: number; contactsReceived: number }
+  recentCases: { id: string; animalType: string; status: string; createdAt: string }[]
+}
+
+export async function getAdminUserDetail(userId: string): Promise<AdminUserDetail> {
+  const res = await api.get<AdminUserDetail>(`/admin/users/${userId}`)
+  return res.data
+}
+
 export async function listAdminReports(params?: {
   page?: number
   limit?: number
