@@ -52,6 +52,7 @@ export interface CaseUpdateRow {
   userId: string;
   updateType: string;
   content: string | null;
+  hostName: string | null;
   createdAt: Date;
 }
 
@@ -324,7 +325,7 @@ export async function getCaseById(id: string): Promise<CaseDetail | null> {
   const updates = await CaseUpdate.findAll({
     where: { caseId: id },
     order: [['createdAt', 'DESC']],
-    attributes: ['id', 'userId', 'updateType', 'content', 'createdAt'],
+    attributes: ['id', 'userId', 'updateType', 'content', 'hostName', 'createdAt'],
   });
 
   const volunteers = await sequelize.query<VolunteerRow>(
@@ -548,6 +549,7 @@ export async function addCaseUpdate(
     userId,
     updateType: input.updateType,
     content: input.content ?? null,
+    hostName: input.hostName ?? null,
   });
 
   return update.toJSON() as CaseUpdateRow;

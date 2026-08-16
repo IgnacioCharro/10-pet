@@ -90,6 +90,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
   const [showAddUpdate, setShowAddUpdate] = useState(false)
   const [addUpdateType, setAddUpdateType] = useState<CaseUpdateType>('comentario')
   const [addUpdateContent, setAddUpdateContent] = useState('')
+  const [addUpdateHostName, setAddUpdateHostName] = useState('')
   const [addUpdateLoading, setAddUpdateLoading] = useState(false)
   const [vetAssistances, setVetAssistances] = useState<VetAssistanceItem[]>([])
   const [showVetForm, setShowVetForm] = useState(false)
@@ -157,11 +158,17 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
     if (!caseId || !addUpdateContent.trim()) return
     setAddUpdateLoading(true)
     try {
-      const newUpdate = await addCaseUpdate(caseId, addUpdateType, addUpdateContent.trim())
+      const newUpdate = await addCaseUpdate(
+        caseId,
+        addUpdateType,
+        addUpdateContent.trim(),
+        addUpdateHostName.trim(),
+      )
       setDetail((prev) =>
         prev ? { ...prev, updates: [newUpdate, ...prev.updates] } : prev,
       )
       setAddUpdateContent('')
+      setAddUpdateHostName('')
       setShowAddUpdate(false)
       toast.success('Novedad agregada.')
     } catch {
@@ -371,10 +378,12 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 showAddUpdate={showAddUpdate}
                 addUpdateType={addUpdateType}
                 addUpdateContent={addUpdateContent}
+                addUpdateHostName={addUpdateHostName}
                 addUpdateLoading={addUpdateLoading}
                 onToggleForm={() => setShowAddUpdate((v) => !v)}
                 onTypeChange={setAddUpdateType}
                 onContentChange={setAddUpdateContent}
+                onHostNameChange={setAddUpdateHostName}
                 onSubmit={handleAddUpdate}
                 showVetForm={showVetForm}
                 vetProcedure={vetProcedure}

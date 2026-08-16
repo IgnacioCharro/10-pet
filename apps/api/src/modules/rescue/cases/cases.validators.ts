@@ -70,16 +70,30 @@ export const updateCaseSchema = z
     message: 'Al menos un campo es requerido',
   });
 
-export const addUpdateSchema = z.object({
-  // Espejo del CHECK case_updates_type_check. Sumar un valor aca sin la migration
-  // correspondiente hace que el insert rebote contra el constraint.
-  // Ver 20260814100000-update-case-update-types.js.
-  updateType: z.enum([
-    'status_change', 'comment', 'photo_added', 'reactivated',
-    'avistamiento', 'alojamiento', 'salud', 'veterinario', 'comentario',
-  ]),
-  content: z.string().trim().max(1000).optional(),
-});
+export const addUpdateSchema = z
+  .object({
+    // Espejo del CHECK case_updates_type_check. Sumar un valor aca sin la migration
+    // correspondiente hace que el insert rebote contra el constraint.
+    // Ver 20260814100000-update-case-update-types.js.
+    updateType: z.enum([
+      'status_change', 'comment', 'photo_added', 'reactivated',
+      'avistamiento', 'alojamiento', 'salud', 'veterinario', 'comentario',
+    ]),
+    content: z.string().trim().max(1000).optional(),
+    hostName: z.string().trim().min(1).max(100).optional(),
+  })
+  // hostName solo tiene sentido en 'alojamiento'. Si se aceptara en cualquier tipo
+  // quedarian filas con un dato que ninguna pantalla muestra, imposibles de explicar
+  // despues. Mejor rebotar que guardar en silencio.
+  .superRefine((data, ctx) => {
+    if (data.hostName !== undefined && data.updateType !== 'alojamiento') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['hostName'],
+        message: 'Solo se puede indicar quién aloja en una novedad de alojamiento',
+      });
+    }
+  });
 
 export const feedCasesSchema = z.object({
   lat: z.coerce.number().min(-90).max(90),

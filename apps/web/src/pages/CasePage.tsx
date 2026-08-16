@@ -95,6 +95,7 @@ export default function CasePage() {
   const [showAddUpdate, setShowAddUpdate] = useState(false)
   const [addUpdateType, setAddUpdateType] = useState<CaseUpdateType>('comentario')
   const [addUpdateContent, setAddUpdateContent] = useState('')
+  const [addUpdateHostName, setAddUpdateHostName] = useState('')
   const [addUpdateLoading, setAddUpdateLoading] = useState(false)
   const [vetAssistances, setVetAssistances] = useState<VetAssistanceItem[]>([])
   const [showVetForm, setShowVetForm] = useState(false)
@@ -144,9 +145,15 @@ export default function CasePage() {
     if (!id || !addUpdateContent.trim()) return
     setAddUpdateLoading(true)
     try {
-      const newUpdate = await addCaseUpdate(id, addUpdateType, addUpdateContent.trim())
+      const newUpdate = await addCaseUpdate(
+        id,
+        addUpdateType,
+        addUpdateContent.trim(),
+        addUpdateHostName.trim(),
+      )
       setDetail((prev) => prev ? { ...prev, updates: [newUpdate, ...prev.updates] } : prev)
       setAddUpdateContent('')
+      setAddUpdateHostName('')
       setShowAddUpdate(false)
       toast.success('Novedad agregada.')
     } catch {
@@ -332,10 +339,12 @@ export default function CasePage() {
             showAddUpdate={showAddUpdate}
             addUpdateType={addUpdateType}
             addUpdateContent={addUpdateContent}
+            addUpdateHostName={addUpdateHostName}
             addUpdateLoading={addUpdateLoading}
             onToggleForm={() => setShowAddUpdate((v) => !v)}
             onTypeChange={setAddUpdateType}
             onContentChange={setAddUpdateContent}
+            onHostNameChange={setAddUpdateHostName}
             onSubmit={handleAddUpdate}
             showVetForm={showVetForm}
             vetProcedure={vetProcedure}
