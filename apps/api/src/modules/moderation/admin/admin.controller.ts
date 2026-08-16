@@ -9,6 +9,7 @@ import {
 import {
   getAdminStats,
   listAdminUsers,
+  getAdminUserDetail,
   patchAdminUser,
   patchAdminCase,
   listAdminCases,
@@ -43,6 +44,23 @@ export const getUsers = async (
       });
       return;
     }
+    next(err);
+  }
+};
+
+export const getUserDetail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const detail = await getAdminUserDetail(req.params['id']!);
+    if (!detail) {
+      res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: 'Usuario no encontrado' } });
+      return;
+    }
+    res.json(detail);
+  } catch (err) {
     next(err);
   }
 };

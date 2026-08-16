@@ -10,6 +10,7 @@ import request from 'supertest';
 vi.mock('./admin.service', () => ({
   getAdminStats: vi.fn(),
   listAdminUsers: vi.fn(),
+  getAdminUserDetail: vi.fn(),
   patchAdminUser: vi.fn(),
   patchAdminCase: vi.fn(),
   listAdminCases: vi.fn(),
@@ -98,6 +99,56 @@ describe('GET /api/v1/admin/users', () => {
 
   it('rechaza a usuario no admin', async () => {
     const res = await request(app).get('/api/v1/admin/users').set('Authorization', userHeader);
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('GET /api/v1/admin/users/:id', () => {
+  it('devuelve la ficha del usuario', async () => {
+    vi.mocked(svc.getAdminUserDetail).mockResolvedValueOnce({
+      user: {
+        id: userId,
+        email: 'vet@test.com',
+        name: 'Vet',
+        role: 'veterinario',
+        isVet: true,
+        vetLicense: 'MP-123',
+        emailVerified: true,
+        bannedAt: null,
+        createdAt: new Date('2026-04-01'),
+      },
+      counts: { cases: 3, contactsInitiated: 5, contactsReceived: 2 },
+      recentCases: [
+        { id: 'case-uuid-1', animalType: 'perro', status: 'abierto', createdAt: new Date('2026-04-20') },
+      ],
+    });
+
+    const res = await request(app)
+      .get(`/api/v1/admin/users/${userId}`)
+      .set('Authorization', adminHeader);
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.role).toBe('veterinario');
+    expect(res.body.counts.contactsReceived).toBe(2);
+    expect(res.body.recentCases).toHaveLength(1);
+  });
+
+  it('devuelve 404 si el usuario no existe', async () => {
+    vi.mocked(svc.getAdminUserDetail).mockResolvedValueOnce(null);
+
+    const res = await request(app)
+      .get('/api/v1/admin/users/nonexistent')
+      .set('Authorization', adminHeader);
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('USER_NOT_FOUND');
+  });
+
+  it('rechaza a usuario no admin (403)', async () => {
+    const res = await request(app)
+      .get(`/api/v1/admin/users/${userId}`)
+      .set('Authorization', userHeader);
+
     expect(res.status).toBe(403);
   });
 });

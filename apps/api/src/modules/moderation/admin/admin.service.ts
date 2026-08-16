@@ -115,6 +115,71 @@ export async function listAdminUsers(
   return { users, total: parseInt(count, 10) };
 }
 
+export interface AdminUserCaseRow {
+  id: string;
+  animalType: string;
+  status: string;
+  createdAt: Date;
+}
+
+export interface AdminUserDetail {
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    role: UserRole;
+    isVet: boolean;
+    vetLicense: string | null;
+    emailVerified: boolean;
+    bannedAt: Date | null;
+    createdAt: Date;
+  };
+  counts: { cases: number; contactsInitiated: number; contactsReceived: number };
+  recentCases: AdminUserCaseRow[];
+}
+
+export async function getAdminUserDetail(userId: string): Promise<AdminUserDetail | null> {
+  const [user] = await sequelize.query<AdminUserDetail['user']>(
+    `SELECT id, email, name, role,
+            is_vet AS "isVet", vet_license AS "vetLicense",
+            email_verified AS "emailVerified", banned_at AS "bannedAt",
+            created_at AS "createdAt"
+     FROM users WHERE id = :userId`,
+    { replacements: { userId }, type: QueryTypes.SELECT },
+  );
+
+  if (!user) return null;
+
+  const [counts] = await sequelize.query<{
+    cases: string;
+    contactsInitiated: string;
+    contactsReceived: string;
+  }>(
+    `SELECT
+       (SELECT COUNT(*) FROM cases WHERE user_id = :userId) AS cases,
+       (SELECT COUNT(*) FROM contacts WHERE initiator_id = :userId) AS "contactsInitiated",
+       (SELECT COUNT(*) FROM contacts WHERE responder_id = :userId) AS "contactsReceived"`,
+    { replacements: { userId }, type: QueryTypes.SELECT },
+  );
+
+  const recentCases = await sequelize.query<AdminUserCaseRow>(
+    `SELECT id, animal_type AS "animalType", status, created_at AS "createdAt"
+     FROM cases WHERE user_id = :userId
+     ORDER BY created_at DESC LIMIT 5`,
+    { replacements: { userId }, type: QueryTypes.SELECT },
+  );
+
+  return {
+    user,
+    counts: {
+      cases: parseInt(counts.cases, 10),
+      contactsInitiated: parseInt(counts.contactsInitiated, 10),
+      contactsReceived: parseInt(counts.contactsReceived, 10),
+    },
+    recentCases,
+  };
+}
+
 export async function patchAdminUser(
   userId: string,
   input: PatchAdminUserInput,
