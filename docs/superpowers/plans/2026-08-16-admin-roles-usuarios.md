@@ -206,6 +206,11 @@ module.exports = {
 
 Ejecutar con `mcp__supabase__execute_sql`. El MCP devuelve **solo el ultimo result set**, por eso los pasos se acumulan en una temp table.
 
+**Trampa comprobada:** toda consulta a `information_schema.columns` tiene que filtrar
+`table_schema = 'public'`. Supabase tiene un `auth.users` que **tambien** tiene una
+columna `role`, asi que sin el filtro la verificacion del `down` da un falso negativo:
+parece que la columna sigue ahi cuando en realidad se borro bien.
+
 ```sql
 BEGIN;
 CREATE TEMP TABLE r(paso text, resultado text) ON COMMIT DROP;
