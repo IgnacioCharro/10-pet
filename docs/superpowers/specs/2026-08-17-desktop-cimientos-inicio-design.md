@@ -66,7 +66,23 @@ no se le pasa la IP de cada visitante a un tercero.
 
 Siete `woff2` nuevos en `apps/web/public/fonts/`, subset latin (el mismo
 `unicode-range` que ya usa el `@font-face` de Lora, que cubre el castellano).
-Estimado ~150-175 KB sumados sobre un precache que hoy es 874 KB.
+
+**Peso real, medido descargando los siete archivos** (no estimado):
+
+```
+lora-latin-700.woff2                 21.0 KB
+plus-jakarta-sans-latin-400.woff2    11.8 KB
+plus-jakarta-sans-latin-500.woff2    12.3 KB
+plus-jakarta-sans-latin-600.woff2    12.2 KB
+plus-jakarta-sans-latin-700.woff2    12.2 KB
+space-grotesk-latin-400.woff2        13.4 KB
+space-grotesk-latin-500.woff2        13.3 KB
+                                     ────────
+                                     96.3 KB
+```
+
+Sobre un precache que hoy es 874 KB. Es bastante menos de lo que se temia, asi
+que no hace falta recortar pesos.
 
 `font-display: swap` en todos, igual que el Lora existente.
 
@@ -216,13 +232,16 @@ Mi perfil / Admin, toggle de tema, boton Reportar, avatar con nombre, Salir). El
 delta es contenedor, alto y blur.
 
 **Trampa documentada que hay que respetar.** El comentario de `NavBar.tsx:81`
-avisa que el alto `h-16` lo dependen otros dos lugares:
+avisa que el alto `h-16` lo dependen otros dos lugares. Al revisarlos, solo uno
+resulta afectado:
 
-- `CasesPage.tsx:162` — `style={{ height: 'calc(100vh - 64px)' }}`
-- `ToastContainer.tsx` — el `top`, calculado sobre 4rem + `safe-area-inset-top`
-
-Como el alto pasa a depender del breakpoint, ese `calc` tiene que volverse
-responsive. Va como paso explicito del plan, no como detalle de implementacion.
+- `CasesPage.tsx:162` — `style={{ height: 'calc(100vh - 64px)' }}`. **Si cambia.**
+  Como el alto pasa a depender del breakpoint, ese `calc` tiene que volverse
+  responsive. Va como paso explicito del plan, no como detalle de implementacion.
+- `ToastContainer.tsx` — **no cambia.** Su clase es
+  `top-[calc(env(safe-area-inset-top)_+_5rem)] md:top-auto md:bottom-4`: en
+  escritorio el toast va abajo y no depende del alto del header. El `calc` de
+  arriba solo corre por debajo de `md`, donde el header sigue midiendo 64px.
 
 ### Navegacion
 
@@ -350,7 +369,25 @@ notificaciones que ya existe. Cumple la regla del handoff.
 
 ## Testing
 
-- **Unit**: `UrgencyTag`, `Chip`, `Segmented` y el mapeo de urgencia extraido.
+### El front no tiene infraestructura de tests
+
+`apps/web` no tiene vitest, ni testing-library, ni script `test`, ni un solo
+archivo `.test.tsx`. Los 247 tests del repo son todos del API; los 40 archivos
+de componentes se vienen verificando con `typecheck` + `lint` + `build` +
+recorrido en browser.
+
+**S0 monta la infraestructura**, acotada: `vitest`, `@testing-library/react` y
+`jsdom` como devDependencies de `apps/web`, mas el script `test`. Justificacion,
+que `CLAUDE.md` exige para dependencias nuevas: las primitivas de S0.4 las van a
+consumir las cuatro pantallas de S4 a S6, y el remapeo de color toca 40 archivos
+sin que nada avise si un valor se rompe.
+
+**No se backfillean tests de lo que ya existe.** Solo se testea lo nuevo.
+
+- **Unit (web)**: `UrgencyTag`, `Chip`, `Segmented` y el mapeo de urgencia
+  extraido.
+- **Guard de paleta (web)**: test que importa `tailwind.config.ts` y verifica
+  los 11 valores hex de la tabla de S0.2. Es la red del cambio mas riesgoso.
 - **Integration**: `GET /cases/zone-stats` — caso feliz, radio sin casos,
   parametros invalidos (400), y el formato de error estandar.
 - **SQL real**: las consultas de `zone-stats` se verifican contra Supabase
