@@ -8,11 +8,16 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Solo para el wordmark. El @font-face vive en index.css.
-        // El fallback es una serif de verdad y no la sans del sistema: si la
-        // fuente tarda o no carga, la marca se degrada dentro de la misma
-        // familia visual en vez de saltar de serif a palo seco.
+        // La UI entera. Los @font-face viven en index.css, self-hosted: la PWA
+        // tiene que verse igual offline y no le pasamos la IP de cada visitante
+        // a Google.
+        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        // Wordmark y titulares. El fallback es una serif de verdad y no la sans
+        // del sistema: si la fuente tarda, la marca se degrada dentro de la
+        // misma familia visual en vez de saltar de serif a palo seco.
         brand: ['Lora', 'Georgia', 'Times New Roman', 'serif'],
+        // Solo navegacion, en los dos breakpoints.
+        nav: ['Space Grotesk', 'system-ui', 'sans-serif'],
       },
       colors: {
         // Violeta de marca. El 600 es exactamente el #7c3aed del fill de los SVG
