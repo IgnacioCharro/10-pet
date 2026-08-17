@@ -124,6 +124,82 @@ html.dark {
   color-scheme: dark;
 }
 
+/*
+  Los tokens de la maqueta. Mismos nombres en los dos temas: solo cambian los
+  valores, tal como lo entrego diseno (el body de "Home Desktop Claro.html" es
+  byte a byte identico al oscuro; lo unico distinto es este bloque).
+
+  Los consume el codigo NUEVO de escritorio via las clases bg-surface,
+  border-line, text-muted, etc. El codigo viejo sigue con las clases gray-*,
+  que apuntan a estos mismos valores desde tailwind.config. Son dos caminos al
+  mismo color: la convergencia se paga cuando S4 y S5 reescriban esas
+  pantallas.
+*/
+:root {
+  --bg: #f7f3fa;
+  --bg2: #efe8f4;
+  --card: #ffffff;
+  --card2: #f7f3fa;
+  --line: #e4dbec;
+  --line2: #cec0dc;
+  --fg: #241a31;
+  --fg2: #5b4b6b;
+  --fg3: #8d7f9c;
+  --accent: #7c3aed;
+  --accent2: #6d28d9;
+  --accent-soft: rgba(124, 58, 237, 0.1);
+  --red: #e03c26;
+  --red-soft: rgba(224, 60, 38, 0.11);
+  --amber: #d18a14;
+  --amber-soft: rgba(209, 138, 20, 0.13);
+  --yellow: #c0aa14;
+  --yellow-soft: rgba(192, 170, 20, 0.14);
+  --green: #1f8a48;
+  --green-soft: rgba(31, 138, 72, 0.12);
+  --blue: #2f7ede;
+  --blue-soft: rgba(47, 126, 222, 0.12);
+
+  /* El punto de seccion activa del menu. Igual en los dos temas a proposito.
+     NO es el --signal ambar del README de marca: aquel significa urgencia
+     temporal y va uno por vista; este marca seccion actual y hay uno siempre.
+     La propia spec del menu los declara separados. */
+  --nav-active: #a855ff;
+
+  /* En claro las tarjetas suman sombra; en oscuro se apoyan solo en el borde. */
+  --card-shadow: 0 1px 2px rgba(36, 26, 49, 0.05);
+  --card-shadow-hover: 0 10px 22px rgba(36, 26, 49, 0.1);
+  --header-bg: rgba(255, 255, 255, 0.86);
+}
+
+html.dark {
+  --bg: #140e1c;
+  --bg2: #1d1528;
+  --card: #241a31;
+  --card2: #2b2039;
+  --line: #372a48;
+  --line2: #443354;
+  --fg: #f4eef8;
+  --fg2: #c3b6d0;
+  --fg3: #8d7f9c;
+  --accent: #7c3aed;
+  --accent2: #9a67f5;
+  --accent-soft: rgba(124, 58, 237, 0.16);
+  --red: #f0533f;
+  --red-soft: rgba(240, 83, 63, 0.15);
+  --amber: #e8a13a;
+  --amber-soft: rgba(232, 161, 58, 0.15);
+  --yellow: #d6c02f;
+  --yellow-soft: rgba(214, 192, 47, 0.14);
+  --green: #43c46a;
+  --green-soft: rgba(67, 196, 106, 0.14);
+  --blue: #569ef5;
+  --blue-soft: rgba(86, 158, 245, 0.14);
+
+  --card-shadow: none;
+  --card-shadow-hover: none;
+  --header-bg: rgba(20, 14, 28, 0.88);
+}
+
 /* El canvas: sin esto el fondo detras del root queda blanco en dark y se ve
    al hacer overscroll.
 
@@ -132,7 +208,7 @@ html.dark {
    estaba. Es lo que le da al contenido a donde correrse en vez de quedar
    tapado por el banner. */
 body {
-  @apply bg-gray-50 dark:bg-gray-900;
+  @apply bg-gray-50 dark:bg-canvas;
   padding-bottom: var(--install-banner-h, 0px);
 }
 

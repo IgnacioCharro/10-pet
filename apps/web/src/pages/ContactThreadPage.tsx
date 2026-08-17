@@ -287,7 +287,7 @@ export default function ContactThreadPage() {
                pegajoso se ancla al viewport, donde el padding del main ya no
                llega y el banner volveria a taparlo. */
             style={{ bottom: 'var(--install-banner-h, 0px)' }}
-            className="sticky bg-gray-50 dark:bg-gray-900 pt-2 pb-1 flex gap-2 items-end"
+            className="sticky bg-gray-50 dark:bg-canvas pt-2 pb-1 flex gap-2 items-end"
           >
             <textarea
               value={body}
