@@ -7,6 +7,7 @@ import {
   feedCasesSchema,
   updateCaseSchema,
   addUpdateSchema,
+  zoneStatsSchema,
 } from './cases.validators';
 import {
   createCase,
@@ -17,6 +18,7 @@ import {
   getCaseById,
   updateCase,
   addCaseUpdate,
+  getZoneStats,
 } from './cases.service';
 
 class CaseError extends Error {
@@ -108,6 +110,20 @@ export async function getNearby(req: Request, res: Response, next: NextFunction)
     const query = nearbyCasesSchema.parse(req.query);
     const cases = await getNearbyCases(query);
     res.json({ cases });
+  } catch (err) {
+    handleError(err, res, next);
+  }
+}
+
+export async function getZoneStatsHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const query = zoneStatsSchema.parse(req.query);
+    const stats = await getZoneStats(query);
+    res.json(stats);
   } catch (err) {
     handleError(err, res, next);
   }

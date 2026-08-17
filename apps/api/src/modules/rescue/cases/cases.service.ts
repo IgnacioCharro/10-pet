@@ -554,3 +554,6 @@ export async function addCaseUpdate(
 
   return update.toJSON() as CaseUpdateRow;
 }
+
+export { getZoneStats } from './cases.zone-stats';
+export type { ZoneStatsQuery, ZoneStats } from './cases.zone-stats';

@@ -49,6 +49,12 @@ export const nearbyCasesSchema = z.object({
   radius: z.coerce.number().min(0.1).max(100).default(10),
 });
 
+export const zoneStatsSchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  radius: z.coerce.number().min(0.1).max(100).default(10),
+});
+
 export const updateCaseSchema = z
   .object({
     status: z.enum(['abierto', 'en_rescate', 'resuelto', 'inactivo', 'spam', 'archivado']).optional(),
