@@ -23,7 +23,11 @@ import ThemeToggle from './ThemeToggle'
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
     'font-nav font-medium tracking-[-0.005em] flex items-center gap-3 transition-colors',
-    'text-[17px] h-12 px-3.5 rounded-xl lg:text-[15.5px] lg:h-auto lg:px-0 lg:rounded-none',
+    // La nav de escritorio se muestra desde md (768px), pero el diseno de
+    // escritorio de la maqueta (15.5px, sin padding, gap de 30px) arranca
+    // recien en lg (1024px). Sin este escalon intermedio, la banda 768-1023
+    // heredaba las medidas de toque (17px, h-12) y desbordaba la fila.
+    'text-[17px] h-12 px-3.5 rounded-xl md:text-sm md:h-auto md:py-2 md:px-2 md:rounded-none lg:text-[15.5px] lg:px-0',
     isActive
       ? 'text-gray-900 dark:text-gray-100'
       : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100',
@@ -128,7 +132,7 @@ export default function NavBar() {
           10_Pet
         </Link>
 
-        <nav className="hidden md:flex items-center gap-[30px]">
+        <nav className="hidden md:flex items-center gap-2 lg:gap-[30px]">
           <NavLink to="/" end className={navLinkClass}>
             {({ isActive }) => (
               <>
