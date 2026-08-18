@@ -22,7 +22,7 @@ import ThemeToggle from './ThemeToggle'
 */
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'font-nav font-medium tracking-[-0.005em] flex items-center gap-3 transition-colors',
+    'font-nav font-medium tracking-[-0.005em] flex items-center gap-2 lg:gap-3 whitespace-nowrap transition-colors',
     // La nav de escritorio se muestra desde md (768px), pero el diseno de
     // escritorio de la maqueta (15.5px, sin padding, gap de 30px) arranca
     // recien en lg (1024px). Sin este escalon intermedio, la banda 768-1023
@@ -146,20 +146,23 @@ export default function NavBar() {
           ToastContainer NO depende: en desktop el toast va abajo (md:bottom-4)
           y su calc de arriba solo corre por debajo de md, donde el header
           sigue midiendo 64. */}
-      <div className="max-w-6xl lg:max-w-[1408px] mx-auto px-4 lg:px-10 h-16 lg:h-[68px] flex items-center justify-between">
+      <div className="max-w-6xl lg:max-w-[1408px] mx-auto px-4 lg:px-10 h-16 lg:h-[68px] flex items-center justify-between gap-4">
         {/* font-semibold y no font-bold: del woff2 de Lora solo cargamos el peso 600
             (ver el @font-face de index.css). Pedirle 700 haria que el browser fabrique
             la negrita engordando los trazos. */}
-        <Link to="/" className="flex items-center gap-2.5 text-primary-600 dark:text-primary-300 font-brand font-semibold text-[22px]">
+        <Link to="/" className="flex-shrink-0 flex items-center gap-2.5 text-primary-600 dark:text-primary-300 font-brand font-semibold text-[22px]">
           {/* El mismo archivo en los dos temas: el escudo violeta con huella crema se sostiene
               sobre claro y sobre oscuro, y asi la marca no cambia de identidad al togglear.
               La version negativo es para fotos, no para dark. Va como <img> porque es de dos
               colores; la version de una tinta necesitaria el SVG inline. */}
           <img src="/brand/10_pet-logo.svg" alt="" aria-hidden="true" className="w-[34px] h-[34px]" />
-          10_Pet
+          {/* Entre md y lg queda solo el escudo: con la nav de marca, el wordmark
+              hacia desbordar la fila a lo ancho (peor caso, sesion admin con seis
+              items). En mobile y desde lg el wordmark vuelve. */}
+          <span className="md:hidden lg:inline">10_Pet</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-2 lg:gap-[30px]">
+        <nav className="hidden md:flex items-center gap-1 lg:gap-[30px]">
           <NavItem to="/" end>
             Inicio
           </NavItem>
@@ -189,7 +192,7 @@ export default function NavBar() {
           {isAuthenticated ? (
             <>
               <Link to="/cases/new">
-                <Button variant="primary" size="sm">
+                <Button variant="primary" size="sm" className="whitespace-nowrap">
                   + Reportar
                 </Button>
               </Link>
@@ -198,7 +201,10 @@ export default function NavBar() {
                   <div className="h-7 w-7 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {(user.name ?? 'A').charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm text-gray-700 dark:text-gray-200 max-w-[120px] truncate">{user.name ?? 'Anonimo'}</span>
+                  {/* El nombre se cae entre md y lg: con la nav de marca (17px) los tres grupos
+                      del header no entran en 768-1023 y la barra desbordaba a lo ancho.
+                      Queda el avatar, que ya identifica la sesion. */}
+                  <span className="hidden lg:inline text-sm text-gray-700 dark:text-gray-200 max-w-[120px] truncate">{user.name ?? 'Anonimo'}</span>
                 </div>
               )}
               <Button variant="secondary" size="sm" onClick={handleLogout}>
