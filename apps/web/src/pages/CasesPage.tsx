@@ -159,7 +159,8 @@ export default function CasesPage() {
   }, [])
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
+    // El header mide 64 en mobile y 68 desde lg. Si cambia alla, cambia aca.
+    <div className="flex flex-col h-[calc(100vh-64px)] lg:h-[calc(100vh-68px)]">
       {showPicker && <LocalidadPicker onPick={handlePickerPick} />}
 
       <FilterBar

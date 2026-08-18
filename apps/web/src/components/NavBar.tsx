@@ -11,11 +11,40 @@ import { logoutRequest } from '../services/auth.service'
 import Button from './ui/Button'
 import ThemeToggle from './ThemeToggle'
 
+/*
+  El activo se marca con un punto neon, no con un pill de fondo. En una lista
+  vertical el pill pesa demasiado y compite con el boton "Reportar", que es del
+  mismo violeta. El punto dice lo mismo con menos tinta.
+
+  Los inactivos reservan el ancho del punto para que el label no salte al
+  cambiar de seccion: por eso el <span> del punto existe siempre y solo cambia
+  su color.
+*/
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'px-3 py-2 rounded-md text-sm font-medium',
-    isActive ? 'text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100',
+    'font-nav font-medium tracking-[-0.005em] flex items-center gap-3 transition-colors',
+    'text-[17px] h-12 px-3.5 rounded-xl lg:text-[15.5px] lg:h-auto lg:px-0 lg:rounded-none',
+    isActive
+      ? 'text-gray-900 dark:text-gray-100'
+      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100',
   ].join(' ')
+
+function NavDot({ active }: { active: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="w-1.5 h-1.5 lg:w-[7px] lg:h-[7px] rounded-full flex-shrink-0"
+      style={
+        active
+          ? {
+              background: 'var(--nav-active)',
+              boxShadow: '0 0 0 4px rgba(168,85,255,.22)',
+            }
+          : undefined
+      }
+    />
+  )
+}
 
 export default function NavBar() {
   const navigate = useNavigate()
@@ -77,10 +106,16 @@ export default function NavBar() {
   }
 
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-      {/* h-16 (4rem). Si cambia, mover tambien el calc de CasesPage y el top del
-          ToastContainer, que dependen de esta altura. */}
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <header
+      className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 backdrop-blur-[14px]"
+      style={{ paddingTop: 'env(safe-area-inset-top)', background: 'var(--header-bg)' }}
+    >
+      {/* h-16 en mobile, h-[68px] desde lg, como fija el handoff. Si cambia,
+          mover tambien el calc de CasesPage, que depende de esta altura.
+          ToastContainer NO depende: en desktop el toast va abajo (md:bottom-4)
+          y su calc de arriba solo corre por debajo de md, donde el header
+          sigue midiendo 64. */}
+      <div className="max-w-6xl lg:max-w-[1408px] mx-auto px-4 lg:px-10 h-16 lg:h-[68px] flex items-center justify-between">
         {/* font-semibold y no font-bold: del woff2 de Lora solo cargamos el peso 600
             (ver el @font-face de index.css). Pedirle 700 haria que el browser fabrique
             la negrita engordando los trazos. */}
@@ -93,31 +128,56 @@ export default function NavBar() {
           10_Pet
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-[30px]">
           <NavLink to="/" end className={navLinkClass}>
-            Inicio
+            {({ isActive }) => (
+              <>
+                <NavDot active={isActive} />
+                Inicio
+              </>
+            )}
           </NavLink>
           <NavLink to="/cases" end className={navLinkClass}>
-            Mapa
+            {({ isActive }) => (
+              <>
+                <NavDot active={isActive} />
+                Mapa
+              </>
+            )}
           </NavLink>
           {isAuthenticated && (
             <>
               <NavLink to="/dashboard" className={navLinkClass}>
-                <span className="relative inline-flex items-center">
-                  Mis casos
-                  {badgeCount > 0 && (
-                    <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-                      {badgeCount > 9 ? '9+' : badgeCount}
+                {({ isActive }) => (
+                  <>
+                    <NavDot active={isActive} />
+                    <span className="relative inline-flex items-center">
+                      Mis casos
+                      {badgeCount > 0 && (
+                        <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                          {badgeCount > 9 ? '9+' : badgeCount}
+                        </span>
+                      )}
                     </span>
-                  )}
-                </span>
+                  </>
+                )}
               </NavLink>
               <NavLink to="/profile" className={navLinkClass}>
-                Mi perfil
+                {({ isActive }) => (
+                  <>
+                    <NavDot active={isActive} />
+                    Mi perfil
+                  </>
+                )}
               </NavLink>
               {user?.isAdmin && (
                 <NavLink to="/admin" className={navLinkClass}>
-                  Admin
+                  {({ isActive }) => (
+                    <>
+                      <NavDot active={isActive} />
+                      Admin
+                    </>
+                  )}
                 </NavLink>
               )}
             </>
@@ -201,36 +261,70 @@ export default function NavBar() {
         <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="px-4 py-3 flex flex-col gap-2">
             <NavLink to="/" end className={navLinkClass} onClick={() => setOpen(false)}>
-              Inicio
+              {({ isActive }) => (
+                <>
+                  <NavDot active={isActive} />
+                  Inicio
+                </>
+              )}
             </NavLink>
             <NavLink to="/cases" end className={navLinkClass} onClick={() => setOpen(false)}>
-              Mapa
+              {({ isActive }) => (
+                <>
+                  <NavDot active={isActive} />
+                  Mapa
+                </>
+              )}
             </NavLink>
             {isAuthenticated && (
               <>
                 <NavLink to="/dashboard" className={navLinkClass} onClick={() => setOpen(false)}>
-                  <span className="relative inline-flex items-center">
-                    Mis casos
-                    {badgeCount > 0 && (
-                      <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-                        {badgeCount > 9 ? '9+' : badgeCount}
+                  {({ isActive }) => (
+                    <>
+                      <NavDot active={isActive} />
+                      <span className="relative inline-flex items-center">
+                        Mis casos
+                        {badgeCount > 0 && (
+                          <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                            {badgeCount > 9 ? '9+' : badgeCount}
+                          </span>
+                        )}
                       </span>
-                    )}
-                  </span>
+                    </>
+                  )}
                 </NavLink>
                 <NavLink to="/profile" className={navLinkClass} onClick={() => setOpen(false)}>
-                  Mi perfil
-                </NavLink>
-                <NavLink to="/cases/new" className={navLinkClass} onClick={() => setOpen(false)}>
-                  + Reportar
+                  {({ isActive }) => (
+                    <>
+                      <NavDot active={isActive} />
+                      Mi perfil
+                    </>
+                  )}
                 </NavLink>
                 {user?.isAdmin && (
                   <NavLink to="/admin" className={navLinkClass} onClick={() => setOpen(false)}>
-                    Admin
+                    {({ isActive }) => (
+                      <>
+                        <NavDot active={isActive} />
+                        Admin
+                      </>
+                    )}
                   </NavLink>
                 )}
+                <Link to="/cases/new" onClick={() => setOpen(false)} className="mt-2">
+                  <Button variant="primary" size="md" fullWidth>
+                    + Reportar un caso
+                  </Button>
+                </Link>
               </>
             )}
+            <a
+              href="/#como-funciona"
+              onClick={() => setOpen(false)}
+              className="font-nav text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-3"
+            >
+              Como funciona
+            </a>
             <div className="pt-2 border-t border-gray-100 dark:border-gray-700 dark:border-gray-700 flex items-center justify-between">
               <span className="px-3 text-sm font-medium text-gray-600 dark:text-gray-300 dark:text-gray-300">
                 Modo oscuro
