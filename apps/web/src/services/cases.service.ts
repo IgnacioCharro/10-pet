@@ -70,6 +70,22 @@ export const createCaseReport = async (
   await api.post(`/cases/${caseId}/report`, { reason, description })
 }
 
+export interface ZoneStats {
+  activeCases: number
+  resolvedThisMonth: number
+  byUrgency: { critica: number; alta: number; media: number; baja: number }
+  byListingType: { found: number; lost: number }
+}
+
+export async function getZoneStats(params: {
+  lat: number
+  lng: number
+  radius: number
+}): Promise<ZoneStats> {
+  const res = await api.get<ZoneStats>('/cases/zone-stats', { params })
+  return res.data
+}
+
 export const addCaseUpdate = async (
   caseId: string,
   updateType: CaseUpdateType,

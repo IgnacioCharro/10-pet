@@ -2,15 +2,17 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { api } from '../../lib/api'
-import { listCases } from '../../services/cases.service'
+import { listCases, getZoneStats, type ZoneStats } from '../../services/cases.service'
 import LocalidadPicker, {
   loadPickedLocation,
   savePickedLocation,
   type PickedLocation,
 } from './LocalidadPicker'
-import { Button } from '../ui'
+import { Button, Chip, Segmented, UrgencyTag, Rail } from '../ui'
+import ZoneStatsPanel from './ZoneStatsPanel'
+import UrgencyLegend from './UrgencyLegend'
 import { displayLocation, displayDistance } from '../../lib/location'
-import type { AnimalType, ListingType, CaseItem } from '../../types/case'
+import type { AnimalType, ListingType, CaseItem, SortOrder } from '../../types/case'
 
 interface FeedRow {
   id: string
@@ -26,19 +28,6 @@ interface FeedRow {
 
 const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', caballo: '🐴', vaca: '🐄', otro: '🐾' }
 const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
-
-const URGENCY_CLS: Record<number, string> = {
-  1: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
-  2: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
-  3: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
-  // El 4 va naranja como en CaseCard, CasePage y CaseDetailSheet; en rojo se
-  // confundia con el 5. El 5 si es mas pesado a proposito: es el carrusel de urgentes.
-  4: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
-  5: 'bg-red-200 dark:bg-red-900/60 text-red-800 dark:text-red-200 font-semibold',
-}
-const URGENCY_LABEL: Record<number, string> = {
-  1: 'Baja', 2: 'Baja', 3: 'Media', 4: 'Alta', 5: 'Crítica',
-}
 
 type Tab = 'all' | 'found' | 'lost'
 
@@ -68,13 +57,11 @@ function timeAgo(dateStr: string): string {
 }
 
 function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
-  const urg = URGENCY_CLS[row.urgencyLevel] ?? URGENCY_CLS[1]
-  const urgLabel = URGENCY_LABEL[row.urgencyLevel] ?? 'Media'
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex-shrink-0 w-44 text-left bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-primary-300 hover:shadow-sm transition-all"
+      className="flex-shrink-0 w-44 lg:w-auto text-left bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-primary-300 hover:shadow-sm transition-all"
     >
       <div className="h-28 bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
         {row.heroUrl ? (
@@ -86,7 +73,7 @@ function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
       <div className="p-2.5">
         <div className="flex items-center gap-1.5 mb-1 flex-wrap">
           <span className="text-xs font-medium text-gray-800 dark:text-gray-100">{ANIMAL_LABEL[row.animalType]}</span>
-          <span className={`text-xs px-1.5 py-0.5 rounded ${urg}`}>{urgLabel}</span>
+          <UrgencyTag level={row.urgencyLevel} />
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
           {displayLocation(row.locationText) ?? <span className="italic">Sin dirección</span>}
@@ -142,9 +129,14 @@ export default function HomeFeed() {
   const [urgentRows, setUrgentRows] = useState<FeedRow[]>([])
   const [urgentLoading, setUrgentLoading] = useState(false)
 
+  // Rail de metricas de zona (solo escritorio)
+  const [stats, setStats] = useState<ZoneStats | null>(null)
+  const [statsLoading, setStatsLoading] = useState(false)
+
   // Full list section
   const [tab, setTab] = useState<Tab>('all')
   const [animalType, setAnimalType] = useState<AnimalType | ''>('')
+  const [sort, setSort] = useState<SortOrder>('recent')
   const [listRows, setListRows] = useState<CaseItem[]>([])
   const [listLoading, setListLoading] = useState(false)
   const [page, setPage] = useState(1)
@@ -166,6 +158,32 @@ export default function HomeFeed() {
     return () => controller.abort()
   }, [loc])
 
+  // Solo alimenta el rail, que no existe por debajo de lg. Se pide igual: el
+  // breakpoint es CSS y el componente es el mismo, y una peticion de lectura
+  // mas por cambio de zona no justifica meter logica de viewport en JS.
+  //
+  // Bandera y no AbortController como los efectos de arriba: getZoneStats no
+  // recibe signal. Un controller aca seria una variable sin usar que ademas
+  // mentiria sobre estar cancelando algo.
+  useEffect(() => {
+    if (!loc) return
+    let cancelled = false
+    setStatsLoading(true)
+    getZoneStats({ lat: loc.center[0], lng: loc.center[1], radius: 10 })
+      .then((s) => {
+        if (!cancelled) setStats(s)
+      })
+      .catch(() => {
+        if (!cancelled) setStats(null)
+      })
+      .finally(() => {
+        if (!cancelled) setStatsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [loc])
+
   // Fetch full list
   useEffect(() => {
     if (!loc) return
@@ -178,7 +196,7 @@ export default function HomeFeed() {
       status: 'abierto',
       listingType: tab === 'all' ? undefined : (tab === 'found' ? 'found' : 'lost'),
       animalType: animalType || undefined,
-      sort: 'recent',
+      sort,
       page,
       limit: 20,
     })
@@ -189,11 +207,11 @@ export default function HomeFeed() {
       .catch((err) => { if (!axios.isCancel(err)) setListRows([]) })
       .finally(() => setListLoading(false))
     return () => controller.abort()
-  }, [loc, tab, animalType, page])
+  }, [loc, tab, animalType, sort, page])
 
   useEffect(() => {
     setPage(1)
-  }, [tab, animalType, loc])
+  }, [tab, animalType, sort, loc])
 
   const handlePick = (picked: PickedLocation) => {
     savePickedLocation(picked)
@@ -210,7 +228,7 @@ export default function HomeFeed() {
       {/* pb-28 y no py-5: los botones flotantes (feedback, y mejoras si sos admin)
           viven en la esquina inferior derecha y tapaban la ultima tarjeta de la
           lista, que quedaba imposible de tocar. */}
-      <div className="max-w-2xl mx-auto px-4 pt-5 pb-28">
+      <div className="max-w-2xl lg:max-w-[1408px] mx-auto px-4 lg:px-10 pt-5 lg:pt-8 pb-28">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -251,7 +269,9 @@ export default function HomeFeed() {
             {urgentLoading ? (
               <div className="h-40 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">Cargando…</div>
             ) : (
-              <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+              // En mobile scrollea; desde lg es grilla de 4. El handoff
+              // prohibe carruseles cortados en escritorio.
+              <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 lg:grid lg:grid-cols-4 lg:gap-[18px] lg:overflow-visible lg:mx-0 lg:px-0">
                 {urgentFiltered.map((row) => (
                   <UrgentCard
                     key={row.id}
@@ -264,93 +284,99 @@ export default function HomeFeed() {
           </section>
         )}
 
-        {/* Lista completa */}
-        <section>
-          <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wide mb-3">Todos los casos</h2>
+        <div className="lg:grid lg:grid-cols-[1fr_392px] lg:gap-8 lg:items-start">
+          {/* Lista completa */}
+          <section>
+            <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wide mb-3">Todos los casos</h2>
 
-          {/* Tabs */}
-          <div className="flex gap-1 mb-3 bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-fit">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  tab === t.id
-                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+            {/* Barra de filtros */}
+            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+              <Segmented
+                options={TABS.map((t) => ({ id: t.id, label: t.label }))}
+                value={tab}
+                onChange={(id) => setTab(id as Tab)}
+              />
 
-          {/* Animal type chips */}
-          <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3">
-            {ANIMAL_CHIPS.map((c) => (
-              <button
-                key={c.value}
-                type="button"
-                onClick={() => setAnimalType(c.value as AnimalType | '')}
-                className={[
-                  'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap flex-shrink-0',
-                  animalType === c.value
-                    ? 'bg-primary-600 text-white border-primary-600'
-                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-primary-400',
-                ].join(' ')}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-
-          {listLoading && (
-            <div className="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">Cargando...</div>
-          )}
-
-          {!listLoading && listRows.length === 0 && loc && (
-            <div className="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">
-              No hay casos en tu zona.{' '}
-              <Link to="/cases/new" className="text-primary-600 dark:text-primary-300 hover:underline">
-                Publicar uno
-              </Link>
+              <label className="hidden lg:flex items-center gap-2 text-[13px] text-gray-600 dark:text-gray-400">
+                Ordenar por
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as typeof sort)}
+                  className="font-semibold text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-2.5 py-1.5"
+                >
+                  <option value="distance">Mas cercanos</option>
+                  <option value="recent">Mas recientes</option>
+                  <option value="urgency">Mas urgentes</option>
+                </select>
+              </label>
             </div>
-          )}
 
-          {!listLoading && listRows.length > 0 && (
-            <div className="flex flex-col gap-2">
-              {listRows.map((c) => (
-                <ListRow
-                  key={c.id}
-                  caseItem={c}
-                  onClick={() => navigate(`/cases/${c.id}`)}
-                />
+            {/* Animal type chips */}
+            <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3 lg:flex-wrap lg:overflow-visible">
+              {ANIMAL_CHIPS.map((c) => (
+                <Chip
+                  key={c.value}
+                  active={animalType === c.value}
+                  onClick={() => setAnimalType(c.value as AnimalType | '')}
+                >
+                  {c.label}
+                </Chip>
               ))}
             </div>
-          )}
 
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-3 pt-4">
-              <button
-                type="button"
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                Anterior
-              </button>
-              <span className="self-center text-sm text-gray-500 dark:text-gray-400">{page} / {totalPages}</span>
-              <button
-                type="button"
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => p + 1)}
-                className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                Siguiente
-              </button>
-            </div>
-          )}
-        </section>
+            {listLoading && (
+              <div className="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">Cargando...</div>
+            )}
+
+            {!listLoading && listRows.length === 0 && loc && (
+              <div className="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">
+                No hay casos en tu zona.{' '}
+                <Link to="/cases/new" className="text-primary-600 dark:text-primary-300 hover:underline">
+                  Publicar uno
+                </Link>
+              </div>
+            )}
+
+            {!listLoading && listRows.length > 0 && (
+              <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2 lg:gap-4">
+                {listRows.map((c) => (
+                  <ListRow
+                    key={c.id}
+                    caseItem={c}
+                    onClick={() => navigate(`/cases/${c.id}`)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex justify-center gap-3 pt-4">
+                <button
+                  type="button"
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  Anterior
+                </button>
+                <span className="self-center text-sm text-gray-500 dark:text-gray-400">{page} / {totalPages}</span>
+                <button
+                  type="button"
+                  disabled={page === totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  Siguiente
+                </button>
+              </div>
+            )}
+          </section>
+
+          <Rail>
+            <ZoneStatsPanel stats={stats} loading={statsLoading} />
+            <UrgencyLegend stats={stats} />
+          </Rail>
+        </div>
       </div>
     </>
   )
