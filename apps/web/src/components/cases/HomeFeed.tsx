@@ -297,6 +297,16 @@ export default function HomeFeed() {
                 onChange={(id) => setTab(id as Tab)}
               />
 
+              {/* Excepcion consciente al piso de 44px de toque: este control
+                  solo existe desde lg (hidden lg:flex), donde el puntero es
+                  mouse. Es un <select> nativo, y los navegadores no pintan
+                  ::after sobre elementos reemplazados, asi que el
+                  pseudo-elemento de Chip/Segmented no aplica aca; envolver
+                  el toque en el <label> tampoco sirve porque un click ahi no
+                  abre el desplegable de forma consistente entre navegadores.
+                  Subirlo a 44px de verdad lo desalinearia ~12px del
+                  Segmented de al lado. A 32px sigue cumpliendo el minimo de
+                  WCAG 2.5.8 (24x24) y es alcanzable por teclado. */}
               <label className="hidden lg:flex items-center gap-2 text-[13px] text-gray-600 dark:text-gray-400">
                 Ordenar por
                 <select
