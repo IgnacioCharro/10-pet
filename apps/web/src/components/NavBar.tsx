@@ -312,16 +312,29 @@ export default function NavBar() {
                   </NavLink>
                 )}
                 <Link to="/cases/new" onClick={() => setOpen(false)} className="mt-2">
-                  <Button variant="primary" size="md" fullWidth>
+                  {/* El boton pintado mide menos de 44px (size="md" es el que pide la
+                      maqueta). El gap del drawer es de 8px, asi que hay margen de sobra
+                      para un area de toque invisible que se expande sin mover un pixel
+                      pintado: mismo truco que Chip/Segmented en la Task 4. */}
+                  <Button
+                    variant="primary"
+                    size="md"
+                    fullWidth
+                    className="relative after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2 after:content-['']"
+                  >
                     + Reportar un caso
                   </Button>
                 </Link>
               </>
             )}
+            {/* Este link mide ~20px de alto. Llevarlo a 44 con un area invisible
+                pediria 12px por lado, mas que el gap de 8px entre filas del drawer:
+                se comeria el toque del vecino. Por eso aca la altura es real
+                (padding), no un pseudo-elemento como en el boton de arriba. */}
             <a
               href="/#como-funciona"
               onClick={() => setOpen(false)}
-              className="font-nav text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-3"
+              className="font-nav text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-3 py-3"
             >
               Como funciona
             </a>
