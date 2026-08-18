@@ -26,8 +26,8 @@ interface ZoneStatsDbRow {
 }
 
 /**
- * Metricas del rail de Inicio. Una sola pasada por la tabla: los seis
- * contadores salen de FILTER sobre el mismo WHERE geografico, en vez de seis
+ * Metricas del rail de Inicio. Una sola pasada por la tabla: los ocho
+ * contadores salen de FILTER sobre el mismo WHERE geografico, en vez de ocho
  * consultas con el mismo ST_DWithin.
  *
  * Los conteos por urgencia y por tipo miran solo casos abiertos: son la
