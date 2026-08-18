@@ -43,11 +43,18 @@ export const listCasesSchema = z.object({
   animalColor: animalColorSchema.optional(),
 });
 
-export const nearbyCasesSchema = z.object({
+// Schema geografico compartido entre endpoints que resuelven sobre el mismo
+// ST_DWithin: GET /nearby (lista casos) y GET /zone-stats (metricas).
+// El acoplamiento es deliberado — ambos endpoints replican el contrato de punto + radio.
+const geographicQuerySchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
   radius: z.coerce.number().min(0.1).max(100).default(10),
 });
+
+export const nearbyCasesSchema = geographicQuerySchema;
+
+export const zoneStatsSchema = geographicQuerySchema;
 
 export const updateCaseSchema = z
   .object({

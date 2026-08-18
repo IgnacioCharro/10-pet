@@ -1,0 +1,32 @@
+import type { ReactNode } from 'react'
+
+interface ChipProps {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+  className?: string
+}
+
+export default function Chip({ active, onClick, children, className = '' }: ChipProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={[
+        // El chip pintado conserva los 36px de la maqueta. Los 44px de toque
+        // del handoff se cumplen con un pseudo-elemento invisible que no altera
+        // el layout visual del componente.
+        'relative px-3.5 py-2 min-h-[36px] rounded-full text-[13px] font-medium border transition-colors whitespace-nowrap after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2 after:content-[\'\']',
+        active
+          ? 'bg-primary-600 text-white border-primary-600'
+          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-primary-400',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {children}
+    </button>
+  )
+}

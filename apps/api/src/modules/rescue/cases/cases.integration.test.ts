@@ -15,6 +15,7 @@ vi.mock('./cases.service', () => ({
   getCaseById: vi.fn(),
   updateCase: vi.fn(),
   addCaseUpdate: vi.fn(),
+  getZoneStats: vi.fn(),
 }));
 
 vi.mock('../../../db', () => ({
@@ -496,5 +497,85 @@ describe('GET /api/v1/cases — filtros de animal', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+});
+
+describe('GET /api/v1/cases/zone-stats', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('devuelve las metricas de la zona', async () => {
+    vi.mocked(svc.getZoneStats).mockResolvedValue({
+      activeCases: 12,
+      resolvedThisMonth: 19,
+      byUrgency: { critica: 1, alta: 1, media: 2, baja: 8 },
+      byListingType: { found: 6, lost: 2 },
+    });
+
+    const res = await request(app)
+      .get('/api/v1/cases/zone-stats')
+      .query({ lat: -34.17, lng: -60.79, radius: 20 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.activeCases).toBe(12);
+    expect(res.body.byUrgency.critica).toBe(1);
+    expect(vi.mocked(svc.getZoneStats)).toHaveBeenCalledWith({
+      lat: -34.17,
+      lng: -60.79,
+      radius: 20,
+    });
+  });
+
+  it('usa radio 10 por defecto', async () => {
+    vi.mocked(svc.getZoneStats).mockResolvedValue({
+      activeCases: 0,
+      resolvedThisMonth: 0,
+      byUrgency: { critica: 0, alta: 0, media: 0, baja: 0 },
+      byListingType: { found: 0, lost: 0 },
+    });
+
+    await request(app).get('/api/v1/cases/zone-stats').query({ lat: -34.17, lng: -60.79 });
+
+    expect(vi.mocked(svc.getZoneStats)).toHaveBeenCalledWith({
+      lat: -34.17,
+      lng: -60.79,
+      radius: 10,
+    });
+  });
+
+  it('rechaza sin coordenadas con el formato de error estandar', async () => {
+    const res = await request(app).get('/api/v1/cases/zone-stats');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.fields).toHaveProperty('lat');
+  });
+
+  it('rechaza un radio fuera de rango', async () => {
+    const res = await request(app)
+      .get('/api/v1/cases/zone-stats')
+      .query({ lat: -34.17, lng: -60.79, radius: 500 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.fields).toHaveProperty('radius');
+  });
+
+  // La ruta se registra antes de /:id. Si se registrara despues, Express
+  // tomaria "zone-stats" como un id de caso y devolveria 404 o 400.
+  it('no la intercepta la ruta /:id', async () => {
+    vi.mocked(svc.getZoneStats).mockResolvedValue({
+      activeCases: 3,
+      resolvedThisMonth: 0,
+      byUrgency: { critica: 0, alta: 0, media: 3, baja: 0 },
+      byListingType: { found: 3, lost: 0 },
+    });
+
+    const res = await request(app)
+      .get('/api/v1/cases/zone-stats')
+      .query({ lat: -34.17, lng: -60.79 });
+
+    expect(res.status).toBe(200);
+    expect(vi.mocked(svc.getCaseById)).not.toHaveBeenCalled();
   });
 });

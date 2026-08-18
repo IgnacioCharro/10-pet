@@ -9,6 +9,7 @@ import {
   getCase,
   patchCase,
   postCaseUpdate,
+  getZoneStatsHandler,
 } from './cases.controller';
 
 export const casesRouter: Router = Router();
@@ -17,6 +18,9 @@ export const casesRouter: Router = Router();
 casesRouter.get('/', getCases);
 casesRouter.get('/nearby', getNearby);
 casesRouter.get('/feed', getFeed);
+// Antes de '/:id' a proposito: si fuera despues, Express tomaria "zone-stats"
+// como el id de un caso.
+casesRouter.get('/zone-stats', getZoneStatsHandler);
 casesRouter.get('/:id', getCase);
 
 // Authenticated + email verified routes

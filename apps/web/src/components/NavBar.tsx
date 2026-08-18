@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useNotificationsStore } from '../stores/notificationsStore'
@@ -11,11 +11,71 @@ import { logoutRequest } from '../services/auth.service'
 import Button from './ui/Button'
 import ThemeToggle from './ThemeToggle'
 
+/*
+  El activo se marca con un punto neon, no con un pill de fondo. En una lista
+  vertical el pill pesa demasiado y compite con el boton "Reportar", que es del
+  mismo violeta. El punto dice lo mismo con menos tinta.
+
+  Los inactivos reservan el ancho del punto para que el label no salte al
+  cambiar de seccion: por eso el <span> del punto existe siempre y solo cambia
+  su color.
+*/
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'px-3 py-2 rounded-md text-sm font-medium',
-    isActive ? 'text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100',
+    'font-nav font-medium tracking-[-0.005em] flex items-center gap-2 lg:gap-3 whitespace-nowrap transition-colors',
+    // La nav de escritorio se muestra desde md (768px), pero el diseno de
+    // escritorio de la maqueta (15.5px, sin padding, gap de 30px) arranca
+    // recien en lg (1024px). Sin este escalon intermedio, la banda 768-1023
+    // heredaba las medidas de toque (17px, h-12) y desbordaba la fila.
+    'text-[17px] h-12 px-3.5 rounded-xl md:text-sm md:h-auto md:py-2 md:px-2 md:rounded-none lg:text-[15.5px] lg:px-0',
+    isActive
+      ? 'text-gray-900 dark:text-gray-100'
+      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100',
   ].join(' ')
+
+function NavDot({ active }: { active: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="w-1.5 h-1.5 lg:w-[7px] lg:h-[7px] rounded-full flex-shrink-0"
+      style={
+        active
+          ? {
+              background: 'var(--nav-active)',
+              boxShadow: '0 0 0 4px rgba(168,85,255,.22)',
+            }
+          : undefined
+      }
+    />
+  )
+}
+
+// El patron {({ isActive }) => <><NavDot .../>{children}</>} se repetia en
+// cada NavLink de la nav de escritorio y del drawer. NavItem lo centraliza:
+// el contenido extra (badge, contador) sigue entrando como children, sin
+// una API generica para casos que hoy no existen.
+function NavItem({
+  to,
+  end,
+  onClick,
+  children,
+}: {
+  to: string
+  end?: boolean
+  onClick?: () => void
+  children: ReactNode
+}) {
+  return (
+    <NavLink to={to} end={end} onClick={onClick} className={navLinkClass}>
+      {({ isActive }) => (
+        <>
+          <NavDot active={isActive} />
+          {children}
+        </>
+      )}
+    </NavLink>
+  )
+}
 
 export default function NavBar() {
   const navigate = useNavigate()
@@ -77,32 +137,41 @@ export default function NavBar() {
   }
 
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-      {/* h-16 (4rem). Si cambia, mover tambien el calc de CasesPage y el top del
-          ToastContainer, que dependen de esta altura. */}
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <header
+      className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 backdrop-blur-[14px]"
+      style={{ paddingTop: 'env(safe-area-inset-top)', background: 'var(--header-bg)' }}
+    >
+      {/* h-16 en mobile, h-[68px] desde lg, como fija el handoff. Si cambia,
+          mover tambien el calc de CasesPage, que depende de esta altura.
+          ToastContainer NO depende: en desktop el toast va abajo (md:bottom-4)
+          y su calc de arriba solo corre por debajo de md, donde el header
+          sigue midiendo 64. */}
+      <div className="max-w-6xl lg:max-w-[1408px] mx-auto px-4 lg:px-10 h-16 lg:h-[68px] flex items-center justify-between gap-4">
         {/* font-semibold y no font-bold: del woff2 de Lora solo cargamos el peso 600
             (ver el @font-face de index.css). Pedirle 700 haria que el browser fabrique
             la negrita engordando los trazos. */}
-        <Link to="/" className="flex items-center gap-2.5 text-primary-600 dark:text-primary-300 font-brand font-semibold text-[22px]">
+        <Link to="/" className="flex-shrink-0 flex items-center gap-2.5 text-primary-600 dark:text-primary-300 font-brand font-semibold text-[22px]">
           {/* El mismo archivo en los dos temas: el escudo violeta con huella crema se sostiene
               sobre claro y sobre oscuro, y asi la marca no cambia de identidad al togglear.
               La version negativo es para fotos, no para dark. Va como <img> porque es de dos
               colores; la version de una tinta necesitaria el SVG inline. */}
           <img src="/brand/10_pet-logo.svg" alt="" aria-hidden="true" className="w-[34px] h-[34px]" />
-          10_Pet
+          {/* Entre md y lg queda solo el escudo: con la nav de marca, el wordmark
+              hacia desbordar la fila a lo ancho (peor caso, sesion admin con seis
+              items). En mobile y desde lg el wordmark vuelve. */}
+          <span className="md:hidden lg:inline">10_Pet</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
-          <NavLink to="/" end className={navLinkClass}>
+        <nav className="hidden md:flex items-center gap-1 lg:gap-[30px]">
+          <NavItem to="/" end>
             Inicio
-          </NavLink>
-          <NavLink to="/cases" end className={navLinkClass}>
+          </NavItem>
+          <NavItem to="/cases" end>
             Mapa
-          </NavLink>
+          </NavItem>
           {isAuthenticated && (
             <>
-              <NavLink to="/dashboard" className={navLinkClass}>
+              <NavItem to="/dashboard">
                 <span className="relative inline-flex items-center">
                   Mis casos
                   {badgeCount > 0 && (
@@ -111,15 +180,9 @@ export default function NavBar() {
                     </span>
                   )}
                 </span>
-              </NavLink>
-              <NavLink to="/profile" className={navLinkClass}>
-                Mi perfil
-              </NavLink>
-              {user?.isAdmin && (
-                <NavLink to="/admin" className={navLinkClass}>
-                  Admin
-                </NavLink>
-              )}
+              </NavItem>
+              <NavItem to="/profile">Mi perfil</NavItem>
+              {user?.isAdmin && <NavItem to="/admin">Admin</NavItem>}
             </>
           )}
         </nav>
@@ -129,7 +192,7 @@ export default function NavBar() {
           {isAuthenticated ? (
             <>
               <Link to="/cases/new">
-                <Button variant="primary" size="sm">
+                <Button variant="primary" size="sm" className="whitespace-nowrap">
                   + Reportar
                 </Button>
               </Link>
@@ -138,7 +201,10 @@ export default function NavBar() {
                   <div className="h-7 w-7 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {(user.name ?? 'A').charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm text-gray-700 dark:text-gray-200 max-w-[120px] truncate">{user.name ?? 'Anonimo'}</span>
+                  {/* El nombre se cae entre md y lg: con la nav de marca (17px) los tres grupos
+                      del header no entran en 768-1023 y la barra desbordaba a lo ancho.
+                      Queda el avatar, que ya identifica la sesion. */}
+                  <span className="hidden lg:inline text-sm text-gray-700 dark:text-gray-200 max-w-[120px] truncate">{user.name ?? 'Anonimo'}</span>
                 </div>
               )}
               <Button variant="secondary" size="sm" onClick={handleLogout}>
@@ -200,15 +266,15 @@ export default function NavBar() {
       {open && (
         <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="px-4 py-3 flex flex-col gap-2">
-            <NavLink to="/" end className={navLinkClass} onClick={() => setOpen(false)}>
+            <NavItem to="/" end onClick={() => setOpen(false)}>
               Inicio
-            </NavLink>
-            <NavLink to="/cases" end className={navLinkClass} onClick={() => setOpen(false)}>
+            </NavItem>
+            <NavItem to="/cases" end onClick={() => setOpen(false)}>
               Mapa
-            </NavLink>
+            </NavItem>
             {isAuthenticated && (
               <>
-                <NavLink to="/dashboard" className={navLinkClass} onClick={() => setOpen(false)}>
+                <NavItem to="/dashboard" onClick={() => setOpen(false)}>
                   <span className="relative inline-flex items-center">
                     Mis casos
                     {badgeCount > 0 && (
@@ -217,20 +283,42 @@ export default function NavBar() {
                       </span>
                     )}
                   </span>
-                </NavLink>
-                <NavLink to="/profile" className={navLinkClass} onClick={() => setOpen(false)}>
+                </NavItem>
+                <NavItem to="/profile" onClick={() => setOpen(false)}>
                   Mi perfil
-                </NavLink>
-                <NavLink to="/cases/new" className={navLinkClass} onClick={() => setOpen(false)}>
-                  + Reportar
-                </NavLink>
+                </NavItem>
                 {user?.isAdmin && (
-                  <NavLink to="/admin" className={navLinkClass} onClick={() => setOpen(false)}>
+                  <NavItem to="/admin" onClick={() => setOpen(false)}>
                     Admin
-                  </NavLink>
+                  </NavItem>
                 )}
+                <Link to="/cases/new" onClick={() => setOpen(false)} className="mt-2">
+                  {/* El boton pintado mide menos de 44px (size="md" es el que pide la
+                      maqueta). El gap del drawer es de 8px, asi que hay margen de sobra
+                      para un area de toque invisible que se expande sin mover un pixel
+                      pintado: mismo truco que Chip/Segmented en la Task 4. */}
+                  <Button
+                    variant="primary"
+                    size="md"
+                    fullWidth
+                    className="relative after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2 after:content-['']"
+                  >
+                    + Reportar un caso
+                  </Button>
+                </Link>
               </>
             )}
+            {/* Este link mide ~20px de alto. Llevarlo a 44 con un area invisible
+                pediria 12px por lado, mas que el gap de 8px entre filas del drawer:
+                se comeria el toque del vecino. Por eso aca la altura es real
+                (padding), no un pseudo-elemento como en el boton de arriba. */}
+            <a
+              href="/#como-funciona"
+              onClick={() => setOpen(false)}
+              className="font-nav text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-3 py-3"
+            >
+              Como funciona
+            </a>
             <div className="pt-2 border-t border-gray-100 dark:border-gray-700 dark:border-gray-700 flex items-center justify-between">
               <span className="px-3 text-sm font-medium text-gray-600 dark:text-gray-300 dark:text-gray-300">
                 Modo oscuro

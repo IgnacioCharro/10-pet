@@ -81,7 +81,7 @@ export default function ImprovementButton() {
               placeholder="Ej: el filtro de tamaño no se resetea al cambiar de zona"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-canvas dark:text-gray-100 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               autoFocus
             />
             <button
