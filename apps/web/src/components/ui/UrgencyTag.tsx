@@ -31,7 +31,7 @@ export default function UrgencyTag({ level, className = '' }: UrgencyTagProps) {
 
   return (
     <span
-      className={['text-xs px-2 py-0.5 rounded-full font-medium', cls, className]
+      className={['text-[12.5px] px-2 py-0.5 rounded-full font-medium', cls, className]
         .filter(Boolean)
         .join(' ')}
     >

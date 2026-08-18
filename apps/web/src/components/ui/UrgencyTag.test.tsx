@@ -33,4 +33,13 @@ describe('UrgencyTag', () => {
     render(<UrgencyTag level={99} />)
     expect(screen.getByText('Media')).toBeInTheDocument()
   })
+
+  // Protege contra violacion del handoff: texto de UI nunca por debajo de
+  // 12,5px. Se chequea la clase porque jsdom no calcula tamanos computados
+  // (getBoundingClientRect devuelve ceros).
+  it('cumple el tamaño minimo de texto de 12,5px', () => {
+    const { container } = render(<UrgencyTag level={3} />)
+    const span = container.querySelector('span')
+    expect(span?.className).toContain('text-[12.5px]')
+  })
 })

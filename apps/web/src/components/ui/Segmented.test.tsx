@@ -22,4 +22,16 @@ describe('Segmented', () => {
     expect(screen.getByRole('button', { name: 'Encontrados' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Todos' })).toHaveAttribute('aria-pressed', 'false')
   })
+
+  // Protege contra violacion del handoff: area de toque minimo 44px en los
+  // botones. Se cumplen con pseudo-elemento invisible sin alterar el layout.
+  // Se chequea la clase porque jsdom no maqueta (getBoundingClientRect
+  // devuelve ceros).
+  it('cumple el area de toque minimo de 44px en cada boton con pseudo-elemento invisible', () => {
+    const { container } = render(<Segmented options={OPCIONES} value="all" onChange={() => {}} />)
+    const buttons = container.querySelectorAll('button')
+    buttons.forEach((button) => {
+      expect(button.className).toContain('after:h-11')
+    })
+  })
 })

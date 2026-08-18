@@ -15,4 +15,14 @@ describe('Chip', () => {
     render(<Chip active onClick={() => {}}>Gato</Chip>)
     expect(screen.getByRole('button', { name: 'Gato' })).toHaveAttribute('aria-pressed', 'true')
   })
+
+  // Protege contra violacion del handoff: area de toque minimo 44px. El chip
+  // pintado conserva 36px (maqueta), y los 44px se cumplen con un
+  // pseudo-elemento invisible. Se chequea la clase porque jsdom no maqueta
+  // (getBoundingClientRect devuelve ceros).
+  it('cumple el area de toque minimo de 44px con pseudo-elemento invisible', () => {
+    const { container } = render(<Chip active={false} onClick={() => {}}>Test</Chip>)
+    const button = container.querySelector('button')
+    expect(button?.className).toContain('after:h-11')
+  })
 })

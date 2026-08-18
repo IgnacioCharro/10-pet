@@ -28,8 +28,11 @@ export default function Segmented({ options, value, onChange, className = '' }: 
             type="button"
             onClick={() => onChange(o.id)}
             aria-pressed={active}
+            // El boton pintado conserva los 36px de altura. Los 44px de toque
+            // del handoff se cumplen con un pseudo-elemento invisible que no
+            // altera el layout visual ni pisa los botones vecinos.
             className={[
-              'px-4 py-2 rounded-lg text-[13.5px] font-semibold transition-colors',
+              'relative px-4 py-2 rounded-lg text-[13.5px] font-semibold transition-colors after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2 after:content-[\'\']',
               active
                 ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
