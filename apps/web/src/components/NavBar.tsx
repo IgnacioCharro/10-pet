@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useNotificationsStore } from '../stores/notificationsStore'
@@ -47,6 +47,33 @@ function NavDot({ active }: { active: boolean }) {
           : undefined
       }
     />
+  )
+}
+
+// El patron {({ isActive }) => <><NavDot .../>{children}</>} se repetia en
+// cada NavLink de la nav de escritorio y del drawer. NavItem lo centraliza:
+// el contenido extra (badge, contador) sigue entrando como children, sin
+// una API generica para casos que hoy no existen.
+function NavItem({
+  to,
+  end,
+  onClick,
+  children,
+}: {
+  to: string
+  end?: boolean
+  onClick?: () => void
+  children: ReactNode
+}) {
+  return (
+    <NavLink to={to} end={end} onClick={onClick} className={navLinkClass}>
+      {({ isActive }) => (
+        <>
+          <NavDot active={isActive} />
+          {children}
+        </>
+      )}
+    </NavLink>
   )
 }
 
@@ -133,57 +160,26 @@ export default function NavBar() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-2 lg:gap-[30px]">
-          <NavLink to="/" end className={navLinkClass}>
-            {({ isActive }) => (
-              <>
-                <NavDot active={isActive} />
-                Inicio
-              </>
-            )}
-          </NavLink>
-          <NavLink to="/cases" end className={navLinkClass}>
-            {({ isActive }) => (
-              <>
-                <NavDot active={isActive} />
-                Mapa
-              </>
-            )}
-          </NavLink>
+          <NavItem to="/" end>
+            Inicio
+          </NavItem>
+          <NavItem to="/cases" end>
+            Mapa
+          </NavItem>
           {isAuthenticated && (
             <>
-              <NavLink to="/dashboard" className={navLinkClass}>
-                {({ isActive }) => (
-                  <>
-                    <NavDot active={isActive} />
-                    <span className="relative inline-flex items-center">
-                      Mis casos
-                      {badgeCount > 0 && (
-                        <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-                          {badgeCount > 9 ? '9+' : badgeCount}
-                        </span>
-                      )}
+              <NavItem to="/dashboard">
+                <span className="relative inline-flex items-center">
+                  Mis casos
+                  {badgeCount > 0 && (
+                    <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                      {badgeCount > 9 ? '9+' : badgeCount}
                     </span>
-                  </>
-                )}
-              </NavLink>
-              <NavLink to="/profile" className={navLinkClass}>
-                {({ isActive }) => (
-                  <>
-                    <NavDot active={isActive} />
-                    Mi perfil
-                  </>
-                )}
-              </NavLink>
-              {user?.isAdmin && (
-                <NavLink to="/admin" className={navLinkClass}>
-                  {({ isActive }) => (
-                    <>
-                      <NavDot active={isActive} />
-                      Admin
-                    </>
                   )}
-                </NavLink>
-              )}
+                </span>
+              </NavItem>
+              <NavItem to="/profile">Mi perfil</NavItem>
+              {user?.isAdmin && <NavItem to="/admin">Admin</NavItem>}
             </>
           )}
         </nav>
@@ -264,56 +260,31 @@ export default function NavBar() {
       {open && (
         <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="px-4 py-3 flex flex-col gap-2">
-            <NavLink to="/" end className={navLinkClass} onClick={() => setOpen(false)}>
-              {({ isActive }) => (
-                <>
-                  <NavDot active={isActive} />
-                  Inicio
-                </>
-              )}
-            </NavLink>
-            <NavLink to="/cases" end className={navLinkClass} onClick={() => setOpen(false)}>
-              {({ isActive }) => (
-                <>
-                  <NavDot active={isActive} />
-                  Mapa
-                </>
-              )}
-            </NavLink>
+            <NavItem to="/" end onClick={() => setOpen(false)}>
+              Inicio
+            </NavItem>
+            <NavItem to="/cases" end onClick={() => setOpen(false)}>
+              Mapa
+            </NavItem>
             {isAuthenticated && (
               <>
-                <NavLink to="/dashboard" className={navLinkClass} onClick={() => setOpen(false)}>
-                  {({ isActive }) => (
-                    <>
-                      <NavDot active={isActive} />
-                      <span className="relative inline-flex items-center">
-                        Mis casos
-                        {badgeCount > 0 && (
-                          <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-                            {badgeCount > 9 ? '9+' : badgeCount}
-                          </span>
-                        )}
+                <NavItem to="/dashboard" onClick={() => setOpen(false)}>
+                  <span className="relative inline-flex items-center">
+                    Mis casos
+                    {badgeCount > 0 && (
+                      <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                        {badgeCount > 9 ? '9+' : badgeCount}
                       </span>
-                    </>
-                  )}
-                </NavLink>
-                <NavLink to="/profile" className={navLinkClass} onClick={() => setOpen(false)}>
-                  {({ isActive }) => (
-                    <>
-                      <NavDot active={isActive} />
-                      Mi perfil
-                    </>
-                  )}
-                </NavLink>
-                {user?.isAdmin && (
-                  <NavLink to="/admin" className={navLinkClass} onClick={() => setOpen(false)}>
-                    {({ isActive }) => (
-                      <>
-                        <NavDot active={isActive} />
-                        Admin
-                      </>
                     )}
-                  </NavLink>
+                  </span>
+                </NavItem>
+                <NavItem to="/profile" onClick={() => setOpen(false)}>
+                  Mi perfil
+                </NavItem>
+                {user?.isAdmin && (
+                  <NavItem to="/admin" onClick={() => setOpen(false)}>
+                    Admin
+                  </NavItem>
                 )}
                 <Link to="/cases/new" onClick={() => setOpen(false)} className="mt-2">
                   {/* El boton pintado mide menos de 44px (size="md" es el que pide la
