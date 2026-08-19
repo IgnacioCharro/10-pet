@@ -1,16 +1,19 @@
-export type AnimalType = 'perro' | 'gato' | 'caballo' | 'vaca' | 'otro'
+export type AnimalType = 'perro' | 'gato' | 'caballo' | 'vaca' | 'ave' | 'otro'
+export type AnimalCondition = 'herido' | 'sano' | 'asustado' | 'debil' | 'no_pude_acercarme'
 export type AnimalSex = 'macho' | 'hembra' | 'desconocido'
 export type AnimalSize = 'chico' | 'mediano' | 'grande'
 export type AnimalColor = 'negro' | 'blanco' | 'marron' | 'gris' | 'dorado' | 'manchado' | 'tricolor'
 export type CaseStatus = 'abierto' | 'en_rescate' | 'resuelto' | 'inactivo' | 'spam'
 export type SortOrder = 'recent' | 'urgency' | 'distance'
-export type ListingType = 'found' | 'lost'
+export type ListingType = 'found' | 'lost' | 'at_risk'
 
 export interface CaseItem {
   id: string
   userId: string
   listingType: ListingType
   animalType: AnimalType
+  title: string
+  publicCode: string
   description: string
   status: CaseStatus
   resolutionType: string | null
@@ -19,10 +22,11 @@ export interface CaseItem {
   lng: number
   locationText: string | null
   referenceNote: string | null
-  condition: string | null
+  animalCondition: AnimalCondition | null
   animalSex: AnimalSex | null
   animalSize: AnimalSize | null
   animalColor: AnimalColor | null
+  seenAt: string | null
   createdAt: string
   updatedAt: string
   resolvedAt: string | null
@@ -86,17 +90,19 @@ export interface ListCasesQuery {
 export interface CreateCaseInput {
   listingType: ListingType
   animalType: AnimalType
+  title: string
   description: string
   location: { lat: number; lng: number }
   locationText?: string
   referenceNote?: string
-  condition?: string
+  animalCondition?: AnimalCondition
   urgencyLevel?: number
   phoneContact?: string
   imageIds?: string[]
   animalSex?: AnimalSex
   animalSize?: AnimalSize
   animalColor?: AnimalColor
+  seenAt?: string
 }
 
 export interface PaginatedCasesResponse {
