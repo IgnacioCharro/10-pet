@@ -78,4 +78,8 @@ describe('buildFeedOrderBy', () => {
     expect(orderBy).not.toContain('pending');
     expect(orderBy).not.toContain('rejected');
   });
+
+  it('ordena los casos en riesgo por urgencia, igual que los encontrados', () => {
+    expect(buildFeedOrderBy('at_risk')).toBe(buildFeedOrderBy('found'));
+  });
 });

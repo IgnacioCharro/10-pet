@@ -128,3 +128,24 @@ describe('getFeedCases — antiguedad', () => {
     expect(sqlOf(0)).not.toContain(String(FEED_MAX_AGE_DAYS));
   });
 });
+
+describe('SELECT de casos — columnas de S2', () => {
+  it('la lista trae titulo, codigo publico, estado y seenAt', async () => {
+    await listCases(baseListQuery);
+    const sql = sqlOf(0);
+    expect(sql).toContain('c.title');
+    expect(sql).toContain('c.public_code AS "publicCode"');
+    expect(sql).toContain('c.animal_condition AS "animalCondition"');
+    expect(sql).toContain('c.seen_at AS "seenAt"');
+  });
+
+  it('la lista ya no trae condition', async () => {
+    await listCases(baseListQuery);
+    expect(sqlOf(0)).not.toContain('c.condition');
+  });
+
+  it('el feed trae el titulo, que es lo que muestra la tarjeta', async () => {
+    await getFeedCases(baseFeedQuery);
+    expect(sqlOf(0)).toContain('c.title');
+  });
+});

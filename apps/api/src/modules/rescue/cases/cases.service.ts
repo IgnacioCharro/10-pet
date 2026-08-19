@@ -29,7 +29,10 @@ export interface CaseRow {
   lng: number;
   locationText: string | null;
   referenceNote: string | null;
-  condition: string | null;
+  title: string;
+  publicCode: string;
+  animalCondition: string | null;
+  seenAt: Date | null;
   animalSex: string | null;
   animalSize: string | null;
   animalColor: string | null;
@@ -84,7 +87,10 @@ const BASE_CASE_SELECT = `
   ST_X(c.location) AS lng,
   c.location_text AS "locationText",
   c.reference_note AS "referenceNote",
-  c.condition,
+  c.title,
+  c.public_code AS "publicCode",
+  c.animal_condition AS "animalCondition",
+  c.seen_at AS "seenAt",
   c.animal_sex AS "animalSex",
   c.animal_size AS "animalSize",
   c.animal_color AS "animalColor",
@@ -106,13 +112,13 @@ export async function createCase(
 
   const result = await sequelize.query<CaseRow>(
     `INSERT INTO cases
-       (id, user_id, listing_type, animal_type, description, status, urgency_level,
-        location, location_text, reference_note, condition, phone_contact,
+       (id, user_id, listing_type, title, animal_type, description, status, urgency_level,
+        location, location_text, reference_note, animal_condition, seen_at, phone_contact,
         animal_sex, animal_size, animal_color,
         created_at, updated_at)
      VALUES
-       (gen_random_uuid(), :userId, :listingType, :animalType, :description, 'abierto', :urgencyLevel,
-        ST_SetSRID(ST_MakePoint(:lng, :lat), 4326), :locationText, :referenceNote, :condition, :phoneContact,
+       (gen_random_uuid(), :userId, :listingType, :title, :animalType, :description, 'abierto', :urgencyLevel,
+        ST_SetSRID(ST_MakePoint(:lng, :lat), 4326), :locationText, :referenceNote, :animalCondition, :seenAt, :phoneContact,
         :animalSex, :animalSize, :animalColor,
         NOW(), NOW())
      RETURNING
@@ -128,7 +134,10 @@ export async function createCase(
        ST_X(location) AS lng,
        location_text AS "locationText",
        reference_note AS "referenceNote",
-       condition,
+       title,
+       public_code AS "publicCode",
+       animal_condition AS "animalCondition",
+       seen_at AS "seenAt",
        animal_sex AS "animalSex",
        animal_size AS "animalSize",
        animal_color AS "animalColor",
@@ -146,7 +155,9 @@ export async function createCase(
         lng,
         locationText: input.locationText ?? null,
         referenceNote: input.referenceNote ?? null,
-        condition: input.condition ?? null,
+        title: input.title,
+        animalCondition: input.animalCondition ?? null,
+        seenAt: input.seenAt ?? null,
         phoneContact: input.phoneContact ?? null,
         animalSex: input.animalSex ?? null,
         animalSize: input.animalSize ?? null,
@@ -385,9 +396,13 @@ export async function updateCase(
     setClauses.push(`description = :description`);
     replacements.description = input.description;
   }
-  if (input.condition !== undefined) {
-    setClauses.push(`condition = :condition`);
-    replacements.condition = input.condition;
+  if (input.title !== undefined) {
+    setClauses.push(`title = :title`);
+    replacements.title = input.title;
+  }
+  if (input.animalCondition !== undefined) {
+    setClauses.push(`animal_condition = :animalCondition`);
+    replacements.animalCondition = input.animalCondition;
   }
   if (input.phoneContact !== undefined) {
     setClauses.push(`phone_contact = :phoneContact`);
@@ -432,7 +447,10 @@ export async function updateCase(
        ST_X(location) AS lng,
        location_text AS "locationText",
        reference_note AS "referenceNote",
-       condition,
+       title,
+       public_code AS "publicCode",
+       animal_condition AS "animalCondition",
+       seen_at AS "seenAt",
        animal_sex AS "animalSex",
        animal_size AS "animalSize",
        animal_color AS "animalColor",
@@ -448,6 +466,7 @@ export async function updateCase(
 export interface FeedCaseRow {
   id: string;
   listingType: string;
+  title: string;
   animalType: string;
   locationText: string | null;
   urgencyLevel: number;
@@ -504,6 +523,7 @@ export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]
     `SELECT
        c.id,
        c.listing_type AS "listingType",
+       c.title,
        c.animal_type AS "animalType",
        c.location_text AS "locationText",
        c.urgency_level AS "urgencyLevel",

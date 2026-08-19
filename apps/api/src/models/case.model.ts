@@ -1,6 +1,7 @@
 import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
 
-export type AnimalType = 'perro' | 'gato' | 'otro';
+export type AnimalType = 'perro' | 'gato' | 'caballo' | 'vaca' | 'ave' | 'otro';
+export type AnimalCondition = 'herido' | 'sano' | 'asustado' | 'debil' | 'no_pude_acercarme';
 export type CaseStatus = 'abierto' | 'en_rescate' | 'resuelto' | 'inactivo' | 'spam' | 'archivado';
 export type ResolutionType = 'rescatado' | 'adoptado' | 'fallecido' | 'sin_novedad';
 
@@ -20,7 +21,10 @@ interface CaseAttributes {
   location: CaseLocation;
   locationText: string | null;
   referenceNote: string | null;
-  condition: string | null;
+  title: string;
+  publicCode: string;
+  animalCondition: AnimalCondition | null;
+  seenAt: Date | null;
   phoneContact: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -35,7 +39,9 @@ type CaseCreationAttributes = Optional<
   | 'urgencyLevel'
   | 'locationText'
   | 'referenceNote'
-  | 'condition'
+  | 'publicCode'
+  | 'animalCondition'
+  | 'seenAt'
   | 'phoneContact'
   | 'createdAt'
   | 'updatedAt'
@@ -56,7 +62,10 @@ export class Case
   declare location: CaseLocation;
   declare locationText: string | null;
   declare referenceNote: string | null;
-  declare condition: string | null;
+  declare title: string;
+  declare readonly publicCode: string;
+  declare animalCondition: AnimalCondition | null;
+  declare seenAt: Date | null;
   declare phoneContact: string | null;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -110,8 +119,21 @@ export class Case
           type: DataTypes.TEXT,
           allowNull: true,
         },
-        condition: {
-          type: DataTypes.STRING(100),
+        title: {
+          type: DataTypes.STRING(120),
+          allowNull: false,
+        },
+        publicCode: {
+          // Lo genera Postgres con una secuencia; el modelo nunca lo escribe.
+          type: DataTypes.STRING(12),
+          allowNull: false,
+        },
+        animalCondition: {
+          type: DataTypes.STRING(20),
+          allowNull: true,
+        },
+        seenAt: {
+          type: DataTypes.DATE,
           allowNull: true,
         },
         phoneContact: {

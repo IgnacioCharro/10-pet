@@ -10,7 +10,8 @@ const baseCase = {
 
 describe('createCaseSchema — titulo', () => {
   it('exige titulo', () => {
-    const { title: _omitido, ...sinTitulo } = baseCase;
+    const sinTitulo: Record<string, unknown> = { ...baseCase };
+    delete sinTitulo['title'];
     expect(createCaseSchema.safeParse(sinTitulo).success).toBe(false);
   });
 
