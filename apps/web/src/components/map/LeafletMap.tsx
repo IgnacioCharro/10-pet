@@ -5,7 +5,9 @@ import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
-import type { CaseItem, AnimalType } from '../../types/case'
+import type { CaseItem } from '../../types/case'
+import { ANIMAL_EMOJI } from '../../lib/animalType'
+import { LISTING_TYPE } from '../../lib/listingType'
 
 const URGENCY_COLOR: Record<number, string> = {
   1: '#22c55e',
@@ -15,18 +17,10 @@ const URGENCY_COLOR: Record<number, string> = {
   5: '#ef4444',
 }
 
-const ANIMAL_EMOJI: Record<AnimalType, string> = {
-  perro: '🐕',
-  gato: '🐈',
-  caballo: '🐴',
-  vaca: '🐄',
-  otro: '🐾',
-}
-
 function makeCaseIcon(c: CaseItem, isOwn = false) {
   const color = URGENCY_COLOR[c.urgencyLevel] ?? '#6b7280'
   const emoji = ANIMAL_EMOJI[c.animalType] ?? '🐾'
-  const typeColor = c.listingType === 'lost' ? '#3b82f6' : '#22c55e'
+  const typeColor = LISTING_TYPE[c.listingType].pinColor
   const border = isOwn ? '3px solid #7c3aed' : `3px solid ${typeColor}`
   const shadow = isOwn
     ? '0 0 0 2px white, 0 2px 8px rgba(124,58,237,.5)'

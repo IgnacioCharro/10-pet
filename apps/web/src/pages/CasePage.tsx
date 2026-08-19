@@ -5,7 +5,7 @@ import { getVetAssistances, createVetAssistance } from '../services/vet-assistan
 import type { VetAssistanceItem } from '../services/vet-assistances.service'
 import { useAuthStore } from '../stores/authStore'
 import { toast } from '../stores/toastStore'
-import type { CaseDetail, AnimalType, CaseStatus, CaseUpdateType, CaseVolunteer } from '../types/case'
+import type { CaseDetail, CaseStatus, CaseUpdateType, CaseVolunteer } from '../types/case'
 import { ContactModal } from '../components/cases/ContactModal'
 import { ReportModal } from '../components/cases/ReportModal'
 import {
@@ -13,9 +13,9 @@ import {
   ResolutionModal,
 } from '../components/cases/CaseDetailSheet'
 import CaseTimeline from '../components/cases/CaseTimeline'
-
-const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
-const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', caballo: '🐴', vaca: '🐄', otro: '🐾' }
+import { ANIMAL_LABEL, ANIMAL_EMOJI, CONDITION_LABEL } from '../lib/animalType'
+import { LISTING_TYPE } from '../lib/listingType'
+import { timeAgo, formatExact } from '../lib/time'
 
 const STATUS_LABEL: Record<CaseStatus, string> = {
   abierto: 'Abierto',
@@ -59,23 +59,6 @@ function saveContactedCase(userId: string, caseId: string): void {
     const ids = JSON.parse(localStorage.getItem(contactedKey(userId)) ?? '[]') as string[]
     if (!ids.includes(caseId)) localStorage.setItem(contactedKey(userId), JSON.stringify([...ids, caseId]))
   } catch { /* noop */ }
-}
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const h = Math.floor(diff / 3_600_000)
-  if (h < 1) return 'hace unos minutos'
-  if (h < 24) return `hace ${h}h`
-  const d = Math.floor(h / 24)
-  if (d < 30) return `hace ${d}d`
-  return `hace ${Math.floor(d / 30)} meses`
-}
-
-function formatExact(iso: string): string {
-  return new Date(iso).toLocaleString('es-AR', {
-    day: 'numeric', month: 'long', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
 }
 
 export default function CasePage() {
@@ -188,7 +171,7 @@ export default function CasePage() {
   }
 
   const handleEdit = async (data: {
-    animalType: string; description: string; condition: string;
+    animalType: string; description: string;
     urgencyLevel: number; phoneContact: string; locationText: string; referenceNote: string
   }) => {
     if (!id) return
@@ -267,8 +250,8 @@ export default function CasePage() {
             <span className="text-5xl leading-none">{ANIMAL_EMOJI[detail.animalType]}</span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className={`text-sm font-bold px-3 py-1 rounded-full ${detail.listingType === 'lost' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 ring-1 ring-blue-300' : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 ring-1 ring-green-300'}`}>
-                  {detail.listingType === 'lost' ? 'BUSCADO' : 'ENCONTRADO'}
+                <span className={`text-sm font-bold px-3 py-1 rounded-full ${LISTING_TYPE[detail.listingType].chipClass} ${LISTING_TYPE[detail.listingType].ringClass}`}>
+                  {LISTING_TYPE[detail.listingType].upper}
                 </span>
               </div>
               <h1 className="font-bold text-gray-900 dark:text-gray-100 text-xl">{ANIMAL_LABEL[detail.animalType]}</h1>
@@ -291,13 +274,29 @@ export default function CasePage() {
             </div>
           </div>
 
+          <div className="flex items-baseline gap-2 mb-1">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{detail.title}</h2>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard?.writeText(detail.publicCode)}
+              title="Copiar el codigo del caso"
+              className="font-mono text-xs text-gray-500 dark:text-gray-400 hover:text-primary-600"
+            >
+              #{detail.publicCode}
+            </button>
+          </div>
+
           <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{detail.description}</p>
 
-          {detail.condition && (
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condición</p>
-              <p className="text-sm text-gray-700 dark:text-gray-200">{detail.condition}</p>
-            </div>
+          {detail.animalCondition && (
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              <span className="font-medium">Estado:</span> {CONDITION_LABEL[detail.animalCondition]}
+            </p>
+          )}
+          {detail.seenAt && (
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              <span className="font-medium">Visto:</span> {timeAgo(detail.seenAt)}
+            </p>
           )}
 
           {(detail.locationText || detail.referenceNote) && (
@@ -464,7 +463,6 @@ export default function CasePage() {
           initial={{
             animalType: detail.animalType,
             description: detail.description,
-            condition: detail.condition ?? '',
             urgencyLevel: detail.urgencyLevel,
             phoneContact: detail.phoneContact ?? '',
             locationText: detail.locationText ?? '',
