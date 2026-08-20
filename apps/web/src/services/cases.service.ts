@@ -45,11 +45,12 @@ export type ResolutionType =
 export const updateCase = async (
   id: string,
   data: {
+    title?: string
     status?: string
     resolutionType?: ResolutionType
     animalType?: string
     description?: string
-    condition?: string
+    animalCondition?: string
     urgencyLevel?: number
     phoneContact?: string
     locationText?: string
