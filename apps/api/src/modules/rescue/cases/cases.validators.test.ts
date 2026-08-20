@@ -89,3 +89,29 @@ describe('listCasesSchema', () => {
     expect(parsed.success).toBe(true);
   });
 });
+
+describe('createCaseSchema — whereabouts', () => {
+  it('acepta whereabouts y hostName al crear', () => {
+    const parsed = createCaseSchema.safeParse({
+      ...baseCase,
+      whereabouts: 'con_un_tercero',
+      hostName: 'Marta Gimenez',
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('por defecto un caso nuevo queda en la calle', () => {
+    const parsed = createCaseSchema.safeParse(baseCase);
+    expect(parsed.success && parsed.data.whereabouts).toBe('en_la_calle');
+  });
+
+  it('rechaza un whereabouts que no existe', () => {
+    const parsed = createCaseSchema.safeParse({ ...baseCase, whereabouts: 'en_el_veterinario' });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('listCases acepta el filtro sheltered', () => {
+    const parsed = listCasesSchema.safeParse({ sheltered: 'false' });
+    expect(parsed.success && parsed.data.sheltered).toBe(false);
+  });
+});

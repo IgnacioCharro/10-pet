@@ -4,6 +4,8 @@ export type AnimalType = 'perro' | 'gato' | 'caballo' | 'vaca' | 'ave' | 'otro';
 export type AnimalCondition = 'herido' | 'sano' | 'asustado' | 'debil' | 'no_pude_acercarme';
 export type CaseStatus = 'abierto' | 'en_rescate' | 'resuelto' | 'inactivo' | 'spam' | 'archivado';
 export type ResolutionType = 'rescatado' | 'adoptado' | 'fallecido' | 'sin_novedad';
+export type Whereabouts =
+  | 'en_la_calle' | 'con_quien_publica' | 'con_un_tercero' | 'desconocido';
 
 export interface CaseLocation {
   type: 'Point';
@@ -24,6 +26,7 @@ interface CaseAttributes {
   title: string;
   publicCode: string;
   animalCondition: AnimalCondition | null;
+  whereabouts: Whereabouts;
   seenAt: Date | null;
   phoneContact: string | null;
   createdAt: Date;
@@ -41,6 +44,7 @@ type CaseCreationAttributes = Optional<
   | 'referenceNote'
   | 'publicCode'
   | 'animalCondition'
+  | 'whereabouts'
   | 'seenAt'
   | 'phoneContact'
   | 'createdAt'
@@ -65,6 +69,7 @@ export class Case
   declare title: string;
   declare readonly publicCode: string;
   declare animalCondition: AnimalCondition | null;
+  declare whereabouts: Whereabouts;
   declare seenAt: Date | null;
   declare phoneContact: string | null;
   declare readonly createdAt: Date;
@@ -131,6 +136,11 @@ export class Case
         animalCondition: {
           type: DataTypes.STRING(20),
           allowNull: true,
+        },
+        whereabouts: {
+          type: DataTypes.STRING(20),
+          allowNull: false,
+          defaultValue: 'en_la_calle',
         },
         seenAt: {
           type: DataTypes.DATE,

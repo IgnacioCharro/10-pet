@@ -13,6 +13,10 @@ const animalConditionSchema = z.enum([
   'herido', 'sano', 'asustado', 'debil', 'no_pude_acercarme',
 ]);
 
+const whereaboutsSchema = z.enum([
+  'en_la_calle', 'con_quien_publica', 'con_un_tercero', 'desconocido',
+]);
+
 const listingTypeSchema = z.enum(['found', 'lost', 'at_risk']);
 
 const animalTypeSchema = z.enum(['perro', 'gato', 'caballo', 'vaca', 'ave', 'otro']);
@@ -46,6 +50,8 @@ export const createCaseSchema = z.object({
   animalSex: animalSexSchema.optional(),
   animalSize: animalSizeSchema.optional(),
   animalColor: animalColorSchema.optional(),
+  whereabouts: whereaboutsSchema.default('en_la_calle'),
+  hostName: z.string().trim().max(120).optional(),
 });
 
 export const listCasesSchema = z.object({
@@ -64,6 +70,12 @@ export const listCasesSchema = z.object({
   animalSex: animalSexSchema.optional(),
   animalSize: animalSizeSchema.optional(),
   animalColor: animalColorSchema.optional(),
+  // Sin valor no filtra nada. El mapa manda sheltered=false para esconder los
+  // que ya estan a resguardo; ese es su unico uso hoy.
+  sheltered: z
+    .enum(['true', 'false'])
+    .transform((v) => v === 'true')
+    .optional(),
 });
 
 // Schema geografico compartido entre endpoints que resuelven sobre el mismo
@@ -96,6 +108,7 @@ export const updateCaseSchema = z
     animalSex: animalSexSchema.optional(),
     animalSize: animalSizeSchema.optional(),
     animalColor: animalColorSchema.optional(),
+    whereabouts: whereaboutsSchema.optional(),
   })
   .refine((d) => Object.keys(d).length > 0, {
     message: 'Al menos un campo es requerido',
