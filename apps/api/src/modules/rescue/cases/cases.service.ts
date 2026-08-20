@@ -1,5 +1,6 @@
 import { QueryTypes } from 'sequelize';
 import { sequelize, Case, CaseImage, CaseUpdate } from '../../../db';
+import type { Whereabouts } from '../../../models/case.model';
 import {
   CreateCaseInput,
   ListCasesQuery,
@@ -36,6 +37,7 @@ export interface CaseRow {
   animalSex: string | null;
   animalSize: string | null;
   animalColor: string | null;
+  whereabouts: Whereabouts;
   createdAt: Date;
   updatedAt: Date;
   resolvedAt: Date | null;
@@ -94,6 +96,7 @@ const BASE_CASE_SELECT = `
   c.animal_sex AS "animalSex",
   c.animal_size AS "animalSize",
   c.animal_color AS "animalColor",
+  c.whereabouts,
   c.created_at AS "createdAt",
   c.updated_at AS "updatedAt",
   c.resolved_at AS "resolvedAt"
@@ -114,12 +117,12 @@ export async function createCase(
     `INSERT INTO cases
        (id, user_id, listing_type, title, animal_type, description, status, urgency_level,
         location, location_text, reference_note, animal_condition, seen_at, phone_contact,
-        animal_sex, animal_size, animal_color,
+        animal_sex, animal_size, animal_color, whereabouts,
         created_at, updated_at)
      VALUES
        (gen_random_uuid(), :userId, :listingType, :title, :animalType, :description, 'abierto', :urgencyLevel,
         ST_SetSRID(ST_MakePoint(:lng, :lat), 4326), :locationText, :referenceNote, :animalCondition, :seenAt, :phoneContact,
-        :animalSex, :animalSize, :animalColor,
+        :animalSex, :animalSize, :animalColor, :whereabouts,
         NOW(), NOW())
      RETURNING
        id,
@@ -141,6 +144,7 @@ export async function createCase(
        animal_sex AS "animalSex",
        animal_size AS "animalSize",
        animal_color AS "animalColor",
+       whereabouts,
        created_at AS "createdAt",
        updated_at AS "updatedAt",
        resolved_at AS "resolvedAt"`,
@@ -162,12 +166,27 @@ export async function createCase(
         animalSex: input.animalSex ?? null,
         animalSize: input.animalSize ?? null,
         animalColor: input.animalColor ?? null,
+        whereabouts: input.whereabouts,
       },
       type: QueryTypes.SELECT,
     },
   );
 
   const newCase = result[0];
+
+  // El historial arranca contando la verdad: si el animal no quedo en la calle,
+  // el primer hecho del caso es quien lo tiene. Reusa el tipo de novedad que ya
+  // existe en vez de inventar un campo paralelo. 'desconocido' no cuenta: es
+  // ausencia de dato, no una garantia de que alguien lo tenga.
+  if (input.whereabouts === 'con_quien_publica' || input.whereabouts === 'con_un_tercero') {
+    await CaseUpdate.create({
+      caseId: newCase.id,
+      userId,
+      updateType: 'alojamiento',
+      content: null,
+      hostName: input.hostName ?? null,
+    });
+  }
 
   if (notifyNewCaseQueue) {
     notifyNewCaseQueue.add(
@@ -203,7 +222,7 @@ export async function listCases(
 ): Promise<{ cases: CaseRow[]; total: number }> {
   const {
     lat, lng, radius, status, animalType, listingType, urgencyMin, page, limit, sort,
-    animalSex, animalSize, animalColor,
+    animalSex, animalSize, animalColor, sheltered,
   } = query;
 
   const conditions: string[] = [];
@@ -244,6 +263,12 @@ export async function listCases(
   if (animalColor) {
     conditions.push(`c.animal_color = :animalColor`);
     replacements.animalColor = animalColor;
+  }
+
+  if (sheltered === false) {
+    conditions.push(`c.whereabouts NOT IN ('con_quien_publica', 'con_un_tercero')`);
+  } else if (sheltered === true) {
+    conditions.push(`c.whereabouts IN ('con_quien_publica', 'con_un_tercero')`);
   }
 
   let distanceExpr = 'NULL::float';
@@ -454,6 +479,7 @@ export async function updateCase(
        animal_sex AS "animalSex",
        animal_size AS "animalSize",
        animal_color AS "animalColor",
+       whereabouts,
        created_at AS "createdAt",
        updated_at AS "updatedAt",
        resolved_at AS "resolvedAt"`,

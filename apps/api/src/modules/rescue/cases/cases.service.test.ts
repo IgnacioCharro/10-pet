@@ -12,10 +12,10 @@ vi.mock('../../../jobs/queue', () => ({
   contactRequestQueue: null,
 }));
 
-import { sequelize } from '../../../db';
-import { listCases, getFeedCases, listCasesByUser, FEED_MAX_AGE_DAYS } from './cases.service';
+import { sequelize, CaseUpdate } from '../../../db';
+import { listCases, getFeedCases, listCasesByUser, createCase, FEED_MAX_AGE_DAYS } from './cases.service';
 import { VOLUNTEER_COUNT_SUBQUERY, FEED_VOLUNTEER_COUNT_EXPR } from './cases.ordering';
-import { ListCasesQuery, FeedCasesQuery } from './cases.validators';
+import { ListCasesQuery, FeedCasesQuery, CreateCaseInput } from './cases.validators';
 
 const queryMock = vi.mocked(
   sequelize.query as unknown as (
@@ -39,6 +39,16 @@ const orderByOf = (sql: string): string =>
 
 const baseListQuery: ListCasesQuery = { radius: 10, page: 1, limit: 20, sort: 'recent' };
 const baseFeedQuery: FeedCasesQuery = { lat: -34.6037, lng: -58.3816, radius: 10 };
+
+const baseCreateInput: CreateCaseInput = {
+  listingType: 'found',
+  title: 'Perrito encontrado en la plaza',
+  animalType: 'perro',
+  description: 'Encontrado cerca de la plaza central del pueblo, sin colgar',
+  location: { lat: -34.6037, lng: -58.3816 },
+  urgencyLevel: 1,
+  whereabouts: 'en_la_calle',
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -147,5 +157,47 @@ describe('SELECT de casos — columnas de S2', () => {
   it('el feed trae el titulo, que es lo que muestra la tarjeta', async () => {
     await getFeedCases(baseFeedQuery);
     expect(sqlOf(0)).toContain('c.title');
+  });
+
+  it('la lista trae whereabouts', async () => {
+    await listCases(baseListQuery);
+    expect(sqlOf(0)).toContain('c.whereabouts');
+  });
+});
+
+describe('createCase — apertura del historial', () => {
+  it('abre el historial con una novedad de alojamiento cuando alguien lo tiene', async () => {
+    queryMock.mockResolvedValueOnce([{ id: 'case-1' }]);
+    await createCase('user-1', {
+      ...baseCreateInput,
+      whereabouts: 'con_un_tercero',
+      hostName: 'Marta Gimenez',
+    });
+    expect(CaseUpdate.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        caseId: 'case-1',
+        updateType: 'alojamiento',
+        hostName: 'Marta Gimenez',
+      }),
+    );
+  });
+
+  it('no abre historial si el animal quedo en la calle', async () => {
+    queryMock.mockResolvedValueOnce([{ id: 'case-2' }]);
+    await createCase('user-1', { ...baseCreateInput, whereabouts: 'en_la_calle' });
+    expect(CaseUpdate.create).not.toHaveBeenCalled();
+  });
+
+  it('un caso buscado tampoco abre historial', async () => {
+    // 'desconocido' es ausencia de dato, no una garantia de que alguien lo tenga.
+    queryMock.mockResolvedValueOnce([{ id: 'case-3' }]);
+    await createCase('user-1', { ...baseCreateInput, whereabouts: 'desconocido' });
+    expect(CaseUpdate.create).not.toHaveBeenCalled();
+  });
+
+  it('manda whereabouts parametrizado al INSERT, no concatenado', async () => {
+    queryMock.mockResolvedValueOnce([{ id: 'case-4' }]);
+    await createCase('user-1', { ...baseCreateInput, whereabouts: 'con_quien_publica' });
+    expect(replacementsOf(0)['whereabouts']).toBe('con_quien_publica');
   });
 });
