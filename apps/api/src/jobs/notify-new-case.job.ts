@@ -48,7 +48,14 @@ async function processNotifyNewCase(job: Bull.Job<NotifyNewCasePayload>): Promis
 
   if (users.length === 0) return;
 
-  const animalLabel: Record<string, string> = { perro: 'perro', gato: 'gato', otro: 'animal' };
+  const animalLabel: Record<string, string> = {
+    perro: 'perro',
+    gato: 'gato',
+    caballo: 'caballo',
+    vaca: 'vaca',
+    ave: 'ave',
+    otro: 'animal',
+  };
   const label = animalLabel[animalType] ?? 'animal';
   const locationStr = locationText ?? 'ubicación en el mapa';
   const caseUrl = `${process.env.WEB_BASE_URL ?? 'http://localhost:5173'}/cases/${caseId}`;
