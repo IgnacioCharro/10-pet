@@ -43,9 +43,9 @@ describe('createCaseSchema — seenAt', () => {
 });
 
 describe('createCaseSchema — valores nuevos', () => {
-  it('acepta el tercer tipo de publicacion', () => {
+  it('rechaza at_risk, que se retiro como tipo de publicacion', () => {
     const parsed = createCaseSchema.safeParse({ ...baseCase, listingType: 'at_risk' });
-    expect(parsed.success).toBe(true);
+    expect(parsed.success).toBe(false);
   });
 
   it('acepta la especie ave', () => {
@@ -84,9 +84,9 @@ describe('updateCaseSchema', () => {
 });
 
 describe('listCasesSchema', () => {
-  it('filtra por el tercer tipo de publicacion', () => {
+  it('rechaza at_risk, que se retiro como tipo de publicacion', () => {
     const parsed = listCasesSchema.safeParse({ listingType: 'at_risk' });
-    expect(parsed.success).toBe(true);
+    expect(parsed.success).toBe(false);
   });
 });
 

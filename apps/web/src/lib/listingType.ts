@@ -32,12 +32,4 @@ export const LISTING_TYPE: Record<ListingType, ListingTypeStyle> = {
     ringClass: 'ring-1 ring-blue-300',
     pinColor: '#3b82f6',
   },
-  at_risk: {
-    short: 'En riesgo',
-    long: 'En riesgo',
-    upper: 'EN RIESGO',
-    chipClass: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
-    ringClass: 'ring-1 ring-amber-300',
-    pinColor: '#f59e0b',
-  },
 }

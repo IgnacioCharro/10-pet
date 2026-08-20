@@ -17,7 +17,7 @@ const whereaboutsSchema = z.enum([
   'en_la_calle', 'con_quien_publica', 'con_un_tercero', 'desconocido',
 ]);
 
-const listingTypeSchema = z.enum(['found', 'lost', 'at_risk']);
+const listingTypeSchema = z.enum(['found', 'lost']);
 
 const animalTypeSchema = z.enum(['perro', 'gato', 'caballo', 'vaca', 'ave', 'otro']);
 

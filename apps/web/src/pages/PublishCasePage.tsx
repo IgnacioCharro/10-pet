@@ -46,7 +46,6 @@ interface WizardState {
 const TITULO_POR_TIPO: Record<ListingType, string> = {
   found: 'Reportar animal encontrado',
   lost: 'Buscar mi mascota',
-  at_risk: 'Reportar animal en riesgo',
 }
 
 const URGENCY_LABELS: Record<number, string> = {
@@ -399,10 +398,10 @@ function StepTipo({ onSelect }: { onSelect: (type: ListingType) => void }) {
           <span className="text-3xl mt-0.5">🐾</span>
           <div>
             <p className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-orange-700">
-              Encontré un animal
+              Me crucé con un animal
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              Encontraste un animal perdido, herido o en situación de calle y necesitás ayuda.
+              Lo encontraste, lo viste en la calle o está en riesgo. Después nos decís si te lo llevaste.
             </p>
           </div>
         </button>
@@ -418,21 +417,6 @@ function StepTipo({ onSelect }: { onSelect: (type: ListingType) => void }) {
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Se te perdió o escapó tu animal y estás buscando que alguien te avise si lo ve.
-            </p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => onSelect('at_risk')}
-          className="flex items-start gap-4 p-5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-amber-400 hover:bg-amber-50 active:bg-amber-100 transition-colors text-left group"
-        >
-          <span className="text-3xl mt-0.5">⚠️</span>
-          <div>
-            <p className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-amber-700">
-              Vi un animal en riesgo
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              Viste un animal en peligro pero no te pudiste quedar con él.
             </p>
           </div>
         </button>
