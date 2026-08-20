@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react'
 import type { AnimalType, AnimalSex, AnimalSize, AnimalColor, SortOrder } from '../../types/case'
+import { ANIMAL_LABEL, ANIMAL_EMOJI } from '../../lib/animalType'
 
 const ANIMAL_OPTIONS: { value: AnimalType | ''; label: string }[] = [
   { value: '', label: 'Todos' },
-  { value: 'perro', label: '🐕 Perro' },
-  { value: 'gato', label: '🐈 Gato' },
-  { value: 'caballo', label: '🐴 Caballo' },
-  { value: 'vaca', label: '🐄 Vaca' },
-  { value: 'otro', label: '🐾 Otro' },
+  ...(Object.keys(ANIMAL_LABEL) as AnimalType[]).map((type) => ({
+    value: type,
+    label: `${ANIMAL_EMOJI[type]} ${ANIMAL_LABEL[type]}`,
+  })),
 ]
 
 const RADIUS_OPTIONS = [5, 10, 20, 50]

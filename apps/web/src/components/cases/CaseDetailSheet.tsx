@@ -10,6 +10,7 @@ import { ContactModal } from './ContactModal'
 import { ReportModal } from './ReportModal'
 import CaseTimeline from './CaseTimeline'
 import { ANIMAL_LABEL, ANIMAL_EMOJI } from '../../lib/animalType'
+import type { AnimalType } from '../../types/case'
 import { LISTING_TYPE } from '../../lib/listingType'
 import { timeAgo, formatExact } from '../../lib/time'
 import { CaseTitleCode, CaseConditionInfo } from './CaseHeaderInfo'
@@ -187,7 +188,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
   }
 
   const handleEdit = async (data: {
-    animalType: string; description: string;
+    title: string; animalType: string; description: string;
     urgencyLevel: number; phoneContact: string; locationText: string; referenceNote: string
   }) => {
     if (!caseId) return
@@ -266,7 +267,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 <div className="min-w-0">
                   <p className="font-semibold text-gray-900 dark:text-gray-100 text-lg">{ANIMAL_LABEL[detail.animalType]}</p>
                   <div className="flex gap-2 mt-1 flex-wrap">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ring-1 ${LISTING_TYPE[detail.listingType].chipClass}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${LISTING_TYPE[detail.listingType].chipClass} ${LISTING_TYPE[detail.listingType].ringClass}`}>
                       {LISTING_TYPE[detail.listingType].long}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_CLASS[detail.status]}`}>
@@ -478,6 +479,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
       {showEditModal && detail && (
         <EditModal
           initial={{
+            title: detail.title,
             animalType: detail.animalType,
             description: detail.description,
             urgencyLevel: detail.urgencyLevel,
@@ -493,13 +495,9 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
   )
 }
 
-const ANIMAL_OPTIONS: { value: string; label: string; emoji: string }[] = [
-  { value: 'perro', label: 'Perro', emoji: '🐕' },
-  { value: 'gato', label: 'Gato', emoji: '🐈' },
-  { value: 'caballo', label: 'Caballo', emoji: '🐴' },
-  { value: 'vaca', label: 'Vaca', emoji: '🐄' },
-  { value: 'otro', label: 'Otro', emoji: '🐾' },
-]
+const ANIMAL_OPTIONS: { value: AnimalType; label: string; emoji: string }[] = (
+  Object.keys(ANIMAL_LABEL) as AnimalType[]
+).map((type) => ({ value: type, label: ANIMAL_LABEL[type], emoji: ANIMAL_EMOJI[type] }))
 
 const URGENCY_LABELS_EDIT: Record<number, string> = {
   1: 'Muy baja',
@@ -511,6 +509,7 @@ const URGENCY_LABELS_EDIT: Record<number, string> = {
 
 export interface EditModalProps {
   initial: {
+    title: string
     animalType: string
     description: string
     urgencyLevel: number
@@ -520,12 +519,13 @@ export interface EditModalProps {
   }
   onClose: () => void
   onSave: (data: {
-    animalType: string; description: string;
+    title: string; animalType: string; description: string;
     urgencyLevel: number; phoneContact: string; locationText: string; referenceNote: string
   }) => Promise<void>
 }
 
 export function EditModal({ initial, onClose, onSave }: EditModalProps) {
+  const [title, setTitle] = useState(initial.title)
   const [animalType, setAnimalType] = useState(initial.animalType)
   const [description, setDescription] = useState(initial.description)
   const [urgencyLevel, setUrgencyLevel] = useState(initial.urgencyLevel)
@@ -536,6 +536,10 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
   const [error, setError] = useState<string | null>(null)
 
   const handleSave = async () => {
+    if (title.trim().length < 3) {
+      setError('El título debe tener al menos 3 caracteres.')
+      return
+    }
     if (description.trim().length < 10) {
       setError('La descripción debe tener al menos 10 caracteres.')
       return
@@ -543,7 +547,7 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
     setLoading(true)
     setError(null)
     try {
-      await onSave({ animalType, description: description.trim(), urgencyLevel, phoneContact: phoneContact.trim(), locationText: locationText.trim(), referenceNote: referenceNote.trim() })
+      await onSave({ title: title.trim(), animalType, description: description.trim(), urgencyLevel, phoneContact: phoneContact.trim(), locationText: locationText.trim(), referenceNote: referenceNote.trim() })
     } catch {
       setError('No se pudo guardar. Intentá de nuevo.')
     } finally {
@@ -565,6 +569,17 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
         </div>
 
         <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Título</label>
+            <input
+              type="text"
+              value={title}
+              maxLength={120}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-base md:text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Tipo de animal</span>
             <div className="flex gap-2">
