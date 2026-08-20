@@ -9,9 +9,10 @@ import type { CaseDetail, CaseStatus, CaseUpdateType, CaseVolunteer } from '../.
 import { ContactModal } from './ContactModal'
 import { ReportModal } from './ReportModal'
 import CaseTimeline from './CaseTimeline'
-import { ANIMAL_LABEL, ANIMAL_EMOJI, CONDITION_LABEL } from '../../lib/animalType'
+import { ANIMAL_LABEL, ANIMAL_EMOJI } from '../../lib/animalType'
 import { LISTING_TYPE } from '../../lib/listingType'
 import { timeAgo, formatExact } from '../../lib/time'
+import { CaseTitleCode, CaseConditionInfo } from './CaseHeaderInfo'
 
 function contactedKey(userId: string) { return `10pet:contacted:${userId}` }
 function hasContactedCase(userId: string, caseId: string): boolean {
@@ -295,30 +296,11 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 </div>
               </div>
 
-              <div className="flex items-baseline gap-2 mb-1">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{detail.title}</h2>
-                <button
-                  type="button"
-                  onClick={() => navigator.clipboard?.writeText(detail.publicCode)}
-                  title="Copiar el codigo del caso"
-                  className="font-mono text-xs text-gray-500 dark:text-gray-400 hover:text-primary-600"
-                >
-                  #{detail.publicCode}
-                </button>
-              </div>
+              <CaseTitleCode title={detail.title} publicCode={detail.publicCode} />
 
               <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{detail.description}</p>
 
-              {detail.animalCondition && (
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Estado:</span> {CONDITION_LABEL[detail.animalCondition]}
-                </p>
-              )}
-              {detail.seenAt && (
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Visto:</span> {timeAgo(detail.seenAt)}
-                </p>
-              )}
+              <CaseConditionInfo animalCondition={detail.animalCondition} seenAt={detail.seenAt} />
 
               {(detail.locationText || detail.referenceNote) && (
                 <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
