@@ -48,7 +48,7 @@ const fakeCase = {
   locationText: 'Av. Corrientes 1234',
   referenceNote: null,
   title: 'Perro herido en Corrientes',
-  publicCode: 'CASE-0001',
+  publicCode: 'C-1000',
   animalCondition: 'herido',
   seenAt: null,
   createdAt: new Date('2026-04-21T10:00:00Z'),
@@ -74,12 +74,12 @@ describe('POST /api/v1/cases', () => {
         description: 'Perro herido en la calle sin collar',
         location: { lat: -34.6037, lng: -58.3816 },
         urgencyLevel: 3,
-        condition: 'herido',
       });
 
     expect(res.status).toBe(201);
     expect(res.body.case.id).toBe('case-uuid-1');
     expect(res.body.case.animalType).toBe('perro');
+    expect(res.body.case.publicCode).toBe('C-1000');
   });
 
   it('pasa referenceNote y locationText al servicio como campos separados', async () => {
@@ -168,7 +168,6 @@ describe('POST /api/v1/cases', () => {
         description: 'Perro herido en la calle sin collar',
         location: { lat: -34.6037, lng: -58.3816 },
         urgencyLevel: 3,
-        condition: 'herido',
       });
 
     expect(res.status).toBe(403);
@@ -192,7 +191,6 @@ describe('POST /api/v1/cases', () => {
         description: 'Perro herido en la calle sin collar',
         location: { lat: -34.6037, lng: -58.3816 },
         urgencyLevel: 3,
-        condition: 'herido',
       });
 
     expect(res.status).toBe(201);
@@ -209,7 +207,6 @@ describe('POST /api/v1/cases', () => {
         description: 'Perro herido en la calle sin collar',
         location: { lat: -34.6037, lng: -58.3816 },
         urgencyLevel: 3,
-        condition: 'herido',
       });
 
     expect(res.status).toBe(403);

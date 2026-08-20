@@ -32,6 +32,14 @@ interface ZoneStatsDbRow {
  *
  * Los conteos por urgencia y por tipo miran solo casos abiertos: son la
  * leyenda de lo que se ve en el mapa, no un historico.
+ *
+ * byListingType no distingue 'at_risk': se pliega en "found", igual que ya
+ * hace buildFeedOrderBy (cases.ordering.ts) al ordenar. Es la misma decision
+ * de diseno de S2 ("at_risk se comporta como found") aplicada aca. La
+ * alternativa era un tercer contador, pero el panel de dos columnas
+ * (ZoneStatsPanel) ya tiene sus cuatro celdas ocupadas y nadie pidio una
+ * quinta metrica — sumarla era una feature nueva disfrazada de bugfix. Con
+ * el pliegue, found + lost vuelve a sumar activeCases.
  */
 export async function getZoneStats(query: ZoneStatsQuery): Promise<ZoneStats> {
   const { lat, lng, radius } = query;
@@ -47,7 +55,7 @@ export async function getZoneStats(query: ZoneStatsQuery): Promise<ZoneStats> {
        COUNT(*) FILTER (WHERE c.status IN ('abierto','en_rescate') AND c.urgency_level = 4) AS "alta",
        COUNT(*) FILTER (WHERE c.status IN ('abierto','en_rescate') AND c.urgency_level = 3) AS "media",
        COUNT(*) FILTER (WHERE c.status IN ('abierto','en_rescate') AND c.urgency_level <= 2) AS "baja",
-       COUNT(*) FILTER (WHERE c.status IN ('abierto','en_rescate') AND c.listing_type = 'found') AS "found",
+       COUNT(*) FILTER (WHERE c.status IN ('abierto','en_rescate') AND c.listing_type IN ('found', 'at_risk')) AS "found",
        COUNT(*) FILTER (WHERE c.status IN ('abierto','en_rescate') AND c.listing_type = 'lost') AS "lost"
      FROM cases c
      WHERE ST_DWithin(

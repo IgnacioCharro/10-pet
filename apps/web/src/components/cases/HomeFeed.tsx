@@ -99,6 +99,7 @@ function ListRow({ caseItem, onClick }: { caseItem: CaseItem; onClick: () => voi
               {LISTING_TYPE[caseItem.listingType].short}
             </span>
           </div>
+          <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 mb-0.5">{caseItem.title}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
             {displayLocation(caseItem.locationText) ?? <span className="italic">Sin dirección</span>}
           </p>

@@ -172,7 +172,7 @@ export default function CasePage() {
   }
 
   const handleEdit = async (data: {
-    animalType: string; description: string;
+    title: string; animalType: string; description: string;
     urgencyLevel: number; phoneContact: string; locationText: string; referenceNote: string
   }) => {
     if (!id) return
@@ -443,6 +443,7 @@ export default function CasePage() {
       {showEditModal && (
         <EditModal
           initial={{
+            title: detail.title,
             animalType: detail.animalType,
             description: detail.description,
             urgencyLevel: detail.urgencyLevel,

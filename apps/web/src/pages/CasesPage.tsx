@@ -201,6 +201,10 @@ export default function CasesPage() {
             <span className="inline-block w-3 h-3 rounded-full border-2 border-green-500 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
             <span className="text-gray-600 dark:text-gray-300">Encontrado</span>
           </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-amber-500 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+            <span className="text-gray-600 dark:text-gray-300">En riesgo</span>
+          </div>
         </div>
 
         {cases.length === 0 && !loading && (

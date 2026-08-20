@@ -270,7 +270,15 @@ export default function PublishCasePage() {
       <div className="max-w-xl mx-auto flex flex-col gap-6">
         {step === 0 ? (
           <StepTipo onSelect={(type) => {
-            setState((prev) => ({ ...prev, listingType: type }))
+            // El chip de estado del animal no se muestra para 'lost' (StepDescripcion
+            // lo oculta), pero si el usuario ya lo habia elegido y vuelve a este paso
+            // para cambiar a 'lost', el valor sobrevivia sin UI para verlo o limpiarlo
+            // y seguia viajando en el submit y en el titulo sugerido.
+            setState((prev) => ({
+              ...prev,
+              listingType: type,
+              animalCondition: type === 'lost' ? '' : prev.animalCondition,
+            }))
             setStep(1)
           }} />
         ) : (
@@ -948,6 +956,7 @@ function StepUbicacion({
           <input
             type="date"
             max={new Date().toISOString().slice(0, 10)}
+            min={new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString().slice(0, 10)}
             className="mt-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-base"
             onChange={(e) => onSeenAtChange(e.target.value ? fechaDeInput(e.target.value) : null)}
           />
