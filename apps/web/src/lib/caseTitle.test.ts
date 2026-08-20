@@ -29,4 +29,17 @@ describe('suggestCaseTitle', () => {
   it('nunca pasa de los 120 caracteres que acepta el API', () => {
     expect(suggestCaseTitle('caballo', 'grande', 'no_pude_acercarme').length).toBeLessThanOrEqual(120)
   })
+
+  it('concuerda el tamano y el estado con las especies femeninas', () => {
+    expect(suggestCaseTitle('ave', 'mediano', 'herido')).toBe('Ave mediana, herida')
+    expect(suggestCaseTitle('vaca', 'chico', 'asustado')).toBe('Vaca chica, asustada')
+  })
+
+  it('deja intactos los adjetivos invariables', () => {
+    expect(suggestCaseTitle('ave', 'grande', 'debil')).toBe('Ave grande, débil')
+  })
+
+  it('no toca a las especies masculinas', () => {
+    expect(suggestCaseTitle('caballo', 'chico', 'sano')).toBe('Caballo chico, sano')
+  })
 })
