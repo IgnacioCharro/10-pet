@@ -5,10 +5,14 @@ import { getVetAssistances, createVetAssistance } from '../../services/vet-assis
 import type { VetAssistanceItem } from '../../services/vet-assistances.service'
 import { useAuthStore } from '../../stores/authStore'
 import { toast } from '../../stores/toastStore'
-import type { CaseDetail, AnimalType, CaseStatus, CaseUpdateType, CaseVolunteer } from '../../types/case'
+import type { CaseDetail, CaseStatus, CaseUpdateType, CaseVolunteer } from '../../types/case'
 import { ContactModal } from './ContactModal'
 import { ReportModal } from './ReportModal'
 import CaseTimeline from './CaseTimeline'
+import { ANIMAL_LABEL, ANIMAL_EMOJI } from '../../lib/animalType'
+import { LISTING_TYPE } from '../../lib/listingType'
+import { timeAgo, formatExact } from '../../lib/time'
+import { CaseTitleCode, CaseConditionInfo } from './CaseHeaderInfo'
 
 function contactedKey(userId: string) { return `10pet:contacted:${userId}` }
 function hasContactedCase(userId: string, caseId: string): boolean {
@@ -21,9 +25,6 @@ function saveContactedCase(userId: string, caseId: string): void {
     if (!ids.includes(caseId)) localStorage.setItem(contactedKey(userId), JSON.stringify([...ids, caseId]))
   } catch { /* noop */ }
 }
-
-const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
-const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', caballo: '🐴', vaca: '🐄', otro: '🐾' }
 
 const STATUS_LABEL: Record<CaseStatus, string> = {
   abierto: 'Abierto',
@@ -55,23 +56,6 @@ const URGENCY_COLOR: Record<number, string> = {
   3: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
   4: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
   5: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300',
-}
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const h = Math.floor(diff / 3_600_000)
-  if (h < 1) return 'hace unos minutos'
-  if (h < 24) return `hace ${h}h`
-  const d = Math.floor(h / 24)
-  if (d < 30) return `hace ${d}d`
-  return `hace ${Math.floor(d / 30)} meses`
-}
-
-function formatExact(iso: string): string {
-  return new Date(iso).toLocaleString('es-AR', {
-    day: 'numeric', month: 'long', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
 }
 
 interface Props {
@@ -203,7 +187,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
   }
 
   const handleEdit = async (data: {
-    animalType: string; description: string; condition: string;
+    animalType: string; description: string;
     urgencyLevel: number; phoneContact: string; locationText: string; referenceNote: string
   }) => {
     if (!caseId) return
@@ -282,13 +266,8 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 <div className="min-w-0">
                   <p className="font-semibold text-gray-900 dark:text-gray-100 text-lg">{ANIMAL_LABEL[detail.animalType]}</p>
                   <div className="flex gap-2 mt-1 flex-wrap">
-                    <span className={[
-                      'text-xs px-2 py-0.5 rounded-full font-semibold ring-1',
-                      detail.listingType === 'lost'
-                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 ring-blue-300'
-                        : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 ring-green-300',
-                    ].join(' ')}>
-                      {detail.listingType === 'lost' ? 'Buscado' : 'Encontrado'}
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ring-1 ${LISTING_TYPE[detail.listingType].chipClass}`}>
+                      {LISTING_TYPE[detail.listingType].long}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_CLASS[detail.status]}`}>
                       {STATUS_LABEL[detail.status]}
@@ -317,14 +296,11 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 </div>
               </div>
 
+              <CaseTitleCode title={detail.title} publicCode={detail.publicCode} />
+
               <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{detail.description}</p>
 
-              {detail.condition && (
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Condición</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-200">{detail.condition}</p>
-                </div>
-              )}
+              <CaseConditionInfo animalCondition={detail.animalCondition} seenAt={detail.seenAt} />
 
               {(detail.locationText || detail.referenceNote) && (
                 <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
@@ -504,7 +480,6 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
           initial={{
             animalType: detail.animalType,
             description: detail.description,
-            condition: detail.condition ?? '',
             urgencyLevel: detail.urgencyLevel,
             phoneContact: detail.phoneContact ?? '',
             locationText: detail.locationText ?? '',
@@ -538,7 +513,6 @@ export interface EditModalProps {
   initial: {
     animalType: string
     description: string
-    condition: string
     urgencyLevel: number
     phoneContact: string
     locationText: string
@@ -546,7 +520,7 @@ export interface EditModalProps {
   }
   onClose: () => void
   onSave: (data: {
-    animalType: string; description: string; condition: string;
+    animalType: string; description: string;
     urgencyLevel: number; phoneContact: string; locationText: string; referenceNote: string
   }) => Promise<void>
 }
@@ -554,7 +528,6 @@ export interface EditModalProps {
 export function EditModal({ initial, onClose, onSave }: EditModalProps) {
   const [animalType, setAnimalType] = useState(initial.animalType)
   const [description, setDescription] = useState(initial.description)
-  const [condition, setCondition] = useState(initial.condition)
   const [urgencyLevel, setUrgencyLevel] = useState(initial.urgencyLevel)
   const [phoneContact, setPhoneContact] = useState(initial.phoneContact)
   const [locationText, setLocationText] = useState(initial.locationText)
@@ -570,7 +543,7 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
     setLoading(true)
     setError(null)
     try {
-      await onSave({ animalType, description: description.trim(), condition: condition.trim(), urgencyLevel, phoneContact: phoneContact.trim(), locationText: locationText.trim(), referenceNote: referenceNote.trim() })
+      await onSave({ animalType, description: description.trim(), urgencyLevel, phoneContact: phoneContact.trim(), locationText: locationText.trim(), referenceNote: referenceNote.trim() })
     } catch {
       setError('No se pudo guardar. Intentá de nuevo.')
     } finally {
@@ -620,17 +593,6 @@ export function EditModal({ initial, onClose, onSave }: EditModalProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-base md:text-sm placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Condición</label>
-            <input
-              type="text"
-              value={condition}
-              onChange={(e) => setCondition(e.target.value)}
-              placeholder="Ej: herida en pata, con collar"
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-base md:text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 

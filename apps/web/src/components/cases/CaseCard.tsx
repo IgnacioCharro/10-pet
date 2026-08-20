@@ -1,8 +1,8 @@
 import { displayLocation, displayDistance } from '../../lib/location'
-import type { CaseItem, AnimalType, CaseStatus } from '../../types/case'
-
-const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
-const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', caballo: '🐴', vaca: '🐄', otro: '🐾' }
+import type { CaseItem, CaseStatus } from '../../types/case'
+import { ANIMAL_LABEL, ANIMAL_EMOJI } from '../../lib/animalType'
+import { LISTING_TYPE } from '../../lib/listingType'
+import { timeAgo, formatExact } from '../../lib/time'
 
 const STATUS_LABEL: Record<CaseStatus, string> = {
   abierto: 'Abierto',
@@ -36,23 +36,6 @@ const URGENCY_LABEL: Record<number, string> = {
   5: 'Urgencia critica',
 }
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const h = Math.floor(diff / 3_600_000)
-  if (h < 1) return 'hace unos minutos'
-  if (h < 24) return `hace ${h}h`
-  const d = Math.floor(h / 24)
-  if (d < 30) return `hace ${d}d`
-  return `hace ${Math.floor(d / 30)}m`
-}
-
-function formatExact(iso: string): string {
-  return new Date(iso).toLocaleString('es-AR', {
-    day: 'numeric', month: 'long', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
-}
-
 interface Props {
   caseItem: CaseItem
   onClick: () => void
@@ -84,8 +67,8 @@ export default function CaseCard({ caseItem: c, onClick }: Props) {
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <span className="text-base leading-none">{ANIMAL_EMOJI[c.animalType]}</span>
             <span className="font-medium text-gray-800 dark:text-gray-100 text-sm">{ANIMAL_LABEL[c.animalType]}</span>
-            <span className={`text-xs px-2 py-0.5 rounded font-medium ${c.listingType === 'lost' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'}`}>
-              {c.listingType === 'lost' ? 'Busco' : 'Encontré'}
+            <span className={`text-xs px-2 py-0.5 rounded font-medium ${LISTING_TYPE[c.listingType].chipClass}`}>
+              {LISTING_TYPE[c.listingType].short}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_CLASS[c.status]}`}>
               {STATUS_LABEL[c.status]}
@@ -95,6 +78,7 @@ export default function CaseCard({ caseItem: c, onClick }: Props) {
             </span>
           </div>
 
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 mb-0.5">{c.title}</h3>
           <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">{c.description}</p>
 
           <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">

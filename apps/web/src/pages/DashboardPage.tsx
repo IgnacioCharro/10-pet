@@ -295,7 +295,8 @@ function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
           </span>
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium capitalize">{item.animalType}</p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">{item.title}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{item.animalType}</p>
           {/* Antes, si no habia direccion, caiamos a mostrar el par de coordenadas.
               A quien busca su perro "-34.171, -59.794" no le dice nada; "Sin
               direccion" al menos es honesto sobre lo que sabemos del caso. */}

@@ -13,11 +13,15 @@ import ZoneStatsPanel from './ZoneStatsPanel'
 import UrgencyLegend from './UrgencyLegend'
 import { displayLocation, displayDistance } from '../../lib/location'
 import type { AnimalType, ListingType, CaseItem, SortOrder } from '../../types/case'
+import { ANIMAL_LABEL, ANIMAL_EMOJI } from '../../lib/animalType'
+import { LISTING_TYPE } from '../../lib/listingType'
+import { timeAgo } from '../../lib/time'
 
 interface FeedRow {
   id: string
   listingType: ListingType
   animalType: AnimalType
+  title: string
   locationText: string | null
   urgencyLevel: number
   createdAt: string
@@ -26,15 +30,13 @@ interface FeedRow {
   heroUrl: string | null
 }
 
-const ANIMAL_EMOJI: Record<AnimalType, string> = { perro: '🐕', gato: '🐈', caballo: '🐴', vaca: '🐄', otro: '🐾' }
-const ANIMAL_LABEL: Record<AnimalType, string> = { perro: 'Perro', gato: 'Gato', caballo: 'Caballo', vaca: 'Vaca', otro: 'Otro' }
-
-type Tab = 'all' | 'found' | 'lost'
+type Tab = 'all' | 'found' | 'lost' | 'at_risk'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'all', label: 'Todos' },
   { id: 'found', label: 'Encontrados' },
   { id: 'lost', label: 'Buscados' },
+  { id: 'at_risk', label: 'En riesgo' },
 ]
 
 const ANIMAL_CHIPS: { value: AnimalType | ''; label: string }[] = [
@@ -43,18 +45,9 @@ const ANIMAL_CHIPS: { value: AnimalType | ''; label: string }[] = [
   { value: 'gato', label: '🐈 Gato' },
   { value: 'caballo', label: '🐴 Caballo' },
   { value: 'vaca', label: '🐄 Vaca' },
+  { value: 'ave', label: '🐦 Ave' },
   { value: 'otro', label: '🐾 Otro' },
 ]
-
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 2) return 'hace un momento'
-  if (mins < 60) return `hace ${mins}m`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `hace ${hours}h`
-  return `hace ${Math.floor(hours / 24)}d`
-}
 
 function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
   return (
@@ -75,6 +68,7 @@ function UrgentCard({ row, onClick }: { row: FeedRow; onClick: () => void }) {
           <span className="text-xs font-medium text-gray-800 dark:text-gray-100">{ANIMAL_LABEL[row.animalType]}</span>
           <UrgencyTag level={row.urgencyLevel} />
         </div>
+        <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 mb-0.5">{row.title}</p>
         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
           {displayLocation(row.locationText) ?? <span className="italic">Sin dirección</span>}
         </p>
@@ -101,10 +95,8 @@ function ListRow({ caseItem, onClick }: { caseItem: CaseItem; onClick: () => voi
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap mb-1">
             <span className="font-medium text-gray-900 dark:text-gray-100 text-sm">{ANIMAL_LABEL[caseItem.animalType]}</span>
-            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-              caseItem.listingType === 'lost' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'
-            }`}>
-              {caseItem.listingType === 'lost' ? 'Busco' : 'Encontré'}
+            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${LISTING_TYPE[caseItem.listingType].chipClass}`}>
+              {LISTING_TYPE[caseItem.listingType].short}
             </span>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -194,7 +186,7 @@ export default function HomeFeed() {
       lng: loc.center[1],
       radius: 10,
       status: 'abierto',
-      listingType: tab === 'all' ? undefined : (tab === 'found' ? 'found' : 'lost'),
+      listingType: tab === 'all' ? undefined : tab,
       animalType: animalType || undefined,
       sort,
       page,

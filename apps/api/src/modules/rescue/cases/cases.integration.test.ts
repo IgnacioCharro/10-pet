@@ -47,7 +47,10 @@ const fakeCase = {
   lng: -58.3816,
   locationText: 'Av. Corrientes 1234',
   referenceNote: null,
-  condition: 'herido',
+  title: 'Perro herido en Corrientes',
+  publicCode: 'CASE-0001',
+  animalCondition: 'herido',
+  seenAt: null,
   createdAt: new Date('2026-04-21T10:00:00Z'),
   updatedAt: new Date('2026-04-21T10:00:00Z'),
   resolvedAt: null,
@@ -66,6 +69,7 @@ describe('POST /api/v1/cases', () => {
       .post('/api/v1/cases')
       .set('Authorization', authHeader)
       .send({
+        title: 'Perro herido en Corrientes',
         animalType: 'perro',
         description: 'Perro herido en la calle sin collar',
         location: { lat: -34.6037, lng: -58.3816 },
@@ -86,6 +90,7 @@ describe('POST /api/v1/cases', () => {
       .post('/api/v1/cases')
       .set('Authorization', authHeader)
       .send({
+        title: 'Perro herido en Corrientes',
         animalType: 'perro',
         description: 'Perro herido en la calle sin collar',
         location: { lat: -34.6037, lng: -58.3816 },
@@ -182,6 +187,7 @@ describe('POST /api/v1/cases', () => {
       .post('/api/v1/cases')
       .set('Authorization', unverifiedHeader)
       .send({
+        title: 'Perro herido en Corrientes',
         animalType: 'perro',
         description: 'Perro herido en la calle sin collar',
         location: { lat: -34.6037, lng: -58.3816 },

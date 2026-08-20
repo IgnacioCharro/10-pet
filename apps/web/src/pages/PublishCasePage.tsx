@@ -4,6 +4,7 @@ import type { AxiosError } from 'axios'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
+import { Chip } from '../components/ui'
 import ResendVerification from '../components/ResendVerification'
 import LocalidadAutocomplete from '../components/cases/LocalidadAutocomplete'
 import CalleAutocomplete from '../components/cases/CalleAutocomplete'
@@ -13,7 +14,10 @@ import { getMe } from '../services/users.service'
 import { useAuthStore } from '../stores/authStore'
 import { lazyWithRetry } from '../lib/lazyWithRetry'
 import ErrorBoundary from '../components/ErrorBoundary'
-import type { AnimalType, AnimalSex, AnimalSize, AnimalColor, ListingType } from '../types/case'
+import { ANIMAL_LABEL, ANIMAL_EMOJI, CONDITION_LABEL } from '../lib/animalType'
+import { LISTING_TYPE } from '../lib/listingType'
+import { useSuggestedTitle } from '../lib/useSuggestedTitle'
+import type { AnimalType, AnimalCondition, AnimalSex, AnimalSize, AnimalColor, ListingType } from '../types/case'
 
 const LocationPickerMap = lazyWithRetry(() => import('../components/map/LocationPickerMap'))
 
@@ -28,7 +32,10 @@ interface WizardState {
   referenceNote: string
   animalType: AnimalType | ''
   description: string
-  condition: string
+  animalCondition: AnimalCondition | ''
+  seenAt: string | null
+  /** Cual chip de "cuando lo viste" esta activo; '' es ninguno */
+  cuando: string
   urgencyLevel: number
   phoneContact: string
   animalSex: AnimalSex | ''
@@ -36,12 +43,10 @@ interface WizardState {
   animalColor: AnimalColor | ''
 }
 
-const ANIMAL_LABELS: Record<AnimalType, string> = {
-  perro: '🐕 Perro',
-  gato: '🐈 Gato',
-  caballo: '🐴 Caballo',
-  vaca: '🐄 Vaca',
-  otro: '🐾 Otro',
+const TITULO_POR_TIPO: Record<ListingType, string> = {
+  found: 'Reportar animal encontrado',
+  lost: 'Buscar mi mascota',
+  at_risk: 'Reportar animal en riesgo',
 }
 
 const URGENCY_LABELS: Record<number, string> = {
@@ -69,17 +74,20 @@ export default function PublishCasePage() {
     referenceNote: '',
     animalType: '',
     description: '',
-    condition: '',
+    animalCondition: '',
+    seenAt: null,
+    cuando: '',
     urgencyLevel: 3,
     phoneContact: '',
     animalSex: '',
     animalSize: '',
     animalColor: '',
   })
+  const { title, setTitle } = useSuggestedTitle(state.animalType, state.animalSize, state.animalCondition)
   const [uploadingImages, setUploadingImages] = useState(false)
   const [geolocating, setGeolocating] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [errors, setErrors] = useState<Partial<Record<keyof WizardState | 'submit', string>>>({})
+  const [errors, setErrors] = useState<Partial<Record<keyof WizardState | 'submit', string>> & { title?: string }>({})
   const [rechecking, setRechecking] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -167,6 +175,7 @@ export default function PublishCasePage() {
       if (!state.animalType) newErrors.animalType = 'Seleccioná el tipo de animal.'
       if (state.description.trim().length < 10)
         newErrors.description = 'La descripción debe tener al menos 10 caracteres.'
+      if (title.trim().length < 3) newErrors.title = 'Poné un título de al menos 3 caracteres.'
     }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -187,11 +196,13 @@ export default function PublishCasePage() {
       const newCase = await createCase({
         listingType: state.listingType,
         animalType: state.animalType,
+        title: title.trim(),
         description: state.description.trim(),
         location: { lat: state.lat, lng: state.lng },
         locationText: state.locationText.trim() || undefined,
         referenceNote: state.referenceNote.trim() || undefined,
-        condition: state.condition.trim() || undefined,
+        animalCondition: state.animalCondition || undefined,
+        seenAt: state.seenAt ?? undefined,
         urgencyLevel: state.urgencyLevel,
         phoneContact: state.phoneContact.trim() || undefined,
         imageIds: state.images.map((i) => i.publicId),
@@ -266,7 +277,7 @@ export default function PublishCasePage() {
           <>
             <div>
               <h1 className="text-2xl font-semibold">
-                {state.listingType === 'lost' ? 'Buscar mi mascota' : 'Reportar animal encontrado'}
+                {TITULO_POR_TIPO[state.listingType ?? 'found']}
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Paso {step} de 4 — {STEPS[step - 1]}</p>
             </div>
@@ -292,11 +303,17 @@ export default function PublishCasePage() {
                 referenceNote={state.referenceNote}
                 geolocating={geolocating}
                 error={errors.lat}
+                cuando={state.cuando}
                 onGeolocate={geolocate}
                 onLatChange={(v) => update('lat', v)}
                 onLngChange={(v) => update('lng', v)}
                 onLocationTextChange={(v) => update('locationText', v)}
                 onReferenceNoteChange={(v) => update('referenceNote', v)}
+                onCuandoChange={(id, seenAt) => {
+                  update('cuando', id)
+                  update('seenAt', seenAt)
+                }}
+                onSeenAtChange={(v) => update('seenAt', v)}
               />
             )}
 
@@ -305,15 +322,17 @@ export default function PublishCasePage() {
                 listingType={state.listingType ?? 'found'}
                 animalType={state.animalType}
                 description={state.description}
-                condition={state.condition}
+                title={title}
+                animalCondition={state.animalCondition}
                 urgencyLevel={state.urgencyLevel}
                 animalSex={state.animalSex}
                 animalSize={state.animalSize}
                 animalColor={state.animalColor}
-                errors={{ animalType: errors.animalType, description: errors.description }}
+                errors={{ animalType: errors.animalType, description: errors.description, title: errors.title }}
                 onAnimalTypeChange={(v) => update('animalType', v)}
                 onDescriptionChange={(v) => update('description', v)}
-                onConditionChange={(v) => update('condition', v)}
+                onTitleChange={setTitle}
+                onAnimalConditionChange={(v) => update('animalCondition', v)}
                 onUrgencyChange={(v) => update('urgencyLevel', v)}
                 onAnimalSexChange={(v) => update('animalSex', v)}
                 onAnimalSizeChange={(v) => update('animalSize', v)}
@@ -325,6 +344,7 @@ export default function PublishCasePage() {
               <StepContacto
                 phoneContact={state.phoneContact}
                 onPhoneChange={(v) => update('phoneContact', v)}
+                title={title}
                 summary={state}
               />
             )}
@@ -390,6 +410,21 @@ function StepTipo({ onSelect }: { onSelect: (type: ListingType) => void }) {
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Se te perdió o escapó tu animal y estás buscando que alguien te avise si lo ve.
+            </p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => onSelect('at_risk')}
+          className="flex items-start gap-4 p-5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-amber-400 hover:bg-amber-50 active:bg-amber-100 transition-colors text-left group"
+        >
+          <span className="text-3xl mt-0.5">⚠️</span>
+          <div>
+            <p className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-amber-700">
+              Vi un animal en riesgo
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              Viste un animal en peligro pero no te pudiste quedar con él.
             </p>
           </div>
         </button>
@@ -516,11 +551,32 @@ interface StepUbicacionProps {
   referenceNote: string
   geolocating: boolean
   error?: string
+  cuando: string
   onGeolocate: () => void
   onLatChange: (v: number | null) => void
   onLngChange: (v: number | null) => void
   onLocationTextChange: (v: string) => void
   onReferenceNoteChange: (v: string) => void
+  onCuandoChange: (id: string, seenAt: string | null) => void
+  onSeenAtChange: (v: string | null) => void
+}
+
+const CUANDO_OPCIONES: { id: string; label: string; minutos: number }[] = [
+  { id: 'ahora', label: 'Ahora mismo', minutos: 0 },
+  { id: 'hora', label: 'Hace menos de 1 hora', minutos: 30 },
+  { id: 'hoy', label: 'Hoy más temprano', minutos: 5 * 60 },
+  { id: 'ayer', label: 'Ayer', minutos: 24 * 60 },
+]
+
+function fechaDeChip(minutos: number): string {
+  return new Date(Date.now() - minutos * 60_000).toISOString()
+}
+
+// El input date da 'YYYY-MM-DD'. Se ancla al mediodia local: a las 00:00 el
+// pasaje a UTC puede correr la fecha al dia anterior segun la zona.
+function fechaDeInput(valor: string): string {
+  const [a, m, d] = valor.split('-').map(Number)
+  return new Date(a, m - 1, d, 12, 0, 0).toISOString()
 }
 
 type AddressMode = 'numero' | 'interseccion'
@@ -575,8 +631,9 @@ async function queryOverpass(query: string): Promise<OverpassResponse | null> {
 }
 
 function StepUbicacion({
-  lat, lng, locationText, referenceNote, geolocating, error,
+  lat, lng, locationText, referenceNote, geolocating, error, cuando,
   onGeolocate, onLatChange, onLngChange, onLocationTextChange, onReferenceNoteChange,
+  onCuandoChange, onSeenAtChange,
 }: StepUbicacionProps) {
   const [showForm, setShowForm] = useState(false)
   const [localidad, setLocalidad] = useState('')
@@ -874,6 +931,28 @@ function StepUbicacion({
           hint="Una pista para encontrarlo. Se muestra en la ficha, junto a la dirección."
         />
       </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">¿Cuándo lo viste?</label>
+        <div className="flex flex-wrap gap-2">
+          {CUANDO_OPCIONES.map((o) => (
+            <Chip key={o.id} active={cuando === o.id} onClick={() => onCuandoChange(o.id, fechaDeChip(o.minutos))}>
+              {o.label}
+            </Chip>
+          ))}
+          <Chip active={cuando === 'otra'} onClick={() => onCuandoChange('otra', null)}>
+            Otra fecha
+          </Chip>
+        </div>
+        {cuando === 'otra' && (
+          <input
+            type="date"
+            max={new Date().toISOString().slice(0, 10)}
+            className="mt-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-base"
+            onChange={(e) => onSeenAtChange(e.target.value ? fechaDeInput(e.target.value) : null)}
+          />
+        )}
+      </div>
     </div>
   )
 }
@@ -904,15 +983,17 @@ interface StepDescripcionProps {
   listingType: ListingType
   animalType: AnimalType | ''
   description: string
-  condition: string
+  title: string
+  animalCondition: AnimalCondition | ''
   urgencyLevel: number
   animalSex: AnimalSex | ''
   animalSize: AnimalSize | ''
   animalColor: AnimalColor | ''
-  errors: { animalType?: string; description?: string }
+  errors: { animalType?: string; description?: string; title?: string }
   onAnimalTypeChange: (v: AnimalType | '') => void
   onDescriptionChange: (v: string) => void
-  onConditionChange: (v: string) => void
+  onTitleChange: (v: string) => void
+  onAnimalConditionChange: (v: AnimalCondition | '') => void
   onUrgencyChange: (v: number) => void
   onAnimalSexChange: (v: AnimalSex | '') => void
   onAnimalSizeChange: (v: AnimalSize | '') => void
@@ -920,16 +1001,16 @@ interface StepDescripcionProps {
 }
 
 function StepDescripcion({
-  listingType, animalType, description, condition, urgencyLevel,
+  listingType, animalType, description, title, animalCondition, urgencyLevel,
   animalSex, animalSize, animalColor, errors,
-  onAnimalTypeChange, onDescriptionChange, onConditionChange, onUrgencyChange,
+  onAnimalTypeChange, onDescriptionChange, onTitleChange, onAnimalConditionChange, onUrgencyChange,
   onAnimalSexChange, onAnimalSizeChange, onAnimalColorChange,
 }: StepDescripcionProps) {
   const [showDetails, setShowDetails] = useState(false)
   const hasDetails = animalSex !== '' || animalSize !== '' || animalColor !== ''
 
   const descPlaceholder = listingType === 'lost'
-    ? 'Describí tu mascota: raza, color, collar, dónde se perdió, etc.'
+    ? 'Contá cómo es: color, tamaño, collar, señas particulares...'
     : 'Describí la situación: dónde está, cómo está, si tiene collar, etc.'
 
   const detailChip = (active: boolean) => [
@@ -941,10 +1022,22 @@ function StepDescripcion({
 
   return (
     <div className="flex flex-col gap-4">
+      <Input
+        label="Título"
+        value={title}
+        maxLength={120}
+        onChange={(e) => onTitleChange(e.target.value)}
+        placeholder="Ej: Perro mediano, herido"
+        error={errors.title}
+      />
+      <p className="text-xs text-gray-500 dark:text-gray-400 -mt-2">
+        Lo completamos con lo que elegís. Podés reescribirlo.
+      </p>
+
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Tipo de animal *</span>
         <div className="grid grid-cols-3 gap-2">
-          {(Object.keys(ANIMAL_LABELS) as AnimalType[]).map((type) => (
+          {(Object.keys(ANIMAL_LABEL) as AnimalType[]).map((type) => (
             <button
               key={type}
               type="button"
@@ -956,7 +1049,7 @@ function StepDescripcion({
                   : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
               ].join(' ')}
             >
-              {ANIMAL_LABELS[type]}
+              {ANIMAL_EMOJI[type]} {ANIMAL_LABEL[type]}
             </button>
           ))}
         </div>
@@ -981,12 +1074,18 @@ function StepDescripcion({
         {errors.description && <p className="text-xs text-red-600 dark:text-red-300">{errors.description}</p>}
       </div>
 
-      <Input
-        label={listingType === 'lost' ? 'Señas particulares (opcional)' : 'Condición (opcional)'}
-        placeholder={listingType === 'lost' ? 'Ej: collar azul, mancha en la pata' : 'Ej: herida en pata delantera, muy flaco'}
-        value={condition}
-        onChange={(e) => onConditionChange(e.target.value)}
-      />
+      {listingType !== 'lost' && (
+        <div>
+          <label className="block text-sm font-medium mb-2">Estado del animal (opcional)</label>
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(CONDITION_LABEL) as AnimalCondition[]).map((c) => (
+              <Chip key={c} active={animalCondition === c} onClick={() => onAnimalConditionChange(animalCondition === c ? '' : c)}>
+                {CONDITION_LABEL[c]}
+              </Chip>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -1087,15 +1186,17 @@ function StepDescripcion({
 interface StepContactoProps {
   phoneContact: string
   onPhoneChange: (v: string) => void
+  title: string
   summary: WizardState
 }
 
-function StepContacto({ phoneContact, onPhoneChange, summary }: StepContactoProps) {
+function StepContacto({ phoneContact, onPhoneChange, title, summary }: StepContactoProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 text-sm flex flex-col gap-1">
-        <p><span className="font-medium">Tipo:</span> {summary.listingType === 'lost' ? 'Busco mi mascota' : 'Animal encontrado'}</p>
-        <p><span className="font-medium">Animal:</span> {summary.animalType ? ANIMAL_LABELS[summary.animalType as AnimalType] : '—'}</p>
+        <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">{title}</p>
+        <p><span className="font-medium">Tipo:</span> {LISTING_TYPE[summary.listingType ?? 'found'].long}</p>
+        <p><span className="font-medium">Animal:</span> {summary.animalType ? `${ANIMAL_EMOJI[summary.animalType as AnimalType]} ${ANIMAL_LABEL[summary.animalType as AnimalType]}` : '—'}</p>
         <p><span className="font-medium">Ubicación:</span> {summary.locationText || 'Sin dirección exacta'}</p>
         {summary.referenceNote.trim() && (
           <p><span className="font-medium">Referencia:</span> {summary.referenceNote.trim()}</p>

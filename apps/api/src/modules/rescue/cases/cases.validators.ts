@@ -9,14 +9,37 @@ const animalSexSchema = z.enum(['macho', 'hembra', 'desconocido']);
 const animalSizeSchema = z.enum(['chico', 'mediano', 'grande']);
 const animalColorSchema = z.enum(['negro', 'blanco', 'marron', 'gris', 'dorado', 'manchado', 'tricolor']);
 
+const animalConditionSchema = z.enum([
+  'herido', 'sano', 'asustado', 'debil', 'no_pude_acercarme',
+]);
+
+const listingTypeSchema = z.enum(['found', 'lost', 'at_risk']);
+
+const animalTypeSchema = z.enum(['perro', 'gato', 'caballo', 'vaca', 'ave', 'otro']);
+
+// Cuando el usuario dice que vio al animal. Los chips del wizard resuelven
+// contra el reloj del cliente, asi que las cotas son la unica defensa contra un
+// dispositivo con la hora mal: un minuto de tolerancia hacia adelante para el
+// desfasaje normal, un ano hacia atras.
+const seenAtSchema = z.coerce
+  .date()
+  .refine((d) => d.getTime() <= Date.now() + 60_000, {
+    message: 'La fecha no puede estar en el futuro',
+  })
+  .refine((d) => d.getTime() >= Date.now() - 365 * 24 * 3600 * 1000, {
+    message: 'La fecha no puede ser de hace mas de un ano',
+  });
+
 export const createCaseSchema = z.object({
-  listingType: z.enum(['found', 'lost']).default('found'),
-  animalType: z.enum(['perro', 'gato', 'caballo', 'vaca', 'otro']),
+  listingType: listingTypeSchema.default('found'),
+  title: z.string().trim().min(3).max(120),
+  animalType: animalTypeSchema,
   description: z.string().trim().min(10).max(2000),
   location: locationSchema,
   locationText: z.string().trim().max(255).optional(),
   referenceNote: z.string().trim().max(255).optional(),
-  condition: z.string().trim().max(100).optional(),
+  animalCondition: animalConditionSchema.optional(),
+  seenAt: seenAtSchema.optional(),
   urgencyLevel: z.number().int().min(1).max(5).default(1),
   phoneContact: z.string().trim().max(20).optional(),
   imageIds: z.array(z.string().max(500)).max(10).optional(),
@@ -32,8 +55,8 @@ export const listCasesSchema = z.object({
   status: z
     .enum(['abierto', 'en_rescate', 'resuelto', 'inactivo', 'spam'])
     .optional(), // 'archivado' omitido a propósito — no expuesto en búsqueda pública
-  animalType: z.enum(['perro', 'gato', 'caballo', 'vaca', 'otro']).optional(),
-  listingType: z.enum(['found', 'lost']).optional(),
+  animalType: animalTypeSchema.optional(),
+  listingType: listingTypeSchema.optional(),
   urgencyMin: z.coerce.number().int().min(1).max(5).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
@@ -58,14 +81,15 @@ export const zoneStatsSchema = geographicQuerySchema;
 
 export const updateCaseSchema = z
   .object({
+    title: z.string().trim().min(3).max(120).optional(),
     status: z.enum(['abierto', 'en_rescate', 'resuelto', 'inactivo', 'spam', 'archivado']).optional(),
     resolutionType: z
       .enum(['adoptado', 'en_transito', 'zoonosis', 'derivado_ong', 'fallecio', 'sin_paradero', 'otro'])
       .optional(),
-    animalType: z.enum(['perro', 'gato', 'caballo', 'vaca', 'otro']).optional(),
+    animalType: animalTypeSchema.optional(),
+    animalCondition: animalConditionSchema.optional(),
     urgencyLevel: z.number().int().min(1).max(5).optional(),
     description: z.string().trim().min(10).max(2000).optional(),
-    condition: z.string().trim().max(100).optional(),
     phoneContact: z.string().trim().max(20).optional(),
     locationText: z.string().trim().max(255).optional(),
   referenceNote: z.string().trim().max(255).optional(),
@@ -106,7 +130,7 @@ export const feedCasesSchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
   radius: z.coerce.number().min(0.1).max(100).default(10),
-  listingType: z.enum(['found', 'lost']).optional(),
+  listingType: listingTypeSchema.optional(),
 });
 
 export type CreateCaseInput = z.infer<typeof createCaseSchema>;

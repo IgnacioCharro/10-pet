@@ -24,8 +24,10 @@ export function buildListOrderBy(
   return 'c.created_at DESC';
 }
 
-// lost cases: most recent first; found cases (or all): urgency, then fewest volunteers
-export function buildFeedOrderBy(listingType?: 'found' | 'lost'): string {
+// lost: mas reciente primero. found y at_risk: urgencia, despues menos voluntarios.
+// at_risk comparte el criterio de found a proposito — el tercer tipo cambia la
+// etiqueta, no el orden.
+export function buildFeedOrderBy(listingType?: 'found' | 'lost' | 'at_risk'): string {
   if (listingType === 'lost') return 'c.created_at DESC';
   return `c.urgency_level DESC, ${FEED_VOLUNTEER_COUNT_EXPR} ASC, c.created_at DESC, c.id DESC`;
 }

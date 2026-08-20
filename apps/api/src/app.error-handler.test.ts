@@ -38,6 +38,7 @@ const authHeader = `Bearer ${signAccessToken({
 
 const payloadValido = {
   listingType: 'found',
+  title: 'Caballo suelto en la interseccion',
   animalType: 'caballo',
   description: 'Caballo suelto en la interseccion de dos calles',
   location: { lat: -34.176967, lng: -59.7790638 },
