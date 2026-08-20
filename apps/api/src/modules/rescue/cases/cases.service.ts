@@ -454,6 +454,10 @@ export async function updateCase(
     setClauses.push(`animal_color = :animalColor`);
     replacements.animalColor = input.animalColor;
   }
+  if (input.whereabouts !== undefined) {
+    setClauses.push(`whereabouts = :whereabouts`);
+    replacements.whereabouts = input.whereabouts;
+  }
   setClauses.push(`updated_at = NOW()`);
 
   const rows = await sequelize.query<CaseRow>(
@@ -530,6 +534,10 @@ export async function getFeedCases(query: FeedCasesQuery): Promise<FeedCaseRow[]
        ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
        :radiusM
      )`,
+    // Un animal que ya esta a resguardo no es urgente, por mas alta que sea
+    // la urgencia con la que se publico. El feed no tiene toggle "sheltered"
+    // como el listado, asi que se excluyen directamente en vez de mostrarlos.
+    `c.whereabouts NOT IN ('con_quien_publica', 'con_un_tercero')`,
   ];
   const replacements: Record<string, unknown> = {
     lat,

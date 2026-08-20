@@ -12,8 +12,15 @@ vi.mock('../../../jobs/queue', () => ({
   contactRequestQueue: null,
 }));
 
-import { sequelize, CaseUpdate } from '../../../db';
-import { listCases, getFeedCases, listCasesByUser, createCase, FEED_MAX_AGE_DAYS } from './cases.service';
+import { sequelize, CaseUpdate, Case } from '../../../db';
+import {
+  listCases,
+  getFeedCases,
+  listCasesByUser,
+  createCase,
+  updateCase,
+  FEED_MAX_AGE_DAYS,
+} from './cases.service';
 import { VOLUNTEER_COUNT_SUBQUERY, FEED_VOLUNTEER_COUNT_EXPR } from './cases.ordering';
 import { ListCasesQuery, FeedCasesQuery, CreateCaseInput } from './cases.validators';
 
@@ -199,5 +206,40 @@ describe('createCase — apertura del historial', () => {
     queryMock.mockResolvedValueOnce([{ id: 'case-4' }]);
     await createCase('user-1', { ...baseCreateInput, whereabouts: 'con_quien_publica' });
     expect(replacementsOf(0)['whereabouts']).toBe('con_quien_publica');
+  });
+});
+
+describe('updateCase — SET dinamico', () => {
+  it('suma whereabouts al SET cuando viene en el input, parametrizado', async () => {
+    vi.mocked(Case.findByPk).mockResolvedValueOnce({ id: 'case-1', userId: 'user-1' } as never);
+    queryMock.mockResolvedValueOnce([{ id: 'case-1' }]);
+
+    await updateCase('case-1', 'user-1', false, { whereabouts: 'con_un_tercero' });
+
+    expect(sqlOf(0)).toContain('whereabouts = :whereabouts');
+    expect(replacementsOf(0)['whereabouts']).toBe('con_un_tercero');
+  });
+
+  it('no toca whereabouts si no viene en el input', async () => {
+    vi.mocked(Case.findByPk).mockResolvedValueOnce({ id: 'case-1', userId: 'user-1' } as never);
+    queryMock.mockResolvedValueOnce([{ id: 'case-1' }]);
+
+    await updateCase('case-1', 'user-1', false, { title: 'Titulo nuevo' });
+
+    // El RETURNING siempre trae whereabouts (es una columna mas del CaseRow);
+    // lo que no debe pasar es que el SET la toque cuando no vino en el input.
+    const sql = sqlOf(0);
+    const setClause = sql.slice(0, sql.indexOf('RETURNING'));
+    expect(setClause).not.toContain('whereabouts');
+  });
+});
+
+describe('getFeedCases — excluye a resguardo', () => {
+  it('deja afuera los casos que ya estan con quien publica o un tercero', async () => {
+    await getFeedCases(baseFeedQuery);
+
+    expect(sqlOf(0)).toContain(
+      `c.whereabouts NOT IN ('con_quien_publica', 'con_un_tercero')`,
+    );
   });
 });
