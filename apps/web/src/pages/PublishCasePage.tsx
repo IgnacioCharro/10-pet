@@ -195,6 +195,7 @@ export default function PublishCasePage() {
   const submit = async () => {
     if (!validateStep()) return
     if (state.lat === null || state.lng === null || !state.animalType || !state.listingType) return
+    const finalWhereabouts = deriveWhereabouts(state.listingType, state.whereabouts)
     setSubmitting(true)
     try {
       const newCase = await createCase({
@@ -213,8 +214,8 @@ export default function PublishCasePage() {
         animalSex: state.animalSex || undefined,
         animalSize: state.animalSize || undefined,
         animalColor: state.animalColor || undefined,
-        whereabouts: deriveWhereabouts(state.listingType, state.whereabouts),
-        hostName: state.whereabouts === 'con_un_tercero' && state.hostName.trim()
+        whereabouts: finalWhereabouts,
+        hostName: finalWhereabouts === 'con_un_tercero' && state.hostName.trim()
           ? state.hostName.trim()
           : undefined,
       })
