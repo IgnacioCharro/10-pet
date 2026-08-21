@@ -31,6 +31,25 @@ describe('parseLocalidad', () => {
       name: 'X', display_name: 'X', lat: '-35', lon: '-61',
     })).toBeNull()
   })
+
+  it('descarta un resultado con lat o lon invalidos aunque boundingbox sea valido', () => {
+    // Un NaN que escape acá falla lejos, en el mapa. Mejor rechazarlo acá
+    // donde se origina el error.
+    expect(parseLocalidad({
+      name: 'X',
+      display_name: 'X, Argentina',
+      lat: '',
+      lon: '-61',
+      boundingbox: ['-35.85', '-35.77', '-61.95', '-61.85'],
+    })).toBeNull()
+    expect(parseLocalidad({
+      name: 'X',
+      display_name: 'X, Argentina',
+      lat: '-35',
+      lon: 'invalid',
+      boundingbox: ['-35.85', '-35.77', '-61.95', '-61.85'],
+    })).toBeNull()
+  })
 })
 
 describe('buildLocalidadUrl', () => {

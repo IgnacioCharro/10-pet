@@ -41,11 +41,15 @@ function viewboxParam(bbox: BBox): string {
 export function parseLocalidad(raw: NominatimRaw): Localidad | null {
   if (!raw.boundingbox || raw.boundingbox.length !== 4) return null
   const bbox = raw.boundingbox.map(Number) as BBox
-  if (bbox.some(Number.isNaN)) return null
+  const lat = parseFloat(raw.lat)
+  const lng = parseFloat(raw.lon)
+  // Sin coordenadas validas o caja invalida, descartamos. Un NaN que escape acá
+  // falla lejos (en el mapa), no en el modulo donde se origino.
+  if (bbox.some(Number.isNaN) || Number.isNaN(lat) || Number.isNaN(lng)) return null
   return {
     name: raw.name || raw.display_name.split(',')[0].trim(),
-    lat: parseFloat(raw.lat),
-    lng: parseFloat(raw.lon),
+    lat,
+    lng,
     bbox,
   }
 }
