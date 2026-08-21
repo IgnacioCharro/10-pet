@@ -105,6 +105,8 @@ export interface CreateCaseInput {
   animalSize?: AnimalSize
   animalColor?: AnimalColor
   seenAt?: string
+  whereabouts: Whereabouts
+  hostName?: string
 }
 
 export interface PaginatedCasesResponse {

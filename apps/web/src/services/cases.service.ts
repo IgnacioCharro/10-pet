@@ -7,7 +7,6 @@ import type {
   ListCasesQuery,
   PaginatedCasesResponse,
   CreateCaseInput,
-  Whereabouts,
 } from '../types/case'
 
 export const listCases = async (query: ListCasesQuery = {}): Promise<PaginatedCasesResponse> => {
@@ -29,9 +28,7 @@ export const getCaseById = async (id: string): Promise<CaseDetail> => {
   return res.data.case
 }
 
-export const createCase = async (
-  input: CreateCaseInput & { whereabouts: Whereabouts; hostName?: string },
-): Promise<CaseItem> => {
+export const createCase = async (input: CreateCaseInput): Promise<CaseItem> => {
   const res = await api.post<{ case: CaseItem }>('/cases', input)
   return res.data.case
 }
