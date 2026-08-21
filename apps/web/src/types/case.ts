@@ -6,6 +6,7 @@ export type AnimalColor = 'negro' | 'blanco' | 'marron' | 'gris' | 'dorado' | 'm
 export type CaseStatus = 'abierto' | 'en_rescate' | 'resuelto' | 'inactivo' | 'spam'
 export type SortOrder = 'recent' | 'urgency' | 'distance'
 export type ListingType = 'found' | 'lost'
+export type Whereabouts = 'en_la_calle' | 'con_quien_publica' | 'con_un_tercero' | 'desconocido'
 
 export interface CaseItem {
   id: string
@@ -27,6 +28,7 @@ export interface CaseItem {
   animalSize: AnimalSize | null
   animalColor: AnimalColor | null
   seenAt: string | null
+  whereabouts: Whereabouts
   createdAt: string
   updatedAt: string
   resolvedAt: string | null
