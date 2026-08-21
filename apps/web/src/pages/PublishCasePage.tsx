@@ -16,8 +16,9 @@ import { lazyWithRetry } from '../lib/lazyWithRetry'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { ANIMAL_LABEL, ANIMAL_EMOJI, CONDITION_LABEL } from '../lib/animalType'
 import { LISTING_TYPE } from '../lib/listingType'
+import { WHEREABOUTS_LABEL, deriveWhereabouts } from '../lib/whereabouts'
 import { useSuggestedTitle } from '../lib/useSuggestedTitle'
-import type { AnimalType, AnimalCondition, AnimalSex, AnimalSize, AnimalColor, ListingType } from '../types/case'
+import type { AnimalType, AnimalCondition, AnimalSex, AnimalSize, AnimalColor, ListingType, Whereabouts } from '../types/case'
 
 const LocationPickerMap = lazyWithRetry(() => import('../components/map/LocationPickerMap'))
 
@@ -41,6 +42,8 @@ interface WizardState {
   animalSex: AnimalSex | ''
   animalSize: AnimalSize | ''
   animalColor: AnimalColor | ''
+  whereabouts: Whereabouts
+  hostName: string
 }
 
 const TITULO_POR_TIPO: Record<ListingType, string> = {
@@ -81,6 +84,8 @@ export default function PublishCasePage() {
     animalSex: '',
     animalSize: '',
     animalColor: '',
+    whereabouts: 'en_la_calle',
+    hostName: '',
   })
   const { title, setTitle } = useSuggestedTitle(state.animalType, state.animalSize, state.animalCondition)
   const [uploadingImages, setUploadingImages] = useState(false)
@@ -208,6 +213,10 @@ export default function PublishCasePage() {
         animalSex: state.animalSex || undefined,
         animalSize: state.animalSize || undefined,
         animalColor: state.animalColor || undefined,
+        whereabouts: deriveWhereabouts(state.listingType, state.whereabouts),
+        hostName: state.whereabouts === 'con_un_tercero' && state.hostName.trim()
+          ? state.hostName.trim()
+          : undefined,
       })
       navigate(`/cases`, {
         state: { published: newCase.id, lat: state.lat, lng: state.lng },
@@ -335,6 +344,8 @@ export default function PublishCasePage() {
                 animalSex={state.animalSex}
                 animalSize={state.animalSize}
                 animalColor={state.animalColor}
+                whereabouts={state.whereabouts}
+                hostName={state.hostName}
                 errors={{ animalType: errors.animalType, description: errors.description, title: errors.title }}
                 onAnimalTypeChange={(v) => update('animalType', v)}
                 onDescriptionChange={(v) => update('description', v)}
@@ -344,6 +355,8 @@ export default function PublishCasePage() {
                 onAnimalSexChange={(v) => update('animalSex', v)}
                 onAnimalSizeChange={(v) => update('animalSize', v)}
                 onAnimalColorChange={(v) => update('animalColor', v)}
+                onWhereaboutsChange={(v) => update('whereabouts', v)}
+                onHostNameChange={(v) => update('hostName', v)}
               />
             )}
 
@@ -982,6 +995,8 @@ interface StepDescripcionProps {
   animalSex: AnimalSex | ''
   animalSize: AnimalSize | ''
   animalColor: AnimalColor | ''
+  whereabouts: Whereabouts
+  hostName: string
   errors: { animalType?: string; description?: string; title?: string }
   onAnimalTypeChange: (v: AnimalType | '') => void
   onDescriptionChange: (v: string) => void
@@ -991,13 +1006,15 @@ interface StepDescripcionProps {
   onAnimalSexChange: (v: AnimalSex | '') => void
   onAnimalSizeChange: (v: AnimalSize | '') => void
   onAnimalColorChange: (v: AnimalColor | '') => void
+  onWhereaboutsChange: (v: Whereabouts) => void
+  onHostNameChange: (v: string) => void
 }
 
 function StepDescripcion({
   listingType, animalType, description, title, animalCondition, urgencyLevel,
-  animalSex, animalSize, animalColor, errors,
+  animalSex, animalSize, animalColor, whereabouts, hostName, errors,
   onAnimalTypeChange, onDescriptionChange, onTitleChange, onAnimalConditionChange, onUrgencyChange,
-  onAnimalSexChange, onAnimalSizeChange, onAnimalColorChange,
+  onAnimalSexChange, onAnimalSizeChange, onAnimalColorChange, onWhereaboutsChange, onHostNameChange,
 }: StepDescripcionProps) {
   const [showDetails, setShowDetails] = useState(false)
   const hasDetails = animalSex !== '' || animalSize !== '' || animalColor !== ''
@@ -1077,6 +1094,41 @@ function StepDescripcion({
               </Chip>
             ))}
           </div>
+        </div>
+      )}
+
+      {listingType === 'found' && (
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+            ¿Dónde está el animal ahora?
+          </label>
+          <div className="flex flex-col gap-2">
+            {(['en_la_calle', 'con_quien_publica', 'con_un_tercero'] as const).map((w) => (
+              <button
+                key={w}
+                type="button"
+                onClick={() => onWhereaboutsChange(w)}
+                className={`text-left px-3 py-2.5 rounded-lg border text-sm transition-colors ${
+                  whereabouts === w
+                    ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200'
+                    : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                {WHEREABOUTS_LABEL[w]}
+              </button>
+            ))}
+          </div>
+          {whereabouts === 'con_un_tercero' && (
+            <Input
+              label="¿Quién lo tiene?"
+              placeholder="Nombre de quien lo aloja"
+              value={hostName}
+              onChange={(e) => onHostNameChange(e.target.value)}
+            />
+          )}
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            El mapa siempre marca dónde lo viste, nunca dónde vivís.
+          </p>
         </div>
       )}
 
