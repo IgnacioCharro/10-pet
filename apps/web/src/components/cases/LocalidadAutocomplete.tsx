@@ -1,16 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-
-interface Suggestion {
-  display_name: string
-  name: string
-  lat: string
-  lon: string
-}
+import { type Localidad, type NominatimRaw, parseLocalidad, buildLocalidadUrl } from '../../lib/geocoding'
 
 interface Props {
   value: string
   onChange: (value: string) => void
-  onSelect?: (name: string, lat: number, lng: number) => void
+  onSelect: (loc: Localidad) => void
   placeholder?: string
   className?: string
 }
@@ -22,11 +16,21 @@ export default function LocalidadAutocomplete({
   placeholder = 'Ej: Pehuajo, Junin...',
   className = '',
 }: Props) {
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [suggestions, setSuggestions] = useState<Localidad[]>([])
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  // Buffer local del texto tipeado, separado del prop `value`. Un input
+  // controlado que dependiera solo de `value` pierde tecleo cuando el padre
+  // no lo re-sincroniza en el mismo tick (React repone el DOM al ultimo
+  // `value` recibido despues de cada evento); este buffer evita esa perdida
+  // y solo se resincroniza cuando `value` cambia por una razon externa.
+  const [query, setQuery] = useState(value)
+
+  useEffect(() => {
+    setQuery(value)
+  }, [value])
 
   const search = useCallback(async (q: string) => {
     if (q.trim().length < 2) {
@@ -36,11 +40,12 @@ export default function LocalidadAutocomplete({
     }
     setLoading(true)
     try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=ar&addressdetails=0&limit=5&featuretype=city`
+      const url = buildLocalidadUrl(q)
       const res = await fetch(url, { headers: { 'Accept-Language': 'es' } })
-      const data: Suggestion[] = await res.json()
-      setSuggestions(data)
-      setOpen(data.length > 0)
+      const data: NominatimRaw[] = await res.json()
+      const parsed = data.map(parseLocalidad).filter((l): l is Localidad => l !== null)
+      setSuggestions(parsed)
+      setOpen(parsed.length > 0)
     } catch {
       setSuggestions([])
       setOpen(false)
@@ -51,17 +56,18 @@ export default function LocalidadAutocomplete({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value
+    setQuery(v)
     onChange(v)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => search(v), 400)
   }
 
-  const handleSelect = (s: Suggestion) => {
-    const name = s.name || s.display_name.split(',')[0].trim()
-    onChange(name)
+  const handleSelect = (loc: Localidad) => {
+    setQuery(loc.name)
+    onChange(loc.name)
     setOpen(false)
     setSuggestions([])
-    if (onSelect) onSelect(name, parseFloat(s.lat), parseFloat(s.lon))
+    onSelect(loc)
   }
 
   useEffect(() => {
@@ -79,7 +85,7 @@ export default function LocalidadAutocomplete({
       <div className="relative">
         <input
           type="text"
-          value={value}
+          value={query}
           onChange={handleChange}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           placeholder={placeholder}
@@ -106,7 +112,7 @@ export default function LocalidadAutocomplete({
                   handleSelect(s)
                 }}
               >
-                {s.display_name}
+                {s.name}
               </button>
             </li>
           ))}
