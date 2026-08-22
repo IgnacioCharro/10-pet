@@ -18,7 +18,14 @@ const BASE = 'https://nominatim.openstreetmap.org/search'
 export type BBox = [south: number, north: number, west: number, east: number]
 
 export interface Localidad {
+  /** Corto, para el input y para el texto de la direccion: "Pehuajo". */
   name: string
+  /**
+   * Completo, para el desplegable: "Pehuajo, Partido de Pehuajo, Buenos Aires".
+   * Sin el, cinco resultados llamados "San Martin" se ven identicos en la lista
+   * y elegir el correcto es adivinar.
+   */
+  label: string
   lat: number
   lng: number
   bbox: BBox
@@ -48,6 +55,7 @@ export function parseLocalidad(raw: NominatimRaw): Localidad | null {
   if (bbox.some(Number.isNaN) || Number.isNaN(lat) || Number.isNaN(lng)) return null
   return {
     name: raw.name || raw.display_name.split(',')[0].trim(),
+    label: raw.display_name,
     lat,
     lng,
     bbox,

@@ -6,6 +6,7 @@ import type { Localidad } from './geocoding'
 
 const pehuajo: Localidad = {
   name: 'Pehuajó',
+  label: 'Pehuajó, Partido de Pehuajó, Buenos Aires, Argentina',
   lat: -35.8104933,
   lng: -61.899055,
   bbox: [-35.85, -35.77, -61.95, -61.85],
@@ -22,6 +23,21 @@ describe('parseLocalidad', () => {
     })
     expect(loc?.name).toBe('Pehuajó')
     expect(loc?.bbox).toEqual([-35.85, -35.77, -61.95, -61.85])
+  })
+
+  it('conserva el display_name entero para poder desambiguar en la lista', () => {
+    // Hay una localidad llamada "San Martin" en casi cada provincia. Con el
+    // nombre corto solo, las cinco opciones del desplegable son la misma
+    // palabra cinco veces.
+    const loc = parseLocalidad({
+      name: 'San Martín',
+      display_name: 'San Martín, Departamento de San Martín, Mendoza, Argentina',
+      lat: '-33.08',
+      lon: '-68.46',
+      boundingbox: ['-33.2', '-32.9', '-68.6', '-68.3'],
+    })
+    expect(loc?.name).toBe('San Martín')
+    expect(loc?.label).toBe('San Martín, Departamento de San Martín, Mendoza, Argentina')
   })
 
   it('descarta un resultado sin boundingbox en vez de inventarlo', () => {
