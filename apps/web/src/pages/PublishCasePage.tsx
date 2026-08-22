@@ -8,6 +8,7 @@ import { Chip } from '../components/ui'
 import ResendVerification from '../components/ResendVerification'
 import LocalidadAutocomplete from '../components/cases/LocalidadAutocomplete'
 import CalleAutocomplete from '../components/cases/CalleAutocomplete'
+import { type Localidad, buildDireccionUrl, isInsideBBox } from '../lib/geocoding'
 import { uploadToCloudinary, type UploadedImage } from '../services/images.service'
 import { createCase } from '../services/cases.service'
 import { getMe } from '../services/users.service'
@@ -585,157 +586,74 @@ function fechaDeInput(valor: string): string {
   return new Date(a, m - 1, d, 12, 0, 0).toISOString()
 }
 
-type AddressMode = 'numero' | 'interseccion'
-
-interface OverpassResponse {
-  elements: Array<{ lat: number; lon: number }>
-}
-
-// overpass-api.de corta por cuota devolviendo 406 o 504 con un cuerpo HTML, no JSON.
-// Cuando pasa, la instancia queda inutilizable por un rato para esa IP, asi que un
-// reintento contra el mismo host no sirve: hay que cambiar de mirror. Los dos de
-// respaldo mandan Access-Control-Allow-Origin: *, que es lo que los hace usables
-// desde el browser.
-const OVERPASS_ENDPOINTS = [
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.private.coffee/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-]
-
-// Cuando un mirror esta saturado no rechaza: deja la conexion abierta. Sin este
-// corte la cadena entera se cuelga detras del primero que no contesta y el
-// usuario se queda mirando el spinner.
-const OVERPASS_TIMEOUT_MS = 8000
-
-/**
- * Devuelve null si ningun mirror contesto. Distinguirlo de una respuesta vacia
- * importa: "no encontramos la interseccion" manda al usuario a corregir los
- * nombres, y si en realidad fue el servidor, lo manda a corregir algo que estaba bien.
- */
-async function queryOverpass(query: string): Promise<OverpassResponse | null> {
-  for (const endpoint of OVERPASS_ENDPOINTS) {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), OVERPASS_TIMEOUT_MS)
-    try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `data=${encodeURIComponent(query)}`,
-        signal: controller.signal,
-      })
-      // Sin este chequeo el cuerpo HTML del error llega a res.json(), que tira
-      // SyntaxError y se confunde con una falla de red.
-      if (!res.ok) continue
-      return (await res.json()) as OverpassResponse
-    } catch {
-      // Timeout, red caida o JSON invalido: probamos el siguiente mirror.
-    } finally {
-      clearTimeout(timeout)
-    }
-  }
-  return null
-}
-
 function StepUbicacion({
   lat, lng, locationText, referenceNote, geolocating, error, cuando,
   onGeolocate, onLatChange, onLngChange, onLocationTextChange, onReferenceNoteChange,
   onCuandoChange, onSeenAtChange,
 }: StepUbicacionProps) {
   const [showForm, setShowForm] = useState(false)
-  const [localidad, setLocalidad] = useState('')
-  const [addressMode, setAddressMode] = useState<AddressMode>('numero')
+  // Dos cosas distintas: lo que se ve escrito y el ancla elegida de la lista.
+  // El ancla es la que trae el boundingbox, y sin ella no se busca ninguna calle.
+  const [localidadText, setLocalidadText] = useState('')
+  const [localidad, setLocalidad] = useState<Localidad | null>(null)
   const [calle, setCalle] = useState('')
   const [numero, setNumero] = useState('')
-  const [calle2, setCalle2] = useState('')
   const [geocoding, setGeocoding] = useState(false)
-  const [geocodeError, setGeocodeError] = useState<string | null>(null)
   const [reverseGeocoding, setReverseGeocoding] = useState(false)
-  const [localidadCenter, setLocalidadCenter] = useState<[number, number] | null>(null)
   const reverseDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Solo resolvemos la direccion cuando la escribio una persona. Sin esta marca
+  // se cierra un lazo: arrastro el pin, el reverse completa la calle, la
+  // resolucion ve una calle nueva y devuelve el pin al centro de esa calle,
+  // deshaciendo el arrastre delante del usuario.
+  const edicionManualRef = useRef(false)
 
   useEffect(() => {
     if (error) setShowForm(true)
   }, [error])
 
+  // Resuelve sola: el usuario no tiene que apretar nada. El numero es una pista
+  // y su ausencia nunca es un error: en el interior OSM casi no tiene numeros
+  // de casa, asi que caer a la calle es el caso normal, no el degradado.
   useEffect(() => {
-    if (!localidad.trim()) { setLocalidadCenter(null); return }
+    if (!localidad || !calle.trim() || !edicionManualRef.current) return
     const controller = new AbortController()
-    fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(localidad.trim() + ', Argentina')}&format=json&limit=1&countrycodes=ar`,
-      { headers: { 'Accept-Language': 'es', 'User-Agent': '10pet-web/1.0' }, signal: controller.signal },
-    )
-      .then(r => r.json())
-      .then((data: Array<{ lat: string; lon: string }>) => {
-        if (data.length > 0) setLocalidadCenter([parseFloat(data[0].lat), parseFloat(data[0].lon)])
-      })
-      .catch(() => {})
-    return () => controller.abort()
-  }, [localidad])
-
-  const handleGeocode = async () => {
-    if (!localidad.trim()) {
-      setGeocodeError('Ingresá la localidad.')
-      return
-    }
-    setGeocoding(true)
-    setGeocodeError(null)
-    try {
-      if (addressMode === 'interseccion') {
-        if (!calle.trim() || !calle2.trim()) {
-          setGeocodeError('Ingresá ambas calles.')
-          return
-        }
-        const escape = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
-        const overpassQuery =
-          `[out:json][timeout:15];` +
-          `area["name"="${escape(localidad.trim())}"]->.a;` +
-          `way["name"="${escape(calle.trim())}"]["highway"](area.a)->.w1;` +
-          `way["name"="${escape(calle2.trim())}"]["highway"](area.a)->.w2;` +
-          `node(w.w1)(w.w2);out;`
-        const data = await queryOverpass(overpassQuery)
-        if (data === null) {
-          setGeocodeError(
-            'El buscador de intersecciones no responde en este momento. Tocá el mapa para marcar la ubicación.',
-          )
-          return
-        }
-        if (!data.elements.length) {
-          setGeocodeError('No encontramos esa intersección. Revisá los nombres o tocá el mapa.')
-          return
-        }
-        const node = data.elements[0]
-        onLatChange(node.lat)
-        onLngChange(node.lon)
-        onLocationTextChange(`${calle.trim()} y ${calle2.trim()}, ${localidad.trim()}`)
-      } else {
-        const query = `${calle.trim()} ${numero.trim()}, ${localidad.trim()}, Argentina`
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=ar`,
-          { headers: { 'Accept-Language': 'es', 'User-Agent': '10pet-web/1.0' } },
-        )
-        // Mismo motivo que en el mirror de Overpass: si Nominatim corta por cuota
-        // el cuerpo no es JSON y res.json() tira SyntaxError.
-        if (!res.ok) {
-          setGeocodeError(
-            'El buscador de direcciones no responde en este momento. Tocá el mapa para marcar la ubicación.',
-          )
-          return
-        }
+    const t = setTimeout(async () => {
+      setGeocoding(true)
+      try {
+        const res = await fetch(buildDireccionUrl(calle, numero, localidad), {
+          headers: { 'Accept-Language': 'es' },
+          signal: controller.signal,
+        })
+        if (!res.ok) return
         const data: Array<{ lat: string; lon: string }> = await res.json()
-        if (data.length === 0) {
-          setGeocodeError('No encontramos esa dirección. Revisá los datos o tocá el mapa.')
-          return
-        }
-        const r = data[0]
-        onLatChange(parseFloat(r.lat))
-        onLngChange(parseFloat(r.lon))
-        onLocationTextChange(`${calle.trim()} ${numero.trim()}, ${localidad.trim()}`)
+        if (!data.length) return
+        const hitLat = parseFloat(data[0].lat)
+        const hitLng = parseFloat(data[0].lon)
+        // bounded=1 ya lo garantiza del lado del server; el chequeo es el cinturon
+        // por si Nominatim cambia de opinion sobre que significa acotado.
+        if (!isInsideBBox(hitLat, hitLng, localidad.bbox)) return
+        onLatChange(hitLat)
+        onLngChange(hitLng)
+        onLocationTextChange(
+          numero.trim()
+            ? `${calle.trim()} ${numero.trim()}, ${localidad.name}`
+            : `${calle.trim()}, ${localidad.name}`,
+        )
+      } catch {
+        // Silencio a proposito: el pin ya esta en la localidad y se arrastra.
+      } finally {
+        setGeocoding(false)
       }
-    } catch {
-      setGeocodeError('Error al buscar la dirección. Intentá de nuevo.')
-    } finally {
-      setGeocoding(false)
-    }
+    }, 500)
+    return () => { clearTimeout(t); controller.abort() }
+  }, [calle, numero, localidad])
+
+  // Si el texto deja de coincidir con la localidad elegida, el ancla se suelta.
+  // Sin esto se puede escribir "Junin" sobre un ancla de Pehuajo y publicar un
+  // caso que dice Junin con las coordenadas y el bbox del otro pueblo.
+  const handleLocalidadText = (v: string) => {
+    setLocalidadText(v)
+    if (localidad && v !== localidad.name) setLocalidad(null)
   }
 
   const handleMapChange = (newLat: number, newLng: number) => {
@@ -755,9 +673,11 @@ function StepUbicacion({
           const road = a.road ?? a.pedestrian ?? a.path ?? a.footway ?? ''
           const num = a.house_number ?? ''
           const city = a.town ?? a.city ?? a.village ?? a.municipality ?? a.county ?? ''
+          edicionManualRef.current = false
           if (road) setCalle(road)
-          if (num) { setNumero(num); setAddressMode('numero') }
-          if (city) setLocalidad(city)
+          if (num) setNumero(num)
+          // La localidad NO se pisa: el ancla la eligio el usuario de una lista
+          // y su bbox es lo que mantiene acotadas las busquedas de calle.
           if (road || city) setShowForm(true)
           const label = road
             ? `${road}${num ? ' ' + num : ''}${city ? ', ' + city : ''}`
@@ -774,7 +694,7 @@ function StepUbicacion({
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-gray-600 dark:text-gray-300">
-        ¿Dónde está el animal? Usá tu ubicación, ingresá la dirección o tocá el mapa.
+        ¿Dónde viste al animal? Usá tu ubicación, ingresá la dirección o tocá el mapa.
       </p>
 
       <Button
@@ -803,135 +723,86 @@ function StepUbicacion({
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Localidad *</label>
           <LocalidadAutocomplete
-            value={localidad}
-            onChange={setLocalidad}
+            value={localidadText}
+            onChange={handleLocalidadText}
+            onSelect={(loc) => {
+              edicionManualRef.current = true
+              setLocalidad(loc)
+              setLocalidadText(loc.name)
+              // El pin arranca en el centro de la localidad. Nunca hay un estado
+              // sin mapa: peor caso, el usuario lo arrastra hasta la cuadra.
+              if (lat === null) { onLatChange(loc.lat); onLngChange(loc.lng) }
+            }}
           />
         </div>
 
-        <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setAddressMode('numero')}
-            className={`flex-1 py-2 text-xs font-medium transition-colors ${addressMode === 'numero' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-          >
-            Calle y numero
-          </button>
-          <button
-            type="button"
-            onClick={() => setAddressMode('interseccion')}
-            className={`flex-1 py-2 text-xs font-medium transition-colors border-l border-gray-200 dark:border-gray-700 ${addressMode === 'interseccion' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-          >
-            Interseccion
-          </button>
+        <div className="flex gap-2">
+          <div className="flex-1 min-w-0">
+            <CalleAutocomplete
+              label="Calle"
+              placeholder="Av. San Martin"
+              value={calle}
+              onChange={(v) => { edicionManualRef.current = true; setCalle(v) }}
+              localidad={localidad}
+            />
+          </div>
+          <div className="w-24 shrink-0">
+            <Input
+              label="Número (opcional)"
+              placeholder="1234"
+              value={numero}
+              onChange={(e) => { edicionManualRef.current = true; setNumero(e.target.value) }}
+            />
+          </div>
         </div>
 
-        {addressMode === 'numero' ? (
-          <div className="flex gap-2">
-            <div className="flex-1 min-w-0">
-              <CalleAutocomplete
-                label="Calle"
-                placeholder="Av. San Martin"
-                value={calle}
-                onChange={setCalle}
-                localidad={localidad}
-              />
-            </div>
-            <div className="w-24 shrink-0">
-              <Input
-                label="Número"
-                placeholder="1234"
-                value={numero}
-                onChange={(e) => setNumero(e.target.value)}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="flex gap-2 items-end">
-            <div className="flex-1 min-w-0">
-              <CalleAutocomplete
-                label="Calle 1"
-                placeholder="San Martin"
-                value={calle}
-                onChange={setCalle}
-                localidad={localidad}
-              />
-            </div>
-            <span className="pb-2.5 text-sm text-gray-500 dark:text-gray-400 shrink-0">y</span>
-            <div className="flex-1 min-w-0">
-              <CalleAutocomplete
-                label="Calle 2"
-                placeholder="Belgrano"
-                value={calle2}
-                onChange={setCalle2}
-                localidad={localidad}
-              />
-            </div>
-          </div>
-        )}
-
-        {geocodeError && <p className="text-xs text-red-600 dark:text-red-300">{geocodeError}</p>}
-
-        <Button
-          variant="secondary"
-          onClick={handleGeocode}
-          loading={geocoding}
-          disabled={!localidad.trim()}
-          fullWidth
-        >
-          Buscar dirección
-        </Button>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Marcá la cuadra, no hace falta que sea exacto. Después ajustá el pin en el mapa.
+        </p>
       </div>
       )}
 
-      {(() => {
-        const mapLat = lat ?? localidadCenter?.[0] ?? null
-        const mapLng = lng ?? localidadCenter?.[1] ?? null
-        const confirmed = lat !== null
-        if (mapLat === null || mapLng === null) return null
-        return (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {confirmed ? 'o ajustá el pin en el mapa' : 'o tocá el mapa para marcar la ubicación'}
-              </span>
-              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-            </div>
-
-            <ErrorBoundary fallback={
-              <div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-                <span>No se pudo cargar el mapa.</span>
-                <button type="button" className="text-primary-600 dark:text-primary-300 underline text-xs" onClick={() => window.location.reload()}>Recargar página</button>
-              </div>
-            }>
-              <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">Cargando mapa...</div>}>
-                <LocationPickerMap lat={mapLat} lng={mapLng} onChange={handleMapChange} />
-              </Suspense>
-            </ErrorBoundary>
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              {confirmed
-                ? 'Toca o arrastra el pin para ajustar la posicion exacta'
-                : 'Toca el mapa para marcar la ubicación del animal'}
-            </p>
+      {lat !== null && lng !== null && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              o ajustá el pin en el mapa
+            </span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
           </div>
-        )
-      })()}
+
+          <ErrorBoundary fallback={
+            <div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
+              <span>No se pudo cargar el mapa.</span>
+              <button type="button" className="text-primary-600 dark:text-primary-300 underline text-xs" onClick={() => window.location.reload()}>Recargar página</button>
+            </div>
+          }>
+            <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">Cargando mapa...</div>}>
+              <LocationPickerMap lat={lat} lng={lng} onChange={handleMapChange} />
+            </Suspense>
+          </ErrorBoundary>
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            Arrastrá el pin hasta donde viste al animal
+          </p>
+        </div>
+      )}
 
       <div className="relative">
-        {reverseGeocoding && (
+        {(reverseGeocoding || geocoding) && (
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1">
             <span className="inline-block w-3 h-3 border border-gray-400 dark:border-gray-500 border-t-transparent rounded-full animate-spin" />
             Buscando dirección...
           </p>
         )}
-        {!reverseGeocoding && locationText && (
+        {!reverseGeocoding && !geocoding && locationText && (
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
             Dirección detectada: <span className="font-medium">{locationText}</span>
           </p>
         )}
         <Input
           label="Referencia (opcional)"
-          placeholder="Ej: cerca de la plaza, frente al supermercado"
+          placeholder="Ej: entre Sarmiento y Rivadavia, frente al supermercado"
           value={referenceNote}
           onChange={(e) => onReferenceNoteChange(e.target.value)}
           hint="Una pista para encontrarlo. Se muestra en la ficha, junto a la dirección."
