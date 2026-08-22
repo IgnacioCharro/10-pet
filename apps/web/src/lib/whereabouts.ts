@@ -23,6 +23,22 @@ export const WHEREABOUTS_PIN: Record<Whereabouts, string> = {
   desconocido: '#3b82f6',
 }
 
+/** El violeta con el que el mapa marca los casos de uno mismo. */
+const PIN_PROPIO = '#7c3aed'
+
+/**
+ * El borde del pin codifica el paradero; el relleno lo sigue poniendo la
+ * urgencia. Antes el borde decia el tipo de publicacion, que era el dato menos
+ * accionable de los tres.
+ *
+ * Vive aca y no en LeafletMap porque es una funcion pura del catalogo: testearla
+ * dentro del mapa obligaria a levantar leaflet y markercluster bajo jsdom, un
+ * import con efectos que puede fallar por el entorno y no por el codigo.
+ */
+export function pinBorderColor(whereabouts: Whereabouts, isOwn: boolean): string {
+  return isOwn ? PIN_PROPIO : WHEREABOUTS_PIN[whereabouts]
+}
+
 /**
  * Si alguien lo tiene. Es la unica definicion de "a resguardo" del front.
  *

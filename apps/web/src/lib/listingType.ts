@@ -9,8 +9,6 @@ interface ListingTypeStyle {
   upper: string
   chipClass: string
   ringClass: string
-  /** Color del pin en el mapa */
-  pinColor: string
 }
 
 // Un Record exhaustivo y no ternarios: con `listingType === 'lost' ? A : B`, un
@@ -22,7 +20,6 @@ export const LISTING_TYPE: Record<ListingType, ListingTypeStyle> = {
     upper: 'ENCONTRADO',
     chipClass: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
     ringClass: 'ring-1 ring-green-300',
-    pinColor: '#22c55e',
   },
   lost: {
     short: 'Busco',
@@ -30,6 +27,5 @@ export const LISTING_TYPE: Record<ListingType, ListingTypeStyle> = {
     upper: 'BUSCADO',
     chipClass: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
     ringClass: 'ring-1 ring-blue-300',
-    pinColor: '#3b82f6',
   },
 }

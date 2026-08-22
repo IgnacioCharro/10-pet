@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { WHEREABOUTS_LABEL, WHEREABOUTS_PIN, isSheltered, deriveWhereabouts } from './whereabouts'
+import { WHEREABOUTS_LABEL, WHEREABOUTS_PIN, isSheltered, deriveWhereabouts, pinBorderColor } from './whereabouts'
 import type { Whereabouts } from '../types/case'
 
 describe('whereabouts', () => {
@@ -34,5 +34,18 @@ describe('deriveWhereabouts', () => {
 
   it('en found sin eleccion, el animal quedo donde estaba', () => {
     expect(deriveWhereabouts('found', 'en_la_calle')).toBe('en_la_calle')
+  })
+})
+
+describe('pinBorderColor', () => {
+  it('un animal a resguardo se distingue de uno en la calle', () => {
+    expect(pinBorderColor('con_quien_publica', false))
+      .not.toBe(pinBorderColor('en_la_calle', false))
+  })
+
+  it('el caso propio gana sobre el paradero', () => {
+    // Reconocer los casos de uno mismo es mas util que su paradero: ya sabes
+    // donde esta tu animal.
+    expect(pinBorderColor('en_la_calle', true)).toBe('#7c3aed')
   })
 })

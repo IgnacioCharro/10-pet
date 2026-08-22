@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import FilterBar, { type FilterState } from '../components/cases/FilterBar'
+import FilterBar, { DEFAULT_FILTERS, type FilterState } from '../components/cases/FilterBar'
 import CaseDetailSheet from '../components/cases/CaseDetailSheet'
 import LocalidadPicker, { loadPickedLocation, savePickedLocation, type PickedLocation } from '../components/cases/LocalidadPicker'
 import { getNearbyCases } from '../services/cases.service'
 import { lazyWithRetry } from '../lib/lazyWithRetry'
+import { isSheltered } from '../lib/whereabouts'
 import type { CaseItem } from '../types/case'
 
 interface PublishedState {
@@ -19,16 +20,6 @@ const PUBLISHED_ZOOM = 16
 const LeafletMap = lazyWithRetry(() => import('../components/map/LeafletMap'))
 
 const FALLBACK_CENTER: [number, number] = [-34.6037, -58.3816]
-
-const DEFAULT_FILTERS: FilterState = {
-  animalType: '',
-  urgencyMin: 0,
-  radius: 10,
-  sort: 'recent',
-  animalSex: '',
-  animalSize: '',
-  animalColor: '',
-}
 
 export default function CasesPage() {
   const location = useLocation()
@@ -130,6 +121,9 @@ export default function CasesPage() {
         if (filters.animalSex && c.animalSex !== filters.animalSex) return false
         if (filters.animalSize && c.animalSize !== filters.animalSize) return false
         if (filters.animalColor && c.animalColor !== filters.animalColor) return false
+        // Los ya a resguardo se destildan del mapa, no se borran: el pin sigue
+        // en el lugar del hallazgo por si alguien reconoce a su animal ahi.
+        if (!filters.showSheltered && isSheltered(c.whereabouts)) return false
         return true
       })
       setCases(filtered)
