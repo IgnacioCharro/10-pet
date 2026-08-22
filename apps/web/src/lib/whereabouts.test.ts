@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { WHEREABOUTS_LABEL, WHEREABOUTS_PIN, isSheltered, deriveWhereabouts, pinBorderColor } from './whereabouts'
+import { WHEREABOUTS_LABEL, WHEREABOUTS_PIN, isSheltered, deriveWhereabouts, pinBorderColor, PIN_LEGEND } from './whereabouts'
 import type { Whereabouts } from '../types/case'
 
 describe('whereabouts', () => {
@@ -47,5 +47,15 @@ describe('pinBorderColor', () => {
     // Reconocer los casos de uno mismo es mas util que su paradero: ya sabes
     // donde esta tu animal.
     expect(pinBorderColor('en_la_calle', true)).toBe('#7c3aed')
+  })
+})
+
+describe('PIN_LEGEND', () => {
+  it('nombra todos los colores de borde que el mapa puede pintar', () => {
+    const posibles = new Set([
+      ...Object.keys(WHEREABOUTS_LABEL).map((w) => pinBorderColor(w as Whereabouts, false)),
+      pinBorderColor('en_la_calle', true),
+    ])
+    expect(new Set(PIN_LEGEND.map((f) => f.color))).toEqual(posibles)
   })
 })

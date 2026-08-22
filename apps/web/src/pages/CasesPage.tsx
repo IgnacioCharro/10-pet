@@ -6,7 +6,7 @@ import CaseDetailSheet from '../components/cases/CaseDetailSheet'
 import LocalidadPicker, { loadPickedLocation, savePickedLocation, type PickedLocation } from '../components/cases/LocalidadPicker'
 import { getNearbyCases } from '../services/cases.service'
 import { lazyWithRetry } from '../lib/lazyWithRetry'
-import { isSheltered } from '../lib/whereabouts'
+import { isSheltered, PIN_LEGEND } from '../lib/whereabouts'
 import type { CaseItem } from '../types/case'
 
 interface PublishedState {
@@ -187,18 +187,15 @@ export default function CasesPage() {
         </Suspense>
 
         <div className="absolute bottom-3 right-3 z-20 bg-white dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow px-2.5 py-2 flex flex-col gap-1 text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 rounded-full border-2 border-blue-500 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
-            <span className="text-gray-600 dark:text-gray-300">Buscado</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 rounded-full border-2 border-green-500 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
-            <span className="text-gray-600 dark:text-gray-300">Encontrado</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 rounded-full border-2 border-amber-500 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
-            <span className="text-gray-600 dark:text-gray-300">En riesgo</span>
-          </div>
+          {PIN_LEGEND.map((fila) => (
+            <div key={fila.label} className="flex items-center gap-1.5">
+              <span
+                className="inline-block w-3 h-3 rounded-full border-2 bg-gray-200 dark:bg-gray-700 flex-shrink-0"
+                style={{ borderColor: fila.color }}
+              />
+              <span className="text-gray-600 dark:text-gray-300">{fila.label}</span>
+            </div>
+          ))}
         </div>
 
         {cases.length === 0 && !loading && (

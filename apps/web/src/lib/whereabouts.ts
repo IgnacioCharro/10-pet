@@ -40,6 +40,19 @@ export function pinBorderColor(whereabouts: Whereabouts, isOwn: boolean): string
 }
 
 /**
+ * Las filas de la leyenda del mapa. Vive pegada a los colores a proposito: la
+ * leyenda anterior estaba escrita a mano en CasesPage y sobrevivio tanto al
+ * cambio de significado del borde como a la baja de 'at_risk', asi que seguia
+ * explicando pines que ya no existian.
+ */
+export const PIN_LEGEND: { color: string; label: string }[] = [
+  { color: WHEREABOUTS_PIN.en_la_calle, label: 'En la calle' },
+  { color: WHEREABOUTS_PIN.con_quien_publica, label: 'A resguardo' },
+  { color: WHEREABOUTS_PIN.desconocido, label: 'Sin datos' },
+  { color: PIN_PROPIO, label: 'Tuyo' },
+]
+
+/**
  * Si alguien lo tiene. Es la unica definicion de "a resguardo" del front.
  *
  * 'desconocido' NO cuenta: es la ausencia de dato, no una garantia. Un animal
