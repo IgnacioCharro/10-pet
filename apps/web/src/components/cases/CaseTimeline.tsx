@@ -273,7 +273,7 @@ export default function CaseTimeline({
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-          Historia del caso
+          Historial del caso
         </p>
         <div className="flex items-center gap-3">
           {isOwner && (

@@ -463,13 +463,28 @@ export default function AdminPage() {
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex flex-col gap-0.5 min-w-0">
                         <div className="flex items-center gap-2 min-w-0">
+                          {/*
+                            * El chevron no es decoracion: sin el, el unico
+                            * control para plegar la ficha es el nombre, que no
+                            * se lee como plegable. Abierta la ficha, no habia
+                            * forma visible de volver a cerrarla.
+                            */}
                           <button
                             type="button"
                             onClick={() => toggleUserRow(u.id)}
                             aria-expanded={expandedUserId === u.id}
-                            className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate hover:underline text-left"
+                            className="flex items-center gap-1 min-w-0 text-sm font-medium text-gray-900 dark:text-gray-100 hover:underline text-left"
                           >
-                            {u.name ?? u.email}
+                            <span className="truncate">{u.name ?? u.email}</span>
+                            <svg
+                              className={[
+                                'w-3 h-3 shrink-0 text-gray-500 dark:text-gray-400 transition-transform',
+                                expandedUserId === u.id ? 'rotate-180' : '',
+                              ].join(' ')}
+                              fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
                           </button>
                           <span
                             className={`shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full ${ROLE_CHIP[u.role]}`}
