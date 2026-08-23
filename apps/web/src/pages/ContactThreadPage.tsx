@@ -232,7 +232,17 @@ export default function ContactThreadPage() {
           Se escriben acá dentro. Nadie ve el teléfono de nadie.
         </p>
 
-        <div className="flex-1 flex flex-col gap-2 py-1">
+        {/*
+          * justify-end ancla los mensajes al compositor, como cualquier chat.
+          * Sin el, el contenedor crece con `flex-1` y apila desde arriba: en una
+          * pantalla de escritorio un hilo de dos mensajes dejaba ~700px muertos
+          * entre el ultimo mensaje y la caja de escribir.
+          *
+          * No hay scroll interno en este contenedor —scrollea la pagina—, asi
+          * que con el hilo largo no queda contenido inalcanzable arriba: ahi ya
+          * no sobra espacio y justify-end no mueve nada.
+          */}
+        <div className="flex-1 flex flex-col justify-end gap-2 py-1">
           {hayMasViejos && (
             <div className="flex justify-center">
               <Button variant="ghost" size="sm" loading={loadingOlder} onClick={loadOlder}>
