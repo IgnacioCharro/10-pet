@@ -8,7 +8,10 @@ import { Chip } from '../components/ui'
 import ResendVerification from '../components/ResendVerification'
 import LocalidadAutocomplete from '../components/cases/LocalidadAutocomplete'
 import CalleAutocomplete from '../components/cases/CalleAutocomplete'
-import { type Localidad, buildDireccionIntentos, isInsideBBox } from '../lib/geocoding'
+import {
+  type Localidad, type NominatimHit,
+  buildDireccionIntentos, hitTieneAltura, isInsideBBox,
+} from '../lib/geocoding'
 import { uploadToCloudinary, type UploadedImage } from '../services/images.service'
 import { createCase } from '../services/cases.service'
 import { getMe } from '../services/users.service'
@@ -636,29 +639,33 @@ function StepUbicacion({
             signal: controller.signal,
           })
           if (!res.ok) continue
-          const data: Array<{ lat: string; lon: string }> = await res.json()
+          const data: NominatimHit[] = await res.json()
           if (!data.length) continue
           const hitLat = parseFloat(data[0].lat)
           const hitLng = parseFloat(data[0].lon)
           // bounded=1 ya lo garantiza del lado del server; el chequeo es el cinturon
           // por si Nominatim cambia de opinion sobre que significa acotado.
           if (!isInsideBBox(hitLat, hitLng, localidad.bbox)) continue
+          // Lo que vino, no lo que pedimos: con una altura que no existe
+          // Nominatim devuelve la calle entera y un 200, sin distinguirse de un
+          // acierto real.
+          const conAltura = intento.conNumero && hitTieneAltura(data[0])
           onLatChange(hitLat)
           onLngChange(hitLng)
           onLocationTextChange(
-            intento.conNumero
+            conAltura
               ? `${calle.trim()} ${numero.trim()}, ${localidad.name}`
               : `${calle.trim()}, ${localidad.name}`,
           )
-          // Acerto la calle pero no la altura: el pin quedo en el medio de la
-          // calle, que puede tener veinte cuadras. Decirlo es la diferencia
-          // entre un pin aproximado y un pin equivocado.
-          if (numero.trim() && !intento.conNumero) {
+          // El pin quedo en el medio de una calle que puede tener veinte
+          // cuadras. Decirlo es la diferencia entre un pin aproximado y un pin
+          // equivocado que se presenta como exacto.
+          if (numero.trim() && !conAltura) {
             setAvisoDireccion('No encontramos esa altura. El pin quedó sobre la calle: arrastralo hasta la cuadra.')
           }
           return
         }
-        setAvisoDireccion('No encontramos esa dirección. Elegí la calle de la lista de sugerencias, o arrastrá el pin en el mapa.')
+        setAvisoDireccion('No encontramos esa dirección. El pin sigue donde estaba: elegí la calle de la lista de sugerencias, o arrastralo en el mapa.')
       } catch {
         // Un abort es el usuario escribiendo la letra siguiente, no un fallo.
         if (!controller.signal.aborted) {
