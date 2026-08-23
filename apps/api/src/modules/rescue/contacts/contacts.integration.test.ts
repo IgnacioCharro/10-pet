@@ -152,6 +152,45 @@ describe('GET /api/v1/contacts', () => {
     const res = await request(app).get('/api/v1/contacts');
     expect(res.status).toBe(401);
   });
+
+  it('pasa el filtro por caso al service', async () => {
+    // La ficha del caso lo usa para saber si el boton lleva al chat que ya
+    // existe o abre una solicitud nueva.
+    vi.mocked(svc.listContacts).mockResolvedValueOnce({ contacts: [], total: 0 });
+    const caseId = '11111111-1111-4111-8111-111111111111';
+
+    const res = await request(app)
+      .get(`/api/v1/contacts?caseId=${caseId}`)
+      .set('Authorization', authHeader);
+
+    expect(res.status).toBe(200);
+    expect(vi.mocked(svc.listContacts).mock.calls[0][1]).toMatchObject({ caseId });
+  });
+
+  it('pasa el filtro por contraparte al service', async () => {
+    vi.mocked(svc.listContacts).mockResolvedValueOnce({ contacts: [], total: 0 });
+    const withUserId = '22222222-2222-4222-8222-222222222222';
+
+    const res = await request(app)
+      .get(`/api/v1/contacts?withUserId=${withUserId}&status=active`)
+      .set('Authorization', authHeader);
+
+    expect(res.status).toBe(200);
+    expect(vi.mocked(svc.listContacts).mock.calls[0][1]).toMatchObject({
+      withUserId,
+      status: 'active',
+    });
+  });
+
+  it('rechaza un filtro que no es UUID en vez de mandarlo al SQL', async () => {
+    for (const qs of ['caseId=no-es-uuid', 'withUserId=no-es-uuid']) {
+      const res = await request(app)
+        .get(`/api/v1/contacts?${qs}`)
+        .set('Authorization', authHeader);
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    }
+  });
 });
 
 describe('GET /api/v1/contacts/:id', () => {

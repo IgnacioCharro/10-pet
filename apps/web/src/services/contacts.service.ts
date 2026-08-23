@@ -56,6 +56,26 @@ export async function listContacts(
   return res.data.contacts ?? []
 }
 
+/**
+ * Las conversaciones que comparto con otra persona, para su perfil publico.
+ * El backend ya limita el resultado a mis propios contactos: `withUserId` dice
+ * quien esta del otro lado, no abre los hilos ajenos.
+ */
+export async function listContactsWithUser(userId: string): Promise<ContactItem[]> {
+  const res = await api.get<{ contacts: ContactItem[] }>('/contacts', {
+    params: { withUserId: userId, limit: 50 },
+  })
+  return res.data.contacts ?? []
+}
+
+/** Mis contactos en un caso puntual, para saber si ya hay chat o hay que pedirlo. */
+export async function listCaseContacts(caseId: string): Promise<ContactItem[]> {
+  const res = await api.get<{ contacts: ContactItem[] }>('/contacts', {
+    params: { caseId, limit: 50 },
+  })
+  return res.data.contacts ?? []
+}
+
 export async function updateContactStatus(
   contactId: string,
   status: 'active' | 'rejected' | 'completed',

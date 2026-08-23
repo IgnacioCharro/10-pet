@@ -10,6 +10,7 @@ import { Card } from '../components/ui'
 import Button from '../components/ui/Button'
 import CaseDetailSheet from '../components/cases/CaseDetailSheet'
 import { useLastSeen } from '../hooks/useLastSeen'
+import { caseSummary, esConversacionLegible } from '../lib/conversations'
 import { displayLocation } from '../lib/location'
 import type { CaseItem } from '../types/case'
 
@@ -333,22 +334,8 @@ function CaseCard({ item, onClick }: { item: CaseItem; onClick?: () => void }) {
   )
 }
 
-const ANIMAL_LABELS: Record<string, string> = {
-  perro: 'Perro',
-  gato: 'Gato',
-  otro: 'Animal',
-}
-
-function caseSummary(item: ContactItem): string {
-  const animal = ANIMAL_LABELS[item.caseAnimalType ?? ''] ?? 'Caso'
-  const location = item.caseLocationText ?? ''
-  return location ? `${animal} · ${location}` : animal
-}
-
-// El hilo existe desde que se acepta la solicitud y se sigue leyendo cuando se
-// completa. En pending y rejected no hay nada que abrir.
-const tieneHilo = (item: ContactItem): boolean =>
-  item.status === 'active' || item.status === 'completed'
+// caseSummary y tieneHilo viven en lib/conversations: los comparten esta
+// pantalla, la ficha del caso y el perfil publico.
 
 function ThreadButton({ item }: { item: ContactItem }) {
   const unread = item.unreadCount ?? 0
@@ -397,7 +384,7 @@ function SentContactCard({ item, isNew }: { item: ContactItem; isNew: boolean })
           </span>
         </div>
       </Link>
-      {tieneHilo(item) && (
+      {esConversacionLegible(item) && (
         <div className="mt-3">
           <ThreadButton item={item} />
         </div>
@@ -474,7 +461,7 @@ function ReceivedContactCard({
           </button>
         </div>
       )}
-      {tieneHilo(item) && <ThreadButton item={item} />}
+      {esConversacionLegible(item) && <ThreadButton item={item} />}
     </Card>
   )
 }

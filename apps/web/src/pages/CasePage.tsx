@@ -7,6 +7,9 @@ import { useAuthStore } from '../stores/authStore'
 import { toast } from '../stores/toastStore'
 import type { CaseDetail, CaseStatus, CaseUpdateType, CaseVolunteer } from '../types/case'
 import { ContactModal } from '../components/cases/ContactModal'
+import ConversationList from '../components/contacts/ConversationList'
+import { listCaseContacts, type ContactItem } from '../services/contacts.service'
+import { esConversacionLegible } from '../lib/conversations'
 import { ReportModal } from '../components/cases/ReportModal'
 import {
   EditModal,
@@ -75,6 +78,10 @@ export default function CasePage() {
   const [showReportModal, setShowReportModal] = useState(false)
   const [whatsappLink, setWhatsappLink] = useState<string | null>(null)
   const [contacted, setContacted] = useState(false)
+  // Las conversaciones que ya tengo abiertas en este caso. Sin esto la pantalla
+  // solo sabia, por localStorage, que en algun momento mande una solicitud: no
+  // si la aceptaron, ni como volver al hilo.
+  const [conversaciones, setConversaciones] = useState<ContactItem[]>([])
   const [reported, setReported] = useState(false)
   const [showAddUpdate, setShowAddUpdate] = useState(false)
   const [addUpdateType, setAddUpdateType] = useState<CaseUpdateType>('comentario')
@@ -101,6 +108,13 @@ export default function CasePage() {
     getVetAssistances(id)
       .then(setVetAssistances)
       .catch(() => {})
+    if (currentUserId) {
+      listCaseContacts(id)
+        .then((items) => setConversaciones(items.filter(esConversacionLegible)))
+        .catch(() => setConversaciones([]))
+    } else {
+      setConversaciones([])
+    }
   }, [id, currentUserId])
 
   const handleHelp = () => {
@@ -332,6 +346,15 @@ export default function CasePage() {
             <VolunteersSection volunteers={detail.volunteers} />
           )}
 
+          {conversaciones.length > 0 && currentUserId && (
+            <ConversationList
+              items={conversaciones}
+              title="Conversaciones de este caso"
+              label="persona"
+              currentUserId={currentUserId}
+            />
+          )}
+
           <div className="flex items-center justify-between pt-2">
             <p className="text-xs text-gray-500 dark:text-gray-400 cursor-help" title={formatExact(detail.createdAt)}>{timeAgo(detail.createdAt)}</p>
             {isAuthenticated && !isOwner && !reported && (
@@ -385,7 +408,15 @@ export default function CasePage() {
                 Contactar por WhatsApp
               </a>
             )}
-            {contacted && !whatsappLink && (
+            {contacted && !whatsappLink && conversaciones.length > 0 && (
+              <Link
+                to={`/contacts/${conversaciones[0].id}`}
+                className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
+              >
+                Ir al chat
+              </Link>
+            )}
+            {contacted && !whatsappLink && conversaciones.length === 0 && (
               <p className="text-center text-sm text-green-600 dark:text-green-300 font-medium py-2">
                 Solicitud enviada. El reportador te contactará pronto.
               </p>
