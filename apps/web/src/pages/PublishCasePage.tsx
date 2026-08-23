@@ -8,7 +8,7 @@ import { Chip } from '../components/ui'
 import ResendVerification from '../components/ResendVerification'
 import LocalidadAutocomplete from '../components/cases/LocalidadAutocomplete'
 import CalleAutocomplete from '../components/cases/CalleAutocomplete'
-import { type Localidad, buildDireccionUrl, isInsideBBox } from '../lib/geocoding'
+import { type Localidad, buildDireccionIntentos, isInsideBBox } from '../lib/geocoding'
 import { uploadToCloudinary, type UploadedImage } from '../services/images.service'
 import { createCase } from '../services/cases.service'
 import { getMe } from '../services/users.service'
@@ -152,6 +152,9 @@ export default function PublishCasePage() {
           ...prev,
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
+          // Sin esto el salto deja el cartel de la direccion anterior sobre el
+          // pin nuevo, y el usuario lee una calle donde el pin ya no esta.
+          locationText: '',
         }))
         setErrors((prev) => ({ ...prev, lat: undefined }))
         setGeolocating(false)
@@ -599,6 +602,10 @@ function StepUbicacion({
   const [calle, setCalle] = useState('')
   const [numero, setNumero] = useState('')
   const [geocoding, setGeocoding] = useState(false)
+  // Lo que la busqueda no pudo hacer. Sin esto el fracaso es mudo: el usuario
+  // escribe la direccion, no pasa nada, y no hay forma de saber si el wizard
+  // esta pensando, si fallo o si la calle se llama distinto en el mapa.
+  const [avisoDireccion, setAvisoDireccion] = useState<string | null>(null)
   const [reverseGeocoding, setReverseGeocoding] = useState(false)
   const reverseDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Solo resolvemos la direccion cuando la escribio una persona. Sin esta marca
@@ -619,28 +626,44 @@ function StepUbicacion({
     const controller = new AbortController()
     const t = setTimeout(async () => {
       setGeocoding(true)
+      setAvisoDireccion(null)
       try {
-        const res = await fetch(buildDireccionUrl(calle, numero, localidad), {
-          headers: { 'Accept-Language': 'es' },
-          signal: controller.signal,
-        })
-        if (!res.ok) return
-        const data: Array<{ lat: string; lon: string }> = await res.json()
-        if (!data.length) return
-        const hitLat = parseFloat(data[0].lat)
-        const hitLng = parseFloat(data[0].lon)
-        // bounded=1 ya lo garantiza del lado del server; el chequeo es el cinturon
-        // por si Nominatim cambia de opinion sobre que significa acotado.
-        if (!isInsideBBox(hitLat, hitLng, localidad.bbox)) return
-        onLatChange(hitLat)
-        onLngChange(hitLng)
-        onLocationTextChange(
-          numero.trim()
-            ? `${calle.trim()} ${numero.trim()}, ${localidad.name}`
-            : `${calle.trim()}, ${localidad.name}`,
-        )
+        // De la busqueda mas precisa a la mas tolerante. Se corta en la primera
+        // que aterrice dentro de la caja de la localidad.
+        for (const intento of buildDireccionIntentos(calle, numero, localidad)) {
+          const res = await fetch(intento.url, {
+            headers: { 'Accept-Language': 'es' },
+            signal: controller.signal,
+          })
+          if (!res.ok) continue
+          const data: Array<{ lat: string; lon: string }> = await res.json()
+          if (!data.length) continue
+          const hitLat = parseFloat(data[0].lat)
+          const hitLng = parseFloat(data[0].lon)
+          // bounded=1 ya lo garantiza del lado del server; el chequeo es el cinturon
+          // por si Nominatim cambia de opinion sobre que significa acotado.
+          if (!isInsideBBox(hitLat, hitLng, localidad.bbox)) continue
+          onLatChange(hitLat)
+          onLngChange(hitLng)
+          onLocationTextChange(
+            intento.conNumero
+              ? `${calle.trim()} ${numero.trim()}, ${localidad.name}`
+              : `${calle.trim()}, ${localidad.name}`,
+          )
+          // Acerto la calle pero no la altura: el pin quedo en el medio de la
+          // calle, que puede tener veinte cuadras. Decirlo es la diferencia
+          // entre un pin aproximado y un pin equivocado.
+          if (numero.trim() && !intento.conNumero) {
+            setAvisoDireccion('No encontramos esa altura. El pin quedó sobre la calle: arrastralo hasta la cuadra.')
+          }
+          return
+        }
+        setAvisoDireccion('No encontramos esa dirección. Elegí la calle de la lista de sugerencias, o arrastrá el pin en el mapa.')
       } catch {
-        // Silencio a proposito: el pin ya esta en la localidad y se arrastra.
+        // Un abort es el usuario escribiendo la letra siguiente, no un fallo.
+        if (!controller.signal.aborted) {
+          setAvisoDireccion('No pudimos buscar la dirección. Revisá la conexión, o arrastrá el pin en el mapa.')
+        }
       } finally {
         setGeocoding(false)
       }
@@ -659,6 +682,8 @@ function StepUbicacion({
   const handleMapChange = (newLat: number, newLng: number) => {
     onLatChange(newLat)
     onLngChange(newLng)
+    // El usuario acaba de resolverlo a mano: el aviso ya no aplica.
+    setAvisoDireccion(null)
     if (reverseDebounceRef.current) clearTimeout(reverseDebounceRef.current)
     reverseDebounceRef.current = setTimeout(async () => {
       setReverseGeocoding(true)
@@ -697,14 +722,29 @@ function StepUbicacion({
         ¿Dónde viste al animal? Usá tu ubicación, ingresá la dirección o tocá el mapa.
       </p>
 
-      <Button
-        variant={lat !== null && !geocoding ? 'secondary' : 'primary'}
-        onClick={onGeolocate}
-        loading={geolocating}
-        fullWidth
-      >
-        {lat !== null ? 'Ubicación marcada ✓' : 'Usar mi ubicación actual'}
-      </Button>
+      {lat === null ? (
+        <Button variant="primary" onClick={onGeolocate} loading={geolocating} fullWidth>
+          Usar mi ubicación actual
+        </Button>
+      ) : (
+        /*
+         * Con ubicacion ya marcada esto es un estado, no una accion. Cuando era
+         * un boton entero seguia llamando a onGeolocate: un toque descartaba el
+         * pin ajustado y lo mandaba a donde diga la IP —en una PC, el centro del
+         * pueblo—. Volver a geolocalizar sigue estando, pero hay que buscarlo.
+         */
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2">
+          <span className="text-sm text-gray-700 dark:text-gray-200">Ubicación marcada ✓</span>
+          <button
+            type="button"
+            onClick={onGeolocate}
+            disabled={geolocating}
+            className="shrink-0 text-xs text-primary-600 dark:text-primary-300 hover:underline disabled:opacity-60"
+          >
+            {geolocating ? 'Buscando...' : 'Usar mi ubicación actual'}
+          </button>
+        </div>
+      )}
 
       {error && <p className="text-xs text-red-600 dark:text-red-300">{error}</p>}
 
@@ -799,6 +839,9 @@ function StepUbicacion({
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
             Dirección detectada: <span className="font-medium">{locationText}</span>
           </p>
+        )}
+        {!reverseGeocoding && !geocoding && avisoDireccion && (
+          <p className="text-xs text-amber-700 dark:text-amber-300 mb-1">{avisoDireccion}</p>
         )}
         <Input
           label="Referencia (opcional)"
