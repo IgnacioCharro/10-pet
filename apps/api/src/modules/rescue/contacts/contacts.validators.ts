@@ -9,6 +9,12 @@ export const createContactSchema = z.object({
 export const listContactsSchema = z.object({
   role: z.enum(['initiator', 'responder']).optional(),
   status: z.enum(['pending', 'active', 'completed', 'rejected']).optional(),
+  // Las conversaciones de un caso puntual: la ficha las usa para saber si el
+  // boton lleva al chat o abre una solicitud nueva.
+  caseId: z.string().uuid('caseId debe ser un UUID válido').optional(),
+  // Las conversaciones compartidas con otra persona, para su perfil publico.
+  // Filtra sobre los contactos del usuario autenticado, nunca sobre los ajenos.
+  withUserId: z.string().uuid('withUserId debe ser un UUID válido').optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(50).default(20),
 });

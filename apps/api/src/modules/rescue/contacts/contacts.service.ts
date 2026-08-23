@@ -158,6 +158,22 @@ export async function listContacts(
     replacements.status = query.status;
   }
 
+  if (query.caseId) {
+    conditions.push('c.case_id = :caseId');
+    replacements.caseId = query.caseId;
+  }
+
+  // La otra punta de la conversacion, sea cual sea el lado que ocupe el que
+  // pregunta. Se suma a la condicion de arriba, que ya limita el resultado a
+  // sus propios contactos: no abre los de nadie mas.
+  if (query.withUserId) {
+    conditions.push(
+      '((c.initiator_id = :withUserId AND c.responder_id = :userId)' +
+        ' OR (c.responder_id = :withUserId AND c.initiator_id = :userId))',
+    );
+    replacements.withUserId = query.withUserId;
+  }
+
   const where = conditions.join(' AND ');
   const offset = (query.page - 1) * query.limit;
   replacements.limit = query.limit;

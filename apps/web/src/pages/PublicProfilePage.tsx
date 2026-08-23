@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getPublicProfile, type PublicProfile } from '../services/users.service'
+import { listContactsWithUser, type ContactItem } from '../services/contacts.service'
+import { esConversacionLegible } from '../lib/conversations'
+import { useAuthStore } from '../stores/authStore'
+import ConversationList from '../components/contacts/ConversationList'
 import { Card } from '../components/ui'
 
 function memberSince(iso: string): string {
@@ -12,6 +16,8 @@ export default function PublicProfilePage() {
   const [profile, setProfile] = useState<PublicProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const currentUserId = useAuthStore((s) => s.user?.id)
+  const [conversaciones, setConversaciones] = useState<ContactItem[]>([])
 
   useEffect(() => {
     if (!id) return
@@ -23,6 +29,19 @@ export default function PublicProfilePage() {
       })
       .finally(() => setLoading(false))
   }, [id])
+
+  // Las conversaciones que ya comparto con esta persona. El chat nace de una
+  // solicitud por un caso, asi que no hay un unico "chat con Fulano": hay uno
+  // por caso, y la lista es la unica forma honesta de mostrarlos.
+  useEffect(() => {
+    if (!id || !currentUserId || id === currentUserId) {
+      setConversaciones([])
+      return
+    }
+    listContactsWithUser(id)
+      .then((items) => setConversaciones(items.filter(esConversacionLegible)))
+      .catch(() => setConversaciones([]))
+  }, [id, currentUserId])
 
   if (loading) {
     return (
@@ -70,6 +89,12 @@ export default function PublicProfilePage() {
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Casos ayudados</p>
         </Card>
       </div>
+
+      {conversaciones.length > 0 && (
+        <Card className="p-4">
+          <ConversationList items={conversaciones} title="Conversaciones" label="caso" />
+        </Card>
+      )}
     </div>
   )
 }
