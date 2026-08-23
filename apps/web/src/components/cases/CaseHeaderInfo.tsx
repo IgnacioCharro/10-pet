@@ -1,5 +1,6 @@
-import type { AnimalCondition } from '../../types/case'
+import type { AnimalCondition, Whereabouts } from '../../types/case'
 import { CONDITION_LABEL } from '../../lib/animalType'
+import { WHEREABOUTS_LABEL } from '../../lib/whereabouts'
 import { timeAgo } from '../../lib/time'
 
 // Estaban copiados byte a byte en CaseDetailSheet.tsx y CasePage.tsx. Se
@@ -49,5 +50,37 @@ export function CaseConditionInfo({ animalCondition, seenAt }: CaseConditionInfo
         </p>
       )}
     </>
+  )
+}
+
+interface CaseLocationInfoProps {
+  locationText: string | null
+  referenceNote: string | null
+  whereabouts: Whereabouts
+}
+
+/**
+ * Donde lo vieron y donde esta son dos cosas distintas, y se leen una debajo de
+ * la otra a proposito. La ubicacion del caso marca siempre el avistamiento: el
+ * domicilio de quien rescata no entra al sistema. Decirlo con todas las letras
+ * es lo que evita que el pin se lea como "aca vive el que lo tiene".
+ */
+export function CaseLocationInfo({ locationText, referenceNote, whereabouts }: CaseLocationInfoProps) {
+  return (
+    <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
+      <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      <div className="min-w-0 flex flex-col gap-0.5">
+        {locationText && (
+          <p><span className="font-medium">Dónde lo vieron:</span> {locationText}</p>
+        )}
+        {referenceNote && (
+          <p className="text-gray-500 dark:text-gray-400">{referenceNote}</p>
+        )}
+        <p><span className="font-medium">Dónde está:</span> {WHEREABOUTS_LABEL[whereabouts]}</p>
+      </div>
+    </div>
   )
 }

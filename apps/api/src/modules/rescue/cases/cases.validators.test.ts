@@ -43,9 +43,9 @@ describe('createCaseSchema — seenAt', () => {
 });
 
 describe('createCaseSchema — valores nuevos', () => {
-  it('acepta el tercer tipo de publicacion', () => {
+  it('rechaza at_risk, que se retiro como tipo de publicacion', () => {
     const parsed = createCaseSchema.safeParse({ ...baseCase, listingType: 'at_risk' });
-    expect(parsed.success).toBe(true);
+    expect(parsed.success).toBe(false);
   });
 
   it('acepta la especie ave', () => {
@@ -84,8 +84,34 @@ describe('updateCaseSchema', () => {
 });
 
 describe('listCasesSchema', () => {
-  it('filtra por el tercer tipo de publicacion', () => {
+  it('rechaza at_risk, que se retiro como tipo de publicacion', () => {
     const parsed = listCasesSchema.safeParse({ listingType: 'at_risk' });
+    expect(parsed.success).toBe(false);
+  });
+});
+
+describe('createCaseSchema — whereabouts', () => {
+  it('acepta whereabouts y hostName al crear', () => {
+    const parsed = createCaseSchema.safeParse({
+      ...baseCase,
+      whereabouts: 'con_un_tercero',
+      hostName: 'Marta Gimenez',
+    });
     expect(parsed.success).toBe(true);
+  });
+
+  it('por defecto un caso nuevo queda en la calle', () => {
+    const parsed = createCaseSchema.safeParse(baseCase);
+    expect(parsed.success && parsed.data.whereabouts).toBe('en_la_calle');
+  });
+
+  it('rechaza un whereabouts que no existe', () => {
+    const parsed = createCaseSchema.safeParse({ ...baseCase, whereabouts: 'en_el_veterinario' });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('listCases acepta el filtro sheltered', () => {
+    const parsed = listCasesSchema.safeParse({ sheltered: 'false' });
+    expect(parsed.success && parsed.data.sheltered).toBe(false);
   });
 });

@@ -12,10 +12,17 @@ vi.mock('../../../jobs/queue', () => ({
   contactRequestQueue: null,
 }));
 
-import { sequelize } from '../../../db';
-import { listCases, getFeedCases, listCasesByUser, FEED_MAX_AGE_DAYS } from './cases.service';
+import { sequelize, CaseUpdate, Case } from '../../../db';
+import {
+  listCases,
+  getFeedCases,
+  listCasesByUser,
+  createCase,
+  updateCase,
+  FEED_MAX_AGE_DAYS,
+} from './cases.service';
 import { VOLUNTEER_COUNT_SUBQUERY, FEED_VOLUNTEER_COUNT_EXPR } from './cases.ordering';
-import { ListCasesQuery, FeedCasesQuery } from './cases.validators';
+import { ListCasesQuery, FeedCasesQuery, CreateCaseInput } from './cases.validators';
 
 const queryMock = vi.mocked(
   sequelize.query as unknown as (
@@ -39,6 +46,16 @@ const orderByOf = (sql: string): string =>
 
 const baseListQuery: ListCasesQuery = { radius: 10, page: 1, limit: 20, sort: 'recent' };
 const baseFeedQuery: FeedCasesQuery = { lat: -34.6037, lng: -58.3816, radius: 10 };
+
+const baseCreateInput: CreateCaseInput = {
+  listingType: 'found',
+  title: 'Perrito encontrado en la plaza',
+  animalType: 'perro',
+  description: 'Encontrado cerca de la plaza central del pueblo, sin colgar',
+  location: { lat: -34.6037, lng: -58.3816 },
+  urgencyLevel: 1,
+  whereabouts: 'en_la_calle',
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -147,5 +164,82 @@ describe('SELECT de casos — columnas de S2', () => {
   it('el feed trae el titulo, que es lo que muestra la tarjeta', async () => {
     await getFeedCases(baseFeedQuery);
     expect(sqlOf(0)).toContain('c.title');
+  });
+
+  it('la lista trae whereabouts', async () => {
+    await listCases(baseListQuery);
+    expect(sqlOf(0)).toContain('c.whereabouts');
+  });
+});
+
+describe('createCase — apertura del historial', () => {
+  it('abre el historial con una novedad de alojamiento cuando alguien lo tiene', async () => {
+    queryMock.mockResolvedValueOnce([{ id: 'case-1' }]);
+    await createCase('user-1', {
+      ...baseCreateInput,
+      whereabouts: 'con_un_tercero',
+      hostName: 'Marta Gimenez',
+    });
+    expect(CaseUpdate.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        caseId: 'case-1',
+        updateType: 'alojamiento',
+        hostName: 'Marta Gimenez',
+      }),
+    );
+  });
+
+  it('no abre historial si el animal quedo en la calle', async () => {
+    queryMock.mockResolvedValueOnce([{ id: 'case-2' }]);
+    await createCase('user-1', { ...baseCreateInput, whereabouts: 'en_la_calle' });
+    expect(CaseUpdate.create).not.toHaveBeenCalled();
+  });
+
+  it('un caso buscado tampoco abre historial', async () => {
+    // 'desconocido' es ausencia de dato, no una garantia de que alguien lo tenga.
+    queryMock.mockResolvedValueOnce([{ id: 'case-3' }]);
+    await createCase('user-1', { ...baseCreateInput, whereabouts: 'desconocido' });
+    expect(CaseUpdate.create).not.toHaveBeenCalled();
+  });
+
+  it('manda whereabouts parametrizado al INSERT, no concatenado', async () => {
+    queryMock.mockResolvedValueOnce([{ id: 'case-4' }]);
+    await createCase('user-1', { ...baseCreateInput, whereabouts: 'con_quien_publica' });
+    expect(replacementsOf(0)['whereabouts']).toBe('con_quien_publica');
+  });
+});
+
+describe('updateCase — SET dinamico', () => {
+  it('suma whereabouts al SET cuando viene en el input, parametrizado', async () => {
+    vi.mocked(Case.findByPk).mockResolvedValueOnce({ id: 'case-1', userId: 'user-1' } as never);
+    queryMock.mockResolvedValueOnce([{ id: 'case-1' }]);
+
+    await updateCase('case-1', 'user-1', false, { whereabouts: 'con_un_tercero' });
+
+    expect(sqlOf(0)).toContain('whereabouts = :whereabouts');
+    expect(replacementsOf(0)['whereabouts']).toBe('con_un_tercero');
+  });
+
+  it('no toca whereabouts si no viene en el input', async () => {
+    vi.mocked(Case.findByPk).mockResolvedValueOnce({ id: 'case-1', userId: 'user-1' } as never);
+    queryMock.mockResolvedValueOnce([{ id: 'case-1' }]);
+
+    await updateCase('case-1', 'user-1', false, { title: 'Titulo nuevo' });
+
+    // El RETURNING siempre trae whereabouts (es una columna mas del CaseRow);
+    // lo que no debe pasar es que el SET la toque cuando no vino en el input.
+    const sql = sqlOf(0);
+    const setClause = sql.slice(0, sql.indexOf('RETURNING'));
+    expect(setClause).not.toContain('whereabouts');
+  });
+});
+
+describe('getFeedCases — excluye a resguardo', () => {
+  it('deja afuera los casos que ya estan con quien publica o un tercero', async () => {
+    await getFeedCases(baseFeedQuery);
+
+    expect(sqlOf(0)).toContain(
+      `c.whereabouts NOT IN ('con_quien_publica', 'con_un_tercero')`,
+    );
   });
 });

@@ -13,7 +13,7 @@ import { ANIMAL_LABEL, ANIMAL_EMOJI } from '../../lib/animalType'
 import type { AnimalType } from '../../types/case'
 import { LISTING_TYPE } from '../../lib/listingType'
 import { timeAgo, formatExact } from '../../lib/time'
-import { CaseTitleCode, CaseConditionInfo } from './CaseHeaderInfo'
+import { CaseTitleCode, CaseConditionInfo, CaseLocationInfo } from './CaseHeaderInfo'
 
 function contactedKey(userId: string) { return `10pet:contacted:${userId}` }
 function hasContactedCase(userId: string, caseId: string): boolean {
@@ -303,20 +303,11 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
 
               <CaseConditionInfo animalCondition={detail.animalCondition} seenAt={detail.seenAt} />
 
-              {(detail.locationText || detail.referenceNote) && (
-                <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
-                  <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <div className="min-w-0">
-                    {detail.locationText && <p>{detail.locationText}</p>}
-                    {detail.referenceNote && (
-                      <p className="text-gray-500 dark:text-gray-400">{detail.referenceNote}</p>
-                    )}
-                  </div>
-                </div>
-              )}
+              <CaseLocationInfo
+                locationText={detail.locationText}
+                referenceNote={detail.referenceNote}
+                whereabouts={detail.whereabouts}
+              />
 
               {detail.images.length > 0 && (() => {
                 const sorted = [...detail.images].sort((a, b) => a.position - b.position)

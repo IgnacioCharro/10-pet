@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { type Localidad, buildCalleUrl } from '../../lib/geocoding'
 
 interface StreetSuggestion {
   display_name: string
@@ -10,7 +11,7 @@ interface StreetSuggestion {
 interface Props {
   value: string
   onChange: (value: string) => void
-  localidad: string
+  localidad: Localidad | null
   placeholder?: string
   label?: string
 }
@@ -24,15 +25,14 @@ export default function CalleAutocomplete({ value, onChange, localidad, placehol
 
   const search = useCallback(
     async (q: string) => {
-      if (q.trim().length < 2 || !localidad.trim()) {
+      if (q.trim().length < 2 || !localidad) {
         setSuggestions([])
         setOpen(false)
         return
       }
       setLoading(true)
       try {
-        const query = `${q.trim()}, ${localidad.trim()}, Argentina`
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=ar&addressdetails=0&limit=8`
+        const url = buildCalleUrl(q, localidad)
         const res = await fetch(url, { headers: { 'Accept-Language': 'es', 'User-Agent': '10pet-web/1.0' } })
         const data: StreetSuggestion[] = await res.json()
         const streets = data.filter((s) => s.class === 'highway' || s.type === 'residential' || s.type === 'primary' || s.type === 'secondary' || s.type === 'tertiary' || s.type === 'unclassified')
@@ -88,9 +88,10 @@ export default function CalleAutocomplete({ value, onChange, localidad, placehol
           value={value}
           onChange={handleChange}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
-          placeholder={placeholder}
+          placeholder={localidad ? placeholder : 'Elegí primero la localidad'}
+          disabled={!localidad}
           autoComplete="off"
-          className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed"
         />
         {loading && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2">

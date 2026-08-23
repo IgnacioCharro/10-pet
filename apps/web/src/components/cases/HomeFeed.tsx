@@ -30,13 +30,12 @@ interface FeedRow {
   heroUrl: string | null
 }
 
-type Tab = 'all' | 'found' | 'lost' | 'at_risk'
+type Tab = 'all' | 'found' | 'lost'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'all', label: 'Todos' },
   { id: 'found', label: 'Encontrados' },
   { id: 'lost', label: 'Buscados' },
-  { id: 'at_risk', label: 'En riesgo' },
 ]
 
 const ANIMAL_CHIPS: { value: AnimalType | ''; label: string }[] = [

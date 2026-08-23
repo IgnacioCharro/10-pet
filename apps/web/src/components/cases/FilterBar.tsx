@@ -59,9 +59,16 @@ export interface FilterState {
   animalSex: AnimalSex | ''
   animalSize: AnimalSize | ''
   animalColor: AnimalColor | ''
+  /**
+   * Los animales que ya tiene alguien arrancan escondidos: el mapa esta para
+   * mostrar quien necesita ayuda. Los pines no se borran, se destildan — siguen
+   * en el lugar del hallazgo, que es el dato que le sirve a quien busca a su
+   * animal perdido.
+   */
+  showSheltered: boolean
 }
 
-const DEFAULT_FILTERS: FilterState = {
+export const DEFAULT_FILTERS: FilterState = {
   animalType: '',
   urgencyMin: 0,
   radius: 10,
@@ -69,6 +76,7 @@ const DEFAULT_FILTERS: FilterState = {
   animalSex: '',
   animalSize: '',
   animalColor: '',
+  showSheltered: false,
 }
 
 interface Props {
@@ -98,7 +106,11 @@ export default function FilterBar({ filters, onFiltersChange, onLocationFound, z
 
   const set = (patch: Partial<FilterState>) => onFiltersChange({ ...filters, ...patch })
 
-  const hasExtraFilters = filters.animalSex !== '' || filters.animalSize !== '' || filters.animalColor !== ''
+  // Incluye showSheltered para que el panel no se cierre encima de un filtro
+  // activo: un mapa que esconde pines por una casilla que no se ve es el bug.
+  const hasExtraFilters =
+    filters.animalSex !== '' || filters.animalSize !== '' || filters.animalColor !== '' ||
+    filters.showSheltered
 
   const isFiltered =
     filters.animalType !== DEFAULT_FILTERS.animalType ||
@@ -306,6 +318,18 @@ export default function FilterBar({ filters, onFiltersChange, onLocationFound, z
                 </button>
               ))}
             </div>
+
+            <div className="w-px bg-gray-200 dark:bg-gray-700 self-stretch" />
+
+            <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 flex-shrink-0 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.showSheltered}
+                onChange={(e) => set({ showSheltered: e.target.checked })}
+                className="rounded border-gray-300 dark:border-gray-600"
+              />
+              Mostrar los que ya están a resguardo
+            </label>
 
             <div className="w-px bg-gray-200 dark:bg-gray-700 self-stretch" />
 
