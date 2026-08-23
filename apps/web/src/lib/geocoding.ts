@@ -72,7 +72,16 @@ export function buildLocalidadUrl(q: string): string {
   return `${BASE}?${params}`.replace(/\+/g, '%20')
 }
 
-function buildBoundedUrl(q: string, loc: Localidad, limit: number): string {
+function buildBoundedUrl(
+  q: string,
+  loc: Localidad,
+  limit: number,
+  /**
+   * Trae `address` desglosado. Solo lo piden las busquedas de direccion, que
+   * necesitan mirar si vino `house_number`; el autocomplete de calle no.
+   */
+  addressdetails = false,
+): string {
   const params = new URLSearchParams({
     format: 'json',
     q,
@@ -81,6 +90,7 @@ function buildBoundedUrl(q: string, loc: Localidad, limit: number): string {
     bounded: '1',
     limit: String(limit),
   })
+  if (addressdetails) params.set('addressdetails', '1')
   return `${BASE}?${params}`.replace(/\+/g, '%20')
 }
 
@@ -109,10 +119,28 @@ export function stripViaPrefix(calle: string): string | null {
 export interface DireccionIntento {
   url: string
   /**
-   * Si este intento lleva la altura. Cuando acierta uno que no la lleva, el pin
-   * quedo sobre la calle y no en la cuadra, y eso hay que decirlo.
+   * Si este intento **pidio** la altura. No alcanza para saber si la trajo:
+   * cuando la altura no existe, Nominatim devuelve la calle sin avisar. Para
+   * eso esta `hitTieneAltura`, que mira la respuesta en vez de la pregunta.
    */
   conNumero: boolean
+}
+
+export interface NominatimHit {
+  lat: string
+  lon: string
+  address?: { house_number?: string }
+}
+
+/**
+ * Si el resultado es una direccion con altura o la calle entera.
+ *
+ * Medido: `Alem 99999` en Pehuajo devuelve `highway/residential` —la calle— con
+ * un 200 y un hit, identico en forma a un acierto real. Sin este chequeo el
+ * wizard planta el pin en el medio de veinte cuadras y lo rotula "Alem 99999".
+ */
+export function hitTieneAltura(hit: NominatimHit): boolean {
+  return Boolean(hit.address?.house_number)
 }
 
 /**
@@ -137,11 +165,11 @@ export function buildDireccionIntentos(
   const intentos: DireccionIntento[] = []
   if (n) {
     for (const nombre of nombres) {
-      intentos.push({ url: buildBoundedUrl(`${nombre} ${n}`, loc, 1), conNumero: true })
+      intentos.push({ url: buildBoundedUrl(`${nombre} ${n}`, loc, 1, true), conNumero: true })
     }
   }
   for (const nombre of nombres) {
-    intentos.push({ url: buildBoundedUrl(nombre, loc, 1), conNumero: false })
+    intentos.push({ url: buildBoundedUrl(nombre, loc, 1, true), conNumero: false })
   }
   return intentos
 }

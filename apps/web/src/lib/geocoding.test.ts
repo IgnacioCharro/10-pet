@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   parseLocalidad, buildLocalidadUrl, buildCalleUrl, buildDireccionIntentos,
-  stripViaPrefix, isInsideBBox,
+  stripViaPrefix, hitTieneAltura, isInsideBBox,
 } from './geocoding'
 import type { Localidad } from './geocoding'
 
@@ -160,6 +160,14 @@ describe('buildDireccionIntentos', () => {
     expect(buildDireccionIntentos('Alem', '  850  ', pehuajo)[0].url).toContain('Alem%20850')
   })
 
+  it('pide addressdetails para poder distinguir la altura de la calle', () => {
+    // Sin esto la respuesta no trae `address`, y una altura inexistente pasa
+    // por acierto exacto.
+    for (const intento of buildDireccionIntentos('Alem', '850', pehuajo)) {
+      expect(intento.url).toContain('addressdetails=1')
+    }
+  })
+
   it('todos los intentos siguen acotados a la localidad', () => {
     // El fallback afloja el nombre de la calle, nunca la caja: sin esto,
     // "Alem" solo puede volver a aterrizar en otra provincia.
@@ -168,6 +176,25 @@ describe('buildDireccionIntentos', () => {
       expect(intento.url).toContain('viewbox=-61.95%2C-35.85%2C-61.85%2C-35.77')
       expect(intento.url).not.toContain('Pehuaj')
     }
+  })
+})
+
+describe('hitTieneAltura', () => {
+  it('reconoce la altura cuando Nominatim la devuelve', () => {
+    expect(hitTieneAltura({
+      lat: '-35.8142291', lon: '-61.9003112', address: { house_number: '850' },
+    })).toBe(true)
+  })
+
+  it('detecta que devolvio la calle entera en vez de la altura pedida', () => {
+    // "Alem 99999" en Pehuajo: un 200 con un hit, igual de convincente que un
+    // acierto real, pero es la calle. Rotularlo "99999" planta un pin en el
+    // medio de veinte cuadras y lo presenta como exacto.
+    expect(hitTieneAltura({
+      lat: '-35.8161299', lon: '-61.9026750',
+      address: {},
+    })).toBe(false)
+    expect(hitTieneAltura({ lat: '-35.81', lon: '-61.90' })).toBe(false)
   })
 })
 
