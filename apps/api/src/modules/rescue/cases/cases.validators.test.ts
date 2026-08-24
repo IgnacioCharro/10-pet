@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createCaseSchema, updateCaseSchema, listCasesSchema } from './cases.validators';
+import { createCaseSchema, updateCaseSchema, listCasesSchema, addUpdateSchema } from './cases.validators';
 
 const baseCase = {
   title: 'Perro mediano, herido',
@@ -113,5 +113,51 @@ describe('createCaseSchema — whereabouts', () => {
   it('listCases acepta el filtro sheltered', () => {
     const parsed = listCasesSchema.safeParse({ sheltered: 'false' });
     expect(parsed.success && parsed.data.sheltered).toBe(false);
+  });
+});
+
+describe('addUpdateSchema — el paradero lo mueve la novedad de alojamiento', () => {
+  it('acepta whereabouts en una novedad de alojamiento', () => {
+    const parsed = addUpdateSchema.safeParse({
+      updateType: 'alojamiento',
+      content: 'Aparecio, lo tiene la vecina',
+      hostName: 'Marta Gimenez',
+      whereabouts: 'con_un_tercero',
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('rechaza whereabouts en cualquier otro tipo', () => {
+    const parsed = addUpdateSchema.safeParse({
+      updateType: 'avistamiento',
+      content: 'Lo vi cerca de la plaza',
+      whereabouts: 'con_quien_publica',
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rechaza desconocido: no se puede cambiar de lugar hacia ningun lado', () => {
+    const parsed = addUpdateSchema.safeParse({
+      updateType: 'alojamiento',
+      whereabouts: 'desconocido',
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('sigue rechazando hostName fuera de alojamiento', () => {
+    const parsed = addUpdateSchema.safeParse({
+      updateType: 'salud',
+      content: 'Come bien',
+      hostName: 'Marta Gimenez',
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('una novedad sin paradero sigue siendo valida', () => {
+    const parsed = addUpdateSchema.safeParse({
+      updateType: 'comentario',
+      content: 'Sin novedades',
+    });
+    expect(parsed.success).toBe(true);
   });
 });

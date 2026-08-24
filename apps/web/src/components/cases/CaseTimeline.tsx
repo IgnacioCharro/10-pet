@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import type { CaseUpdateItem, CaseUpdateType, CaseStatus } from '../../types/case'
+import type { CaseUpdateItem, CaseUpdateType, CaseStatus, Whereabouts, AlojamientoWhereabouts } from '../../types/case'
 import type { VetAssistanceItem } from '../../services/vet-assistances.service'
+import { isSheltered } from '../../lib/whereabouts'
 
 /**
  * Linea de tiempo vertical del caso. Reemplaza a las secciones sueltas "Historial del
@@ -43,9 +44,19 @@ const LABEL: Record<CaseUpdateType, string> = {
   reactivated:   'Reactivado',
 }
 
-export const OWNER_UPDATE_TYPES: CaseUpdateType[] = [
-  'avistamiento', 'alojamiento', 'salud', 'veterinario', 'comentario',
-]
+/**
+ * Que novedades tiene sentido ofrecer depende de si alguien tiene al animal.
+ *
+ * Un caso buscado nace con el paradero en 'desconocido' y ahi se queda hasta que
+ * el animal aparece: ofrecerle al dueño "Estado de salud" o "Atención veterinaria"
+ * es pedirle el parte medico de un perro que todavia no encontro. Cuando aparece
+ * —y lo unico que cuenta eso es la novedad de alojamiento— se habilitan las cinco.
+ */
+export function updateTypesFor(whereabouts: Whereabouts): CaseUpdateType[] {
+  return isSheltered(whereabouts)
+    ? ['avistamiento', 'alojamiento', 'salud', 'veterinario', 'comentario']
+    : ['avistamiento', 'alojamiento', 'comentario']
+}
 
 const OWNER_TYPE_LABELS: Record<string, string> = {
   avistamiento: 'Lo vi en otro lugar',
@@ -54,6 +65,15 @@ const OWNER_TYPE_LABELS: Record<string, string> = {
   veterinario:  'Atención veterinaria',
   comentario:   'Otra novedad',
 }
+
+// Mientras nadie lo tenga, "Cambió de lugar" no describe el paso que falta dar.
+const ALOJAMIENTO_LABEL_APARECIO = 'Ya está con alguien'
+
+const PARADERO_OPCIONES: { value: AlojamientoWhereabouts; label: string }[] = [
+  { value: 'con_quien_publica', label: 'Lo tengo yo' },
+  { value: 'con_un_tercero',    label: 'Lo tiene otra persona' },
+  { value: 'en_la_calle',       label: 'Sigue en la calle' },
+]
 
 const PLACEHOLDERS: Record<string, string> = {
   avistamiento: 'Dónde fue visto, cuándo, en qué condición...',
@@ -235,6 +255,8 @@ export interface CaseTimelineProps {
   resolutionType: string | null
   updates: CaseUpdateItem[]
   assistances: VetAssistanceItem[]
+  /** Paradero actual del caso: decide que novedades se ofrecen. */
+  whereabouts: Whereabouts
   isOwner: boolean
   isAuthenticated: boolean
   // Alta de novedad (solo el dueño)
@@ -242,11 +264,13 @@ export interface CaseTimelineProps {
   addUpdateType: CaseUpdateType
   addUpdateContent: string
   addUpdateHostName: string
+  addUpdateWhereabouts: AlojamientoWhereabouts
   addUpdateLoading: boolean
   onToggleForm: () => void
   onTypeChange: (t: CaseUpdateType) => void
   onContentChange: (v: string) => void
   onHostNameChange: (v: string) => void
+  onWhereaboutsChange: (w: AlojamientoWhereabouts) => void
   onSubmit: () => void
   // Alta de atencion veterinaria (cualquier autenticado)
   showVetForm: boolean
@@ -260,14 +284,16 @@ export interface CaseTimelineProps {
 }
 
 export default function CaseTimeline({
-  createdAt, status, resolutionType, updates, assistances,
+  createdAt, status, resolutionType, updates, assistances, whereabouts,
   isOwner, isAuthenticated,
-  showAddUpdate, addUpdateType, addUpdateContent, addUpdateHostName, addUpdateLoading,
-  onToggleForm, onTypeChange, onContentChange, onHostNameChange, onSubmit,
+  showAddUpdate, addUpdateType, addUpdateContent, addUpdateHostName, addUpdateWhereabouts, addUpdateLoading,
+  onToggleForm, onTypeChange, onContentChange, onHostNameChange, onWhereaboutsChange, onSubmit,
   showVetForm, vetProcedure, vetMedication, vetLoading,
   onToggleVetForm, onVetProcedureChange, onVetMedicationChange, onVetSubmit,
 }: CaseTimelineProps) {
   const milestones = buildMilestones(createdAt, status, resolutionType, updates, assistances)
+  const aResguardo = isSheltered(whereabouts)
+  const tiposOfrecidos = updateTypesFor(whereabouts)
 
   return (
     <div className="flex flex-col gap-3">
@@ -285,7 +311,7 @@ export default function CaseTimeline({
               {showAddUpdate ? 'Cancelar' : '+ Novedad'}
             </button>
           )}
-          {isAuthenticated && (
+          {isAuthenticated && aResguardo && (
             <button
               type="button"
               onClick={onToggleVetForm}
@@ -300,7 +326,7 @@ export default function CaseTimeline({
       {showAddUpdate && isOwner && (
         <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex flex-col gap-3 bg-gray-50 dark:bg-gray-700">
           <div className="flex flex-wrap gap-1.5">
-            {OWNER_UPDATE_TYPES.map((t) => (
+            {tiposOfrecidos.map((t) => (
               <button
                 key={t}
                 type="button"
@@ -321,27 +347,62 @@ export default function CaseTimeline({
                     addUpdateType === t ? 'ring-1 ring-white/70' : '',
                   ].join(' ')}
                 />
-                {OWNER_TYPE_LABELS[t]}
+                {t === 'alojamiento' && !aResguardo ? ALOJAMIENTO_LABEL_APARECIO : OWNER_TYPE_LABELS[t]}
               </button>
             ))}
           </div>
           {addUpdateType === 'alojamiento' && (
-            <div>
-              <label htmlFor="host-name" className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                ¿Quién lo tiene?
-              </label>
-              <input
-                id="host-name"
-                type="text"
-                maxLength={100}
-                placeholder="Nombre de quien lo aloja"
-                value={addUpdateHostName}
-                onChange={(e) => onHostNameChange(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Se muestra en la línea de tiempo. Opcional.
-              </p>
+            <div className="flex flex-col gap-3">
+              <div>
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                  ¿Dónde está ahora?
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {PARADERO_OPCIONES.map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => onWhereaboutsChange(o.value)}
+                      aria-pressed={addUpdateWhereabouts === o.value}
+                      className={[
+                        'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                        addUpdateWhereabouts === o.value
+                          ? 'bg-primary-600 text-white border-primary-600'
+                          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-primary-400',
+                      ].join(' ')}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Es el dato que la ficha muestra en “Dónde está” y el que pinta el pin en el mapa.
+                </p>
+              </div>
+              {/*
+                El nombre se pide solo cuando lo tiene un tercero: si lo tiene quien
+                publica, el nombre ya esta en la ficha, y si sigue en la calle no hay
+                a quien nombrar.
+              */}
+              {addUpdateWhereabouts === 'con_un_tercero' && (
+                <div>
+                  <label htmlFor="host-name" className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                    ¿Quién lo tiene?
+                  </label>
+                  <input
+                    id="host-name"
+                    type="text"
+                    maxLength={100}
+                    placeholder="Nombre de quien lo aloja"
+                    value={addUpdateHostName}
+                    onChange={(e) => onHostNameChange(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Se muestra en la línea de tiempo. Opcional.
+                  </p>
+                </div>
+              )}
             </div>
           )}
           <textarea
@@ -362,7 +423,7 @@ export default function CaseTimeline({
         </div>
       )}
 
-      {showVetForm && isAuthenticated && (
+      {showVetForm && isAuthenticated && aResguardo && (
         <div className="border border-teal-200 dark:border-teal-800 rounded-xl p-3 flex flex-col gap-3 bg-teal-50 dark:bg-teal-900/30">
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Procedimiento</label>

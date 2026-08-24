@@ -125,17 +125,24 @@ export const addUpdateSchema = z
     ]),
     content: z.string().trim().max(1000).optional(),
     hostName: z.string().trim().min(1).max(100).optional(),
+    // Una novedad de alojamiento es lo unico que mueve el paradero del caso despues
+    // de publicarlo: 'desconocido' no entra, porque contar que cambio de lugar y a la
+    // vez no saber donde esta es un contrasentido.
+    whereabouts: z.enum(['en_la_calle', 'con_quien_publica', 'con_un_tercero']).optional(),
   })
-  // hostName solo tiene sentido en 'alojamiento'. Si se aceptara en cualquier tipo
-  // quedarian filas con un dato que ninguna pantalla muestra, imposibles de explicar
-  // despues. Mejor rebotar que guardar en silencio.
+  // hostName y whereabouts solo tienen sentido en 'alojamiento'. Si se aceptaran en
+  // cualquier tipo quedarian filas con un dato que ninguna pantalla muestra, imposibles
+  // de explicar despues. Mejor rebotar que guardar en silencio.
   .superRefine((data, ctx) => {
-    if (data.hostName !== undefined && data.updateType !== 'alojamiento') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['hostName'],
-        message: 'Solo se puede indicar quién aloja en una novedad de alojamiento',
-      });
+    if (data.updateType === 'alojamiento') return;
+    for (const campo of ['hostName', 'whereabouts'] as const) {
+      if (data[campo] !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [campo],
+          message: 'Solo se puede indicar quién aloja o el paradero en una novedad de alojamiento',
+        });
+      }
     }
   });
 

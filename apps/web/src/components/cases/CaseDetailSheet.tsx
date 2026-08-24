@@ -5,12 +5,13 @@ import { getVetAssistances, createVetAssistance } from '../../services/vet-assis
 import type { VetAssistanceItem } from '../../services/vet-assistances.service'
 import { useAuthStore } from '../../stores/authStore'
 import { toast } from '../../stores/toastStore'
-import type { CaseDetail, CaseStatus, CaseUpdateType, CaseVolunteer } from '../../types/case'
+import type { CaseDetail, CaseStatus, CaseUpdateType, CaseVolunteer, AlojamientoWhereabouts } from '../../types/case'
 import { ContactModal } from './ContactModal'
 import { ReportModal } from './ReportModal'
 import CaseTimeline from './CaseTimeline'
 import { ANIMAL_LABEL, ANIMAL_EMOJI } from '../../lib/animalType'
 import type { AnimalType } from '../../types/case'
+import { paraderoInicial } from '../../lib/whereabouts'
 import { LISTING_TYPE } from '../../lib/listingType'
 import { timeAgo, formatExact } from '../../lib/time'
 import { CaseTitleCode, CaseConditionInfo, CaseLocationInfo } from './CaseHeaderInfo'
@@ -76,6 +77,7 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
   const [addUpdateType, setAddUpdateType] = useState<CaseUpdateType>('comentario')
   const [addUpdateContent, setAddUpdateContent] = useState('')
   const [addUpdateHostName, setAddUpdateHostName] = useState('')
+  const [addUpdateWhereabouts, setAddUpdateWhereabouts] = useState<AlojamientoWhereabouts>('con_quien_publica')
   const [addUpdateLoading, setAddUpdateLoading] = useState(false)
   const [vetAssistances, setVetAssistances] = useState<VetAssistanceItem[]>([])
   const [showVetForm, setShowVetForm] = useState(false)
@@ -139,18 +141,42 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
     toast.success('Reporte enviado. Lo revisaremos pronto.')
   }
 
+  const handleToggleUpdateForm = () => {
+    // Al abrir, el selector de paradero arranca en el que el caso ya tiene.
+    if (!showAddUpdate && detail) setAddUpdateWhereabouts(paraderoInicial(detail.whereabouts))
+    setShowAddUpdate((v) => !v)
+  }
+
+  const handleWhereaboutsChange = (w: AlojamientoWhereabouts) => {
+    setAddUpdateWhereabouts(w)
+    // El nombre se guarda solo si lo tiene un tercero. Si no se limpiara, un cambio de
+    // opcion dejaria pegado un nombre que la ficha ya no muestra.
+    if (w !== 'con_un_tercero') setAddUpdateHostName('')
+  }
+
   const handleAddUpdate = async () => {
     if (!caseId || !addUpdateContent.trim()) return
     setAddUpdateLoading(true)
     try {
+      const esAlojamiento = addUpdateType === 'alojamiento'
+      // El paradero viaja solo en la novedad de alojamiento; el API rebota el campo en
+      // cualquier otro tipo. Se copia al detalle recien despues de que la llamada sale
+      // bien: sin eso la ficha sigue diciendo el paradero viejo y los chips de salud y
+      // veterinaria no se destraban hasta recargar.
       const newUpdate = await addCaseUpdate(
         caseId,
         addUpdateType,
         addUpdateContent.trim(),
-        addUpdateHostName.trim(),
+        { hostName: addUpdateHostName.trim(), whereabouts: addUpdateWhereabouts },
       )
       setDetail((prev) =>
-        prev ? { ...prev, updates: [newUpdate, ...prev.updates] } : prev,
+        prev
+          ? {
+              ...prev,
+              updates: [newUpdate, ...prev.updates],
+              whereabouts: esAlojamiento ? addUpdateWhereabouts : prev.whereabouts,
+            }
+          : prev,
       )
       setAddUpdateContent('')
       setAddUpdateHostName('')
@@ -341,17 +367,20 @@ export default function CaseDetailSheet({ caseId, onClose }: Props) {
                 resolutionType={detail.resolutionType}
                 updates={detail.updates}
                 assistances={vetAssistances}
+                whereabouts={detail.whereabouts}
                 isOwner={isAuthenticated && detail.userId === currentUserId}
                 isAuthenticated={isAuthenticated}
                 showAddUpdate={showAddUpdate}
                 addUpdateType={addUpdateType}
                 addUpdateContent={addUpdateContent}
                 addUpdateHostName={addUpdateHostName}
+                addUpdateWhereabouts={addUpdateWhereabouts}
                 addUpdateLoading={addUpdateLoading}
-                onToggleForm={() => setShowAddUpdate((v) => !v)}
+                onToggleForm={handleToggleUpdateForm}
                 onTypeChange={setAddUpdateType}
                 onContentChange={setAddUpdateContent}
                 onHostNameChange={setAddUpdateHostName}
+                onWhereaboutsChange={handleWhereaboutsChange}
                 onSubmit={handleAddUpdate}
                 showVetForm={showVetForm}
                 vetProcedure={vetProcedure}

@@ -606,6 +606,15 @@ export async function addCaseUpdate(
     hostName: input.hostName ?? null,
   });
 
+  // El paradero del caso lo mueve la linea de tiempo, no un formulario aparte. Al
+  // publicar, un caso buscado queda siempre en 'desconocido' (deriveWhereabouts) y
+  // hasta aca no habia ninguna pantalla que lo destrabara: el animal aparecia y la
+  // ficha seguia diciendo que nadie sabia donde estaba. Contar que cambio de lugar
+  // es exactamente el momento en que ese dato cambia.
+  if (input.whereabouts !== undefined) {
+    await Case.update({ whereabouts: input.whereabouts }, { where: { id: caseId } });
+  }
+
   return update.toJSON() as CaseUpdateRow;
 }
 
