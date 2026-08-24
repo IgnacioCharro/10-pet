@@ -316,6 +316,55 @@ export async function listCasesByUser(userId: string): Promise<CaseRow[]> {
   );
 }
 
+/**
+ * Los estados que un caso muestra en publico. 'inactivo', 'spam' y 'archivado'
+ * son decisiones de moderacion: listarlas en un perfil abierto las haria
+ * publicas sin que nadie lo pidiera.
+ */
+const PUBLIC_CASE_STATUSES = `('abierto','en_rescate','resuelto')`;
+
+/**
+ * Los casos de una persona, para su perfil publico: los que publico y aquellos en
+ * los que ayudo.
+ *
+ * "Ayudo" es la misma definicion que ya usa el contador de casos ayudados y la
+ * seccion de voluntarios de la ficha: un contacto propio que el autor acepto
+ * ('active') o dio por terminado ('completed'). Se cuenta DISTINCT por caso
+ * porque la lista muestra casos, no ofrecimientos.
+ */
+export async function listPublicCasesByUser(
+  userId: string,
+): Promise<{ published: CaseRow[]; volunteered: CaseRow[] }> {
+  const [published, volunteered] = await Promise.all([
+    sequelize.query<CaseRow>(
+      `SELECT ${BASE_CASE_SELECT}, ${HERO_URL_SELECT}
+       FROM cases c
+       WHERE c.user_id = :userId
+         AND c.status IN ${PUBLIC_CASE_STATUSES}
+       ORDER BY c.created_at DESC
+       LIMIT 50`,
+      { replacements: { userId }, type: QueryTypes.SELECT },
+    ),
+    sequelize.query<CaseRow>(
+      `SELECT DISTINCT ON (c.id) ${BASE_CASE_SELECT}, ${HERO_URL_SELECT}
+       FROM cases c
+       JOIN contacts co ON co.case_id = c.id
+       WHERE co.initiator_id = :userId
+         AND co.status IN ('active','completed')
+         AND c.status IN ${PUBLIC_CASE_STATUSES}
+       ORDER BY c.id, c.created_at DESC
+       LIMIT 50`,
+      { replacements: { userId }, type: QueryTypes.SELECT },
+    ),
+  ]);
+
+  // DISTINCT ON obliga a ordenar por c.id primero, asi que el orden por fecha se
+  // rehace aca: la lista tiene 50 filas como mucho.
+  volunteered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  return { published, volunteered };
+}
+
 export async function getNearbyCases(query: NearbyCasesQuery): Promise<CaseRow[]> {
   const { lat, lng, radius } = query;
 

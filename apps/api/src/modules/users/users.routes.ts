@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/require-auth';
-import { getMe, patchMe, getMyCases, savePushToken, patchNotificationLocation, deleteNotificationLocation, getUserById } from './users.controller';
+import { getMe, patchMe, getMyCases, savePushToken, patchNotificationLocation, deleteNotificationLocation, getUserById, getUserCases } from './users.controller';
 
 export const usersRouter: Router = Router();
 
@@ -10,4 +10,6 @@ usersRouter.patch('/me/notification-location', requireAuth, patchNotificationLoc
 usersRouter.delete('/me/notification-location', requireAuth, deleteNotificationLocation);
 usersRouter.get('/me/cases', requireAuth, getMyCases);
 usersRouter.post('/me/push-token', requireAuth, savePushToken);
+// Antes de '/:id' no hace falta —la ruta es mas especifica—, pero se leen juntas.
 usersRouter.get('/:id', getUserById);
+usersRouter.get('/:id/cases', getUserCases);
