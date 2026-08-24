@@ -58,7 +58,9 @@ export const PIN_LEGEND: { color: string; label: string }[] = [
  * 'desconocido' NO cuenta: es la ausencia de dato, no una garantia. Un animal
  * perdido tiene que seguir apareciendo entre los que necesitan ayuda.
  */
-export function isSheltered(w: Whereabouts): boolean {
+// Devuelve un type predicate y no un boolean para que quien lo use pueda
+// descartar 'desconocido' del tipo, como hace paraderoInicial.
+export function isSheltered(w: Whereabouts): w is 'con_quien_publica' | 'con_un_tercero' {
   return w === 'con_quien_publica' || w === 'con_un_tercero'
 }
 
@@ -74,11 +76,14 @@ export function deriveWhereabouts(listingType: ListingType, chosen: Whereabouts)
 /**
  * Con que opcion abre el selector de paradero de la novedad de alojamiento.
  *
- * Arranca en el paradero que el caso ya tiene, para que contar un cambio de
- * alojamiento sobre un caso que ya estaba a resguardo no lo mueva sin que nadie
- * lo pida. 'desconocido' no es una opcion del selector, asi que cae en la
- * transicion mas comun: apareció y lo tiene quien publicó.
+ * Si alguien ya lo tiene, arranca en el paradero actual: contar que cambio de
+ * lugar un caso ya resguardado no tiene por que moverlo sin que nadie lo pida.
+ *
+ * Si no lo tiene nadie, arranca en la transicion mas comun —aparecio y lo tiene
+ * quien publico—, porque ahi el chip que abrio el formulario dice "Ya esta con
+ * alguien": abrirlo en 'en_la_calle' seria ofrecer como opcion por defecto la
+ * unica que contradice lo que se acaba de elegir.
  */
 export function paraderoInicial(actual: Whereabouts): AlojamientoWhereabouts {
-  return actual === 'desconocido' ? 'con_quien_publica' : actual
+  return isSheltered(actual) ? actual : 'con_quien_publica'
 }

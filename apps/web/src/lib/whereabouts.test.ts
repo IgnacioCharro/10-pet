@@ -61,12 +61,14 @@ describe('PIN_LEGEND', () => {
 })
 
 describe('paraderoInicial', () => {
-  it('un caso buscado abre el selector en la transicion mas comun', () => {
+  it('si no lo tiene nadie abre en la transicion mas comun', () => {
+    // El chip que abre el formulario dice "Ya esta con alguien": arrancar en
+    // 'en_la_calle' seria proponer por defecto lo unico que lo contradice.
     expect(paraderoInicial('desconocido')).toBe('con_quien_publica')
+    expect(paraderoInicial('en_la_calle')).toBe('con_quien_publica')
   })
 
-  it('un caso que ya tiene paradero abre en el suyo y no lo mueve solo', () => {
-    expect(paraderoInicial('en_la_calle')).toBe('en_la_calle')
+  it('un caso ya resguardado abre en el suyo y no lo mueve solo', () => {
     expect(paraderoInicial('con_un_tercero')).toBe('con_un_tercero')
     expect(paraderoInicial('con_quien_publica')).toBe('con_quien_publica')
   })
