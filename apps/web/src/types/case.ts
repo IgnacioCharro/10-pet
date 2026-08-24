@@ -8,6 +8,13 @@ export type SortOrder = 'recent' | 'urgency' | 'distance'
 export type ListingType = 'found' | 'lost'
 export type Whereabouts = 'en_la_calle' | 'con_quien_publica' | 'con_un_tercero' | 'desconocido'
 
+/**
+ * Los paraderos que puede fijar una novedad de alojamiento. 'desconocido' queda
+ * afuera: contar que el animal cambio de lugar y a la vez no saber donde esta es
+ * un contrasentido, y el API lo rebota.
+ */
+export type AlojamientoWhereabouts = Exclude<Whereabouts, 'desconocido'>
+
 export interface CaseItem {
   id: string
   userId: string

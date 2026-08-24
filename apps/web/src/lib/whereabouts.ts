@@ -1,4 +1,4 @@
-import type { Whereabouts, ListingType } from '../types/case'
+import type { Whereabouts, ListingType, AlojamientoWhereabouts } from '../types/case'
 
 /**
  * Donde esta el animal ahora, que no es donde se lo vio.
@@ -69,4 +69,16 @@ export function isSheltered(w: Whereabouts): boolean {
  */
 export function deriveWhereabouts(listingType: ListingType, chosen: Whereabouts): Whereabouts {
   return listingType === 'lost' ? 'desconocido' : chosen
+}
+
+/**
+ * Con que opcion abre el selector de paradero de la novedad de alojamiento.
+ *
+ * Arranca en el paradero que el caso ya tiene, para que contar un cambio de
+ * alojamiento sobre un caso que ya estaba a resguardo no lo mueva sin que nadie
+ * lo pida. 'desconocido' no es una opcion del selector, asi que cae en la
+ * transicion mas comun: apareció y lo tiene quien publicó.
+ */
+export function paraderoInicial(actual: Whereabouts): AlojamientoWhereabouts {
+  return actual === 'desconocido' ? 'con_quien_publica' : actual
 }

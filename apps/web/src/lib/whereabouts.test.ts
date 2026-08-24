@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { WHEREABOUTS_LABEL, WHEREABOUTS_PIN, isSheltered, deriveWhereabouts, pinBorderColor, PIN_LEGEND } from './whereabouts'
+import { WHEREABOUTS_LABEL, WHEREABOUTS_PIN, isSheltered, deriveWhereabouts, pinBorderColor, PIN_LEGEND, paraderoInicial } from './whereabouts'
 import type { Whereabouts } from '../types/case'
 
 describe('whereabouts', () => {
@@ -57,5 +57,17 @@ describe('PIN_LEGEND', () => {
       pinBorderColor('en_la_calle', true),
     ])
     expect(new Set(PIN_LEGEND.map((f) => f.color))).toEqual(posibles)
+  })
+})
+
+describe('paraderoInicial', () => {
+  it('un caso buscado abre el selector en la transicion mas comun', () => {
+    expect(paraderoInicial('desconocido')).toBe('con_quien_publica')
+  })
+
+  it('un caso que ya tiene paradero abre en el suyo y no lo mueve solo', () => {
+    expect(paraderoInicial('en_la_calle')).toBe('en_la_calle')
+    expect(paraderoInicial('con_un_tercero')).toBe('con_un_tercero')
+    expect(paraderoInicial('con_quien_publica')).toBe('con_quien_publica')
   })
 })

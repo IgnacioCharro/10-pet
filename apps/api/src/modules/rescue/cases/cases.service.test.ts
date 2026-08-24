@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../../../db', () => ({
   sequelize: { query: vi.fn() },
-  Case: { findByPk: vi.fn() },
+  Case: { findByPk: vi.fn(), update: vi.fn() },
   CaseImage: { bulkCreate: vi.fn(), findAll: vi.fn() },
   CaseUpdate: { create: vi.fn(), findAll: vi.fn() },
 }));
@@ -19,6 +19,7 @@ import {
   listCasesByUser,
   createCase,
   updateCase,
+  addCaseUpdate,
   FEED_MAX_AGE_DAYS,
 } from './cases.service';
 import { VOLUNTEER_COUNT_SUBQUERY, FEED_VOLUNTEER_COUNT_EXPR } from './cases.ordering';
@@ -241,5 +242,46 @@ describe('getFeedCases — excluye a resguardo', () => {
     expect(sqlOf(0)).toContain(
       `c.whereabouts NOT IN ('con_quien_publica', 'con_un_tercero')`,
     );
+  });
+});
+
+describe('addCaseUpdate — el paradero lo mueve la novedad', () => {
+  const duenio = { id: 'case-1', userId: 'user-1' } as never;
+
+  it('mueve el paradero del caso cuando la novedad de alojamiento lo trae', async () => {
+    vi.mocked(Case.findByPk).mockResolvedValueOnce(duenio);
+    vi.mocked(CaseUpdate.create).mockResolvedValueOnce({ toJSON: () => ({ id: 'u-1' }) } as never);
+
+    await addCaseUpdate('case-1', 'user-1', {
+      updateType: 'alojamiento',
+      content: 'Aparecio, lo tiene la vecina',
+      hostName: 'Marta Gimenez',
+      whereabouts: 'con_un_tercero',
+    });
+
+    expect(Case.update).toHaveBeenCalledWith(
+      { whereabouts: 'con_un_tercero' },
+      { where: { id: 'case-1' } },
+    );
+  });
+
+  it('no toca el paradero cuando la novedad no lo trae', async () => {
+    vi.mocked(Case.findByPk).mockResolvedValueOnce(duenio);
+    vi.mocked(CaseUpdate.create).mockResolvedValueOnce({ toJSON: () => ({ id: 'u-2' }) } as never);
+
+    await addCaseUpdate('case-1', 'user-1', { updateType: 'salud', content: 'Come bien' });
+
+    expect(Case.update).not.toHaveBeenCalled();
+  });
+
+  it('quien no es el autor del caso no mueve nada', async () => {
+    vi.mocked(Case.findByPk).mockResolvedValueOnce({ id: 'case-1', userId: 'otro' } as never);
+
+    await expect(
+      addCaseUpdate('case-1', 'user-1', { updateType: 'alojamiento', whereabouts: 'en_la_calle' }),
+    ).rejects.toThrow();
+
+    expect(Case.update).not.toHaveBeenCalled();
+    expect(CaseUpdate.create).not.toHaveBeenCalled();
   });
 });

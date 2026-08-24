@@ -60,12 +60,36 @@ interface CaseLocationInfoProps {
 }
 
 /**
+ * Dos textos que dicen lo mismo escritos distinto. Compara sin mayusculas, sin
+ * tildes y con los espacios colapsados porque las dos puntas las escribio la
+ * misma persona a mano, en momentos distintos: "12 de Octubre y Espana" y
+ * "12 de octubre y Espana" son el mismo dato.
+ */
+function mismoTexto(a: string, b: string): boolean {
+  const norm = (s: string) =>
+    s
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim()
+  return norm(a) === norm(b)
+}
+
+/**
  * Donde lo vieron y donde esta son dos cosas distintas, y se leen una debajo de
  * la otra a proposito. La ubicacion del caso marca siempre el avistamiento: el
  * domicilio de quien rescata no entra al sistema. Decirlo con todas las letras
  * es lo que evita que el pin se lea como "aca vive el que lo tiene".
  */
 export function CaseLocationInfo({ locationText, referenceNote, whereabouts }: CaseLocationInfoProps) {
+  // La referencia se calla cuando repite la direccion. Hasta #128 el paso de
+  // ubicacion no tenia donde escribir la calle, asi que muchos la anotaron como
+  // referencia y despues la cargaron igual como direccion al editar: la ficha
+  // terminaba diciendo dos veces lo mismo, que se lee como un error y no como el
+  // dato de mas que es.
+  const repetida = referenceNote != null && locationText != null && mismoTexto(referenceNote, locationText)
+
   return (
     <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
       <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +100,7 @@ export function CaseLocationInfo({ locationText, referenceNote, whereabouts }: C
         {locationText && (
           <p><span className="font-medium">Dónde lo vieron:</span> {locationText}</p>
         )}
-        {referenceNote && (
+        {referenceNote && !repetida && (
           <p className="text-gray-500 dark:text-gray-400">{referenceNote}</p>
         )}
         <p><span className="font-medium">Dónde está:</span> {WHEREABOUTS_LABEL[whereabouts]}</p>

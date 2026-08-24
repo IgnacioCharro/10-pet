@@ -7,6 +7,7 @@ import type {
   ListCasesQuery,
   PaginatedCasesResponse,
   CreateCaseInput,
+  AlojamientoWhereabouts,
 } from '../types/case'
 
 export const listCases = async (query: ListCasesQuery = {}): Promise<PaginatedCasesResponse> => {
@@ -87,18 +88,26 @@ export async function getZoneStats(params: {
   return res.data
 }
 
+/** Los datos que solo viajan en una novedad de alojamiento. */
+export interface AlojamientoExtra {
+  hostName?: string
+  whereabouts?: AlojamientoWhereabouts
+}
+
 export const addCaseUpdate = async (
   caseId: string,
   updateType: CaseUpdateType,
   content?: string,
-  hostName?: string,
+  alojamiento?: AlojamientoExtra,
 ): Promise<CaseUpdateItem> => {
+  // El API rechaza hostName y whereabouts en cualquier tipo que no sea 'alojamiento',
+  // asi que no alcanza con que los campos esten vacios: hay que no mandarlos.
+  const extra = updateType === 'alojamiento' ? alojamiento : undefined
   const res = await api.post<{ update: CaseUpdateItem }>(`/cases/${caseId}/updates`, {
     updateType,
     content: content || undefined,
-    // El API rechaza hostName en cualquier tipo que no sea 'alojamiento', asi que no
-    // alcanza con que el campo este vacio: hay que no mandarlo.
-    hostName: updateType === 'alojamiento' && hostName ? hostName : undefined,
+    hostName: extra?.hostName || undefined,
+    whereabouts: extra?.whereabouts,
   })
   return res.data.update
 }
