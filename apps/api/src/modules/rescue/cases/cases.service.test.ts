@@ -20,6 +20,7 @@ import {
   createCase,
   updateCase,
   addCaseUpdate,
+  listPublicCasesByUser,
   FEED_MAX_AGE_DAYS,
 } from './cases.service';
 import { VOLUNTEER_COUNT_SUBQUERY, FEED_VOLUNTEER_COUNT_EXPR } from './cases.ordering';
@@ -283,5 +284,43 @@ describe('addCaseUpdate — el paradero lo mueve la novedad', () => {
 
     expect(Case.update).not.toHaveBeenCalled();
     expect(CaseUpdate.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('listPublicCasesByUser', () => {
+  it('deja fuera los estados de moderacion en las dos listas', async () => {
+    await listPublicCasesByUser('user-1');
+
+    for (const call of [0, 1]) {
+      const sql = sqlOf(call);
+      expect(sql).toContain("c.status IN ('abierto','en_rescate','resuelto')");
+      expect(sql).not.toContain('spam');
+      expect(replacementsOf(call)['userId']).toBe('user-1');
+    }
+  });
+
+  it('los publicados salen por autor y los ayudados por contacto aceptado', async () => {
+    await listPublicCasesByUser('user-1');
+
+    expect(sqlOf(0)).toContain('c.user_id = :userId');
+    const ayudados = sqlOf(1);
+    expect(ayudados).toContain('JOIN contacts co ON co.case_id = c.id');
+    expect(ayudados).toContain('co.initiator_id = :userId');
+    expect(ayudados).toContain("co.status IN ('active','completed')");
+    // Un mismo caso puede tener mas de un contacto del mismo voluntario: la lista
+    // muestra casos, no ofrecimientos.
+    expect(ayudados).toContain('DISTINCT ON (c.id)');
+  });
+
+  it('devuelve los ayudados del mas nuevo al mas viejo, pese al DISTINCT ON', async () => {
+    queryMock.mockResolvedValueOnce([]);
+    queryMock.mockResolvedValueOnce([
+      { id: 'a', createdAt: new Date('2026-01-01') },
+      { id: 'b', createdAt: new Date('2026-06-01') },
+    ]);
+
+    const { volunteered } = await listPublicCasesByUser('user-1');
+
+    expect(volunteered.map((c) => c.id)).toEqual(['b', 'a']);
   });
 });

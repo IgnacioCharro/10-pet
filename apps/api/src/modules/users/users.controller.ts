@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError, z } from 'zod';
-import { User, Case } from '../../db';
+import { User } from '../../db';
 import { getOfferStats } from './users.service';
-import { listCasesByUser } from '../rescue/cases/cases.service';
+import { listCasesByUser, listPublicCasesByUser } from '../rescue/cases/cases.service';
 import { isAdminEmail } from '../moderation/admin/admin.roles';
 
 const pushTokenSchema = z.object({
@@ -184,6 +184,31 @@ export const getMyCases = async (
   }
 };
 
+/**
+ * Los casos de una persona para su perfil publico. Es publico a proposito: la
+ * ficha de un caso ya muestra en abierto quien lo publico y quienes ayudaron,
+ * asi que la lista al reves no expone nada nuevo.
+ */
+export const getUserCases = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { id } = req.params as { id: string };
+
+    const user = await User.findByPk(id, { attributes: ['id'] });
+    if (!user) {
+      res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: 'Usuario no encontrado' } });
+      return;
+    }
+
+    res.json(await listPublicCasesByUser(id));
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getUserById = async (
   req: Request,
   res: Response,
@@ -200,8 +225,10 @@ export const getUserById = async (
       return;
     }
 
-    const [casesPublished, offers] = await Promise.all([
-      Case.count({ where: { userId: id } }),
+    // Los contadores cuentan lo mismo que la lista de abajo muestra: si contaran
+    // tambien los casos dados de baja por moderacion, el perfil diria 7 y listaria 5.
+    const [cases, offers] = await Promise.all([
+      listPublicCasesByUser(id),
       getOfferStats(id),
     ]);
 
@@ -210,9 +237,8 @@ export const getUserById = async (
       name: user.name,
       isVet: user.isVet,
       createdAt: user.createdAt,
-      casesPublished,
-      // casesVolunteered es active+completed, el mismo valor que offersAccepted
-      casesVolunteered: offers.offersAccepted,
+      casesPublished: cases.published.length,
+      casesVolunteered: cases.volunteered.length,
       offersAccepted: offers.offersAccepted,
       offersCompleted: offers.offersCompleted,
       // offersRejected no se expone: el registro es libre, asi que "cualquier

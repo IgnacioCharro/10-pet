@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getPublicProfile, type PublicProfile } from '../services/users.service'
+import { getPublicProfile, getUserCases, type PublicProfile, type PublicUserCases } from '../services/users.service'
 import { listContactsWithUser, type ContactItem } from '../services/contacts.service'
 import { esConversacionLegible } from '../lib/conversations'
 import { useAuthStore } from '../stores/authStore'
 import ConversationList from '../components/contacts/ConversationList'
+import CaseLinkList from '../components/cases/CaseLinkList'
 import { Card } from '../components/ui'
 
 function memberSince(iso: string): string {
@@ -18,6 +19,7 @@ export default function PublicProfilePage() {
   const [notFound, setNotFound] = useState(false)
   const currentUserId = useAuthStore((s) => s.user?.id)
   const [conversaciones, setConversaciones] = useState<ContactItem[]>([])
+  const [cases, setCases] = useState<PublicUserCases>({ published: [], volunteered: [] })
 
   useEffect(() => {
     if (!id) return
@@ -28,6 +30,15 @@ export default function PublicProfilePage() {
         if (err?.response?.status === 404) setNotFound(true)
       })
       .finally(() => setLoading(false))
+  }, [id])
+
+  // Los casos van en su propia llamada y no dentro del perfil: son dos listas que
+  // pueden crecer, y el encabezado tiene que poder pintarse sin esperarlas.
+  useEffect(() => {
+    if (!id) return
+    getUserCases(id)
+      .then(setCases)
+      .catch(() => setCases({ published: [], volunteered: [] }))
   }, [id])
 
   // Las conversaciones que ya comparto con esta persona. El chat nace de una
@@ -89,6 +100,22 @@ export default function PublicProfilePage() {
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Casos ayudados</p>
         </Card>
       </div>
+
+      <Card className="p-4">
+        <CaseLinkList
+          items={cases.published}
+          title="Casos publicados"
+          emptyText="Todavía no publicó ningún caso."
+        />
+      </Card>
+
+      <Card className="p-4">
+        <CaseLinkList
+          items={cases.volunteered}
+          title="Casos ayudados"
+          emptyText="Todavía no ayudó en ningún caso."
+        />
+      </Card>
 
       {conversaciones.length > 0 && (
         <Card className="p-4">

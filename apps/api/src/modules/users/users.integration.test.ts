@@ -249,6 +249,10 @@ describe('POST /api/v1/users/me/push-token', () => {
   });
 });
 
+const queryMock = vi.mocked(
+  db.sequelize.query as unknown as (sql: string, options?: unknown) => Promise<unknown[]>,
+);
+
 describe('GET /api/v1/users/:id', () => {
   const publicUser = {
     id: 'uuid-target',
@@ -265,9 +269,18 @@ describe('GET /api/v1/users/:id', () => {
     { status: 'pending', count: '5' },
   ];
 
-  const mockProfile = (rows: unknown[], casesPublished = 0) => {
+  const fakeCase = (id: string) => ({ id, createdAt: new Date('2026-05-01') });
+
+  // Los contadores del perfil salen de las mismas dos queries que alimentan la
+  // lista de casos: primero los publicados, despues aquellos en los que ayudo.
+  const mockProfile = (rows: unknown[], publicados = 0, ayudados = 0) => {
     vi.mocked(db.User.findByPk).mockResolvedValueOnce(publicUser as never);
-    vi.mocked(db.Case.count).mockResolvedValueOnce(casesPublished as never);
+    queryMock.mockResolvedValueOnce(
+      Array.from({ length: publicados }, (_, i) => fakeCase(`pub-${i}`)),
+    );
+    queryMock.mockResolvedValueOnce(
+      Array.from({ length: ayudados }, (_, i) => fakeCase(`vol-${i}`)),
+    );
     vi.mocked(db.Contact.findAll).mockResolvedValueOnce(rows as never);
   };
 
@@ -290,7 +303,6 @@ describe('GET /api/v1/users/:id', () => {
     expect(res.status).toBe(200);
     expect(res.body.offersAccepted).toBe(5);
     expect(res.body.offersCompleted).toBe(3);
-    expect(res.body.casesVolunteered).toBe(5);
   });
 
   it('no cuenta como aceptado un estado que no conoce', async () => {
@@ -313,6 +325,7 @@ describe('GET /api/v1/users/:id', () => {
     expect(typeof res.body.offersAccepted).toBe('number');
     expect(typeof res.body.offersCompleted).toBe('number');
     expect(typeof res.body.casesVolunteered).toBe('number');
+    expect(typeof res.body.casesPublished).toBe('number');
   });
 
   it('cuenta cero, y no NaN, si la fila viene sin el alias count', async () => {
@@ -323,7 +336,6 @@ describe('GET /api/v1/users/:id', () => {
     expect(res.status).toBe(200);
     expect(res.body.offersAccepted).toBe(3);
     expect(res.body.offersCompleted).toBe(3);
-    expect(res.body.casesVolunteered).toBe(3);
   });
 
   it('nunca expone offersRejected, ni al anonimo ni al autenticado', async () => {
@@ -348,12 +360,12 @@ describe('GET /api/v1/users/:id', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe('USER_NOT_FOUND');
-    expect(db.Case.count).not.toHaveBeenCalled();
+    expect(queryMock).not.toHaveBeenCalled();
     expect(db.Contact.findAll).not.toHaveBeenCalled();
   });
 
   it('mantiene intacto el contrato previo del perfil publico', async () => {
-    mockProfile(aggregateRows, 7);
+    mockProfile(aggregateRows, 7, 4);
 
     const res = await request(app).get('/api/v1/users/uuid-target');
 
@@ -362,8 +374,10 @@ describe('GET /api/v1/users/:id', () => {
     expect(res.body.name).toBe('Rescatista');
     expect(res.body.isVet).toBe(false);
     expect(res.body.createdAt).toBeDefined();
+    // Los dos contadores cuentan casos visibles, no ofrecimientos: por eso
+    // casesVolunteered da 4 y no los 5 aceptados de arriba.
     expect(res.body.casesPublished).toBe(7);
-    expect(res.body.casesVolunteered).toBe(5);
+    expect(res.body.casesVolunteered).toBe(4);
   });
 
   it('agrega los contactos en una sola query filtrada por el id de la URL', async () => {
@@ -376,5 +390,36 @@ describe('GET /api/v1/users/:id', () => {
     expect(db.Contact.findAll).toHaveBeenCalledWith(
       expect.objectContaining({ where: { initiatorId: 'uuid-target' } }),
     );
+  });
+});
+
+describe('GET /api/v1/users/:id/cases', () => {
+  const publicUser = { id: 'uuid-target', name: 'Rescatista', isVet: false, createdAt: new Date() };
+
+  it('devuelve las dos listas sin pedir autenticacion', async () => {
+    vi.mocked(db.User.findByPk).mockResolvedValueOnce(publicUser as never);
+    queryMock.mockResolvedValueOnce([{ id: 'case-pub', createdAt: new Date('2026-05-01') }]);
+    queryMock.mockResolvedValueOnce([{ id: 'case-vol', createdAt: new Date('2026-05-02') }]);
+
+    const res = await request(app).get('/api/v1/users/uuid-target/cases');
+
+    expect(res.status).toBe(200);
+    expect(res.body.published.map((c: { id: string }) => c.id)).toEqual(['case-pub']);
+    expect(res.body.volunteered.map((c: { id: string }) => c.id)).toEqual(['case-vol']);
+  });
+
+  it('devuelve 404 sin tocar la base si el usuario no existe', async () => {
+    vi.mocked(db.User.findByPk).mockResolvedValueOnce(null);
+
+    const res = await request(app).get('/api/v1/users/uuid-target/cases');
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('USER_NOT_FOUND');
+    expect(queryMock).not.toHaveBeenCalled();
+  });
+
+  it('no confunde la ruta con el perfil: /me/cases sigue pidiendo token', async () => {
+    const res = await request(app).get('/api/v1/users/me/cases');
+    expect(res.status).toBe(401);
   });
 });

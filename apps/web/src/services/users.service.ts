@@ -44,3 +44,14 @@ export const getPublicProfile = async (userId: string): Promise<PublicProfile> =
   const res = await api.get<PublicProfile>(`/users/${userId}`)
   return res.data
 }
+
+/** Los casos de una persona para su perfil publico: los que publico y en los que ayudo. */
+export interface PublicUserCases {
+  published: CaseItem[]
+  volunteered: CaseItem[]
+}
+
+export const getUserCases = async (userId: string): Promise<PublicUserCases> => {
+  const res = await api.get<PublicUserCases>(`/users/${userId}/cases`)
+  return res.data
+}
